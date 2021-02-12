@@ -1,0 +1,10 @@
+*.class
+*.log
+/.idea
+/.gradle
+.DS_Store
+/target
+/build
+/out
+/classes
+/discoclient.iml
