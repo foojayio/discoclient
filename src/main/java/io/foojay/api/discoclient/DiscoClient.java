@@ -1345,7 +1345,7 @@ public class DiscoClient {
                     pkgsFound = pkgCache.stream()
                                         .filter(pkg -> distributions.isEmpty()                    ? pkg.getDistribution()        != null          : distributions.contains(pkg.getDistribution()))
                                         .filter(pkg -> Constants.SCOPE_LOOKUP.get(pkg.getDistribution()).stream().anyMatch(scopes.stream().collect(toSet())::contains))
-                                        .filter(pkg -> pkg.getJavaVersion().getVersionNumber() != null)
+                                        .filter(pkg -> null != versionNumber ? pkg.getJavaVersion().getVersionNumber().compareTo(versionNumber) == 0 : null != pkg.getJavaVersion().getVersionNumber())
                                         .filter(pkg -> architectures.isEmpty()                    ? pkg.getArchitecture()        != null          : architectures.contains(pkg.getArchitecture()))
                                         .filter(pkg -> archiveTypes.isEmpty()                     ? pkg.getArchiveType()         != null          : archiveTypes.contains(pkg.getArchiveType()))
                                         .filter(pkg -> operatingSystems.isEmpty()                 ? pkg.getOperatingSystem()     != null          : operatingSystems.contains(pkg.getOperatingSystem()))
@@ -1358,46 +1358,6 @@ public class DiscoClient {
                                         .filter(pkg -> null               == directlyDownloadable ? pkg.isDirectlyDownloadable() != null          : pkg.isDirectlyDownloadable() == directlyDownloadable)
                                         .sorted(Comparator.comparing(Pkg::getDistributionName).reversed().thenComparing(Comparator.comparing((Pkg pkg1) -> pkg1.getJavaVersion().getVersionNumber()).reversed()))
                                         .collect(Collectors.toList());
-
-                    if (null != versionNumber) {
-                        int featureVersion = versionNumber.getFeature().getAsInt();
-                        int interimVersion = versionNumber.getInterim().getAsInt();
-                        int updateVersion  = versionNumber.getUpdate().getAsInt();
-                        int patchVersion   = versionNumber.getPatch().getAsInt();
-                        if (0 != patchVersion) {
-                            // e.g. 11.N.N.3
-                            pkgsFound = pkgsFound.stream()
-                                                 .filter(pkg -> pkg.getJavaVersion().getVersionNumber().getFeature().getAsInt() == featureVersion)
-                                                 .filter(pkg -> pkg.getJavaVersion().getVersionNumber().getInterim().getAsInt() == interimVersion)
-                                                 .filter(pkg -> pkg.getJavaVersion().getVersionNumber().getUpdate().getAsInt()  == updateVersion)
-                                                 .filter(pkg -> pkg.getJavaVersion().getVersionNumber().getPatch().getAsInt()   == patchVersion)
-                                                 .collect(Collectors.toList());
-                        } else if (0 != updateVersion) {
-                            // e.g. 11.N.2.0
-                            pkgsFound = pkgsFound.stream()
-                                                 .filter(pkg -> pkg.getJavaVersion().getVersionNumber().getFeature().getAsInt() == featureVersion)
-                                                 .filter(pkg -> pkg.getJavaVersion().getVersionNumber().getInterim().getAsInt() == interimVersion)
-                                                 .filter(pkg -> pkg.getJavaVersion().getVersionNumber().getUpdate().getAsInt()  == updateVersion)
-                                                 .filter(pkg -> pkg.getJavaVersion().getVersionNumber().getPatch().getAsInt()   == 0)
-                                                 .collect(Collectors.toList());
-                        } else if (0 != interimVersion) {
-                            // e.g. 11.1.0.0
-                            pkgsFound = pkgsFound.stream()
-                                                 .filter(pkg -> pkg.getJavaVersion().getVersionNumber().getFeature().getAsInt() == featureVersion)
-                                                 .filter(pkg -> pkg.getJavaVersion().getVersionNumber().getInterim().getAsInt() == interimVersion)
-                                                 .filter(pkg -> pkg.getJavaVersion().getVersionNumber().getUpdate().getAsInt()  == 0)
-                                                 .filter(pkg -> pkg.getJavaVersion().getVersionNumber().getPatch().getAsInt()   == 0)
-                                                 .collect(Collectors.toList());
-                        } else {
-                            // e.g. 11.0.0.0
-                            pkgsFound = pkgsFound.stream()
-                                                 .filter(pkg -> pkg.getJavaVersion().getVersionNumber().getFeature().getAsInt() == featureVersion)
-                                                 .filter(pkg -> pkg.getJavaVersion().getVersionNumber().getInterim().getAsInt() == 0)
-                                                 .filter(pkg -> pkg.getJavaVersion().getVersionNumber().getUpdate().getAsInt()  == 0)
-                                                 .filter(pkg -> pkg.getJavaVersion().getVersionNumber().getPatch().getAsInt()   == 0)
-                                                 .collect(Collectors.toList());
-                        }
-                    }
                     break;
                 case NONE:
                 case NOT_FOUND:

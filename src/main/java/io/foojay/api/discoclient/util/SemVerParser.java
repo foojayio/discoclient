@@ -63,6 +63,8 @@ public class SemVerParser {
         String metadata1 = null != result.group(12) ? result.group(12) : "";
         String pre1      = null != result.group(9)  ? result.group(9)  : "";
 
+        if (pre1.equals("ea.0")) { pre1 = "ea"; }
+
         VersionNumber versionNumber1 = new VersionNumber();
 
         Comparison comparison1;
@@ -172,6 +174,8 @@ public class SemVerParser {
         if (result.groupCount() == 27 && null != result.group(14)) {
             String metadata2 = null != result.group(26) ? result.group(26) : "";
             String pre2      = null != result.group(23) ? result.group(23) : "";
+
+            if (pre2.equals("ea.0")) { pre2 = "ea"; }
 
             VersionNumber versionNumber2 = new VersionNumber();
 
