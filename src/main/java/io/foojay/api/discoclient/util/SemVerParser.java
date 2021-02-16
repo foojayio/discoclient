@@ -332,7 +332,7 @@ public class SemVerParser {
         String[] eparts = preRelease.split("\\.");
         for (String p : eparts) {
             if (p.matches("[0-9]+")) {
-                if (p.length() > 1 && p.startsWith("0")) {
+                if (p.length() > 0 && p.startsWith("0")) {
                     return new Error("Segment starts with 0: " + p);
                 }
             } else if (!p.matches("[a-zA-Z-0-9]+")) {

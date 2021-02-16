@@ -47,7 +47,9 @@ import io.foojay.api.discoclient.pkg.SemVer;
 import io.foojay.api.discoclient.pkg.TermOfSupport;
 import io.foojay.api.discoclient.pkg.VersionNumber;
 import io.foojay.api.discoclient.util.Comparison;
+import io.foojay.api.discoclient.util.Constants;
 import io.foojay.api.discoclient.util.Helper;
+import io.foojay.api.discoclient.util.OutputFormat;
 import io.foojay.api.discoclient.util.PkgInfo;
 import io.foojay.api.discoclient.util.ReadableConsumerByteChannel;
 import org.slf4j.Logger;
@@ -332,7 +334,7 @@ public class DiscoClient {
 
         if (null != versionNumber) {
             queryBuilder.append(queryBuilder.length() == initialLength ? "?" : "&");
-            queryBuilder.append(Constants.API_VERSION).append("=").append(versionNumber.toString());
+            queryBuilder.append(Constants.API_VERSION).append("=").append(versionNumber.toString(OutputFormat.REDUCED, true, true));
         }
 
         Latest latestCache = Latest.NONE;
@@ -847,7 +849,7 @@ public class DiscoClient {
     public final CompletableFuture<List<Distribution>> getDistributionsThatSupportAsync(final SemVer semVer, final OperatingSystem operatingSystem, final Architecture architecture,
                                                                                         final LibCType libcType, final ArchiveType archiveType, final PackageType packageType,
                                                                                         final Boolean javafxBundled, final Boolean directlyDownloadable) {
-        return getPkgsAsync(Distribution.NONE, semVer.getVersionNumber(), Latest.NONE, operatingSystem, libcType, architecture,
+        return getPkgsAsync(Distribution.NONE, semVer.getVersionNumber(), Latest.EXPLICIT, operatingSystem, libcType, architecture,
                             Bitness.NONE, archiveType, packageType, javafxBundled, directlyDownloadable, semVer.getReleaseStatus(),
                             TermOfSupport.NONE, Scope.PUBLIC).thenApply(pkgs -> pkgs.stream()
                                                                                     .map(pkg -> pkg.getDistribution())

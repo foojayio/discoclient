@@ -81,7 +81,7 @@ public class Pkg {
         this.id                   = json.has(FIELD_ID)                     ? json.get(FIELD_ID).getAsString() : "";
         this.distribution         = json.has(FIELD_DISTRIBUTION)           ? Distribution.fromText(json.get(FIELD_DISTRIBUTION).getAsString())          : Distribution.NOT_FOUND;
         this.majorVersion         = json.has(FIELD_MAJOR_VERSION)          ? new MajorVersion(json.get(FIELD_MAJOR_VERSION).getAsInt())                 : new MajorVersion(1);
-        this.javaVersion          = json.has(FIELD_JAVA_VERSION)           ? SemVer.fromText(json.get(FIELD_JAVA_VERSION).getAsString()).getSemVer1()   : new SemVer();
+        this.javaVersion          = json.has(FIELD_JAVA_VERSION)           ? SemVer.fromText(json.get(FIELD_JAVA_VERSION).getAsString()).getSemVer1()   : new SemVer(new VersionNumber());
         this.distributionVersion  = json.has(FIELD_DISTRIBUTION)           ? VersionNumber.fromText(json.get(FIELD_DISTRIBUTION_VERSION).getAsString()) : new VersionNumber();
         this.latestBuildAvailable = json.has(FIELD_LATEST_BUILD_AVAILABLE) ? json.get(FIELD_LATEST_BUILD_AVAILABLE).getAsBoolean()                      : Boolean.FALSE;
         this.architecture         = json.has(FIELD_ARCHITECTURE)           ? Architecture.fromText(json.get(FIELD_ARCHITECTURE).getAsString())          : Architecture.NOT_FOUND;

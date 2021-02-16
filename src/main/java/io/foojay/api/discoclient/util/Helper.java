@@ -21,7 +21,6 @@
 
 package io.foojay.api.discoclient.util;
 
-import io.foojay.api.discoclient.Constants;
 import io.foojay.api.discoclient.pkg.TermOfSupport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
