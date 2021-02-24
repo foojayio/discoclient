@@ -65,6 +65,8 @@ public class Constants {
         put(Distribution.GRAALVM_CE8, List.of(Scope.PUBLIC, Scope.DIRECTLY_DOWNLOADABLE));
         put(Distribution.GRAALVM_CE11, List.of(Scope.PUBLIC, Scope.DIRECTLY_DOWNLOADABLE));
         put(Distribution.LIBERICA, List.of(Scope.PUBLIC, Scope.BUILD_OF_OPEN_JDK, Scope.DIRECTLY_DOWNLOADABLE));
+        put(Distribution.LIBERICA_NATIVE, List.of(Scope.PUBLIC, Scope.DIRECTLY_DOWNLOADABLE));
+        put(Distribution.MANDREL, List.of(Scope.PUBLIC, Scope.DIRECTLY_DOWNLOADABLE));
         put(Distribution.OJDK_BUILD, List.of(Scope.PUBLIC, Scope.BUILD_OF_OPEN_JDK, Scope.DIRECTLY_DOWNLOADABLE));
         put(Distribution.ORACLE, List.of(Scope.PUBLIC, Scope.BUILD_OF_OPEN_JDK, Scope.NOT_DIRECTLY_DOWNLOADABLE));
         put(Distribution.ORACLE_OPEN_JDK, List.of(Scope.PUBLIC, Scope.BUILD_OF_OPEN_JDK, Scope.DIRECTLY_DOWNLOADABLE));
