@@ -71,8 +71,10 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Queue;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -90,10 +92,10 @@ import static java.util.stream.Collectors.toSet;
 public class DiscoClient {
     private static final Logger                         LOGGER            = LoggerFactory.getLogger(DiscoClient.class);
     public         final AtomicBoolean                  cacheReady        = new AtomicBoolean(false);
-    private        final List<Pkg>                      pkgCache          = Collections.synchronizedList(new LinkedList<>());
-    private        final List<MajorVersion>             majorVersionCache = Collections.synchronizedList(new LinkedList<>());
+    private        final Queue<Pkg>                     pkgCache          = new ConcurrentLinkedQueue<>(); // Collections.synchronizedList(new LinkedList<>());
+    private        final Queue<MajorVersion>            majorVersionCache = new ConcurrentLinkedQueue<>(); // Collections.synchronizedList(new LinkedList<>());
     private        final Map<String, List<EvtObserver>> observers         = new ConcurrentHashMap<>();
-    private        final ScheduledExecutorService       service           = Executors.newScheduledThreadPool(1);
+    private        final ScheduledExecutorService       service           = Executors.newScheduledThreadPool(2);
     private        final Runnable                       updateCache       = () -> {
         cacheReady.set(false);
         fireEvt(new CacheEvt(DiscoClient.this, CacheEvt.CACHE_UPDATING));
@@ -115,7 +117,7 @@ public class DiscoClient {
     }
 
 
-    public List<Pkg> getAllPackages() {
+    public Queue<Pkg> getAllPackages() {
         if (cacheReady.get()) { return pkgCache; }
 
         StringBuilder queryBuilder = new StringBuilder().append(PropertyManager.INSTANCE.getString(Constants.PROPERTY_KEY_DISCO_URL))
@@ -124,9 +126,9 @@ public class DiscoClient {
                                                         .append("&release_status=ga");
 
         String query = queryBuilder.toString();
-        if (query.isEmpty()) { return List.of(); }
+        if (query.isEmpty()) { return new ConcurrentLinkedQueue<>(); }
 
-        List<Pkg> pkgs      = new LinkedList<>();
+        Queue<Pkg> pkgs     = new ConcurrentLinkedQueue<>();
         List<Pkg> pkgsFound = new ArrayList<>();
 
         String      bodyText = Helper.get(query);
@@ -146,9 +148,9 @@ public class DiscoClient {
 
         return pkgs;
     }
-    public CompletableFuture<List<Pkg>> getAllPackagesAsync() {
+    public CompletableFuture<Queue<Pkg>> getAllPackagesAsync() {
         if (cacheReady.get()) {
-            CompletableFuture<List<Pkg>> future = new CompletableFuture<>();
+            CompletableFuture<Queue<Pkg>> future = new CompletableFuture<>();
             future.complete(pkgCache);
             return future;
         }
@@ -158,9 +160,9 @@ public class DiscoClient {
                                                         .append("&release_status=ga");
         String query = queryBuilder.toString();
 
-        CompletableFuture<List<Pkg>> future = Helper.getAsync(query).thenApply(response -> {
+        CompletableFuture<Queue<Pkg>> future = Helper.getAsync(query).thenApply(response -> {
             if (cacheReady.get()) { return pkgCache; }
-            List<Pkg>   pkgsFound = new ArrayList<>();
+            Queue<Pkg>  pkgsFound = new ConcurrentLinkedQueue<>();
             Gson        gson      = new Gson();
             JsonElement element   = gson.fromJson(response, JsonElement.class);
             if (element instanceof JsonArray) {
@@ -520,16 +522,16 @@ public class DiscoClient {
     }
 
 
-    public final List<MajorVersion> getAllMajorVersions() { return getAllMajorVersions(false); }
-    public final List<MajorVersion> getAllMajorVersions(final boolean include_ea) {
+    public final Queue<MajorVersion> getAllMajorVersions() { return getAllMajorVersions(false); }
+    public final Queue<MajorVersion> getAllMajorVersions(final boolean include_ea) {
         StringBuilder queryBuilder = new StringBuilder().append(PropertyManager.INSTANCE.getString(Constants.PROPERTY_KEY_DISCO_URL))
                                                         .append(Constants.MAJOR_VERSIONS_PATH)
                                                         .append("?ea=")
                                                         .append(include_ea);
 
-        String             query              = queryBuilder.toString();
-        String             bodyText           = Helper.get(query);
-        List<MajorVersion> majorVersionsFound = new ArrayList<>();
+        String              query              = queryBuilder.toString();
+        String              bodyText           = Helper.get(query);
+        Queue<MajorVersion> majorVersionsFound = new ConcurrentLinkedQueue<>();
 
         Gson        gson     = new Gson();
         JsonElement element  = gson.fromJson(bodyText, JsonElement.class);
@@ -763,8 +765,53 @@ public class DiscoClient {
     }
 
 
+    public final List<MajorVersion> getUsefulMajorVersions() {
+        StringBuilder queryBuilder = new StringBuilder().append(PropertyManager.INSTANCE.getString(Constants.PROPERTY_KEY_DISCO_URL))
+                                                        .append(Constants.MAJOR_VERSIONS_PATH)
+                                                        .append("/useful");
+
+        String             query              = queryBuilder.toString();
+        String             bodyText           = Helper.get(query);
+        List<MajorVersion> majorVersionsFound = new ArrayList<>();
+
+        Gson        gson     = new Gson();
+        JsonElement element  = gson.fromJson(bodyText, JsonElement.class);
+        if (element instanceof JsonArray) {
+            JsonArray jsonArray = element.getAsJsonArray();
+            for (int i = 0; i < jsonArray.size(); i++) {
+                JsonObject majorVersionJsonObj = jsonArray.get(i).getAsJsonObject();
+                majorVersionsFound.add(new MajorVersion(majorVersionJsonObj.toString()));
+            }
+        }
+        return majorVersionsFound;
+    }
+
+
+    public final CompletableFuture<List<MajorVersion>> getUsefulMajorVersionsAsync() {
+        StringBuilder queryBuilder = new StringBuilder().append(PropertyManager.INSTANCE.getString(Constants.PROPERTY_KEY_DISCO_URL))
+                                                        .append(Constants.MAJOR_VERSIONS_PATH)
+                                                        .append("/useful");
+
+        String query = queryBuilder.toString();
+        return Helper.getAsync(query).thenApply(bodyText -> {
+            List<MajorVersion> majorVersionsFound = new ArrayList<>();
+
+            Gson        gson     = new Gson();
+            JsonElement element  = gson.fromJson(bodyText, JsonElement.class);
+            if (element instanceof JsonArray) {
+                JsonArray jsonArray = element.getAsJsonArray();
+                for (int i = 0; i < jsonArray.size(); i++) {
+                    JsonObject majorVersionJsonObj = jsonArray.get(i).getAsJsonObject();
+                    majorVersionsFound.add(new MajorVersion(majorVersionJsonObj.toString()));
+                }
+            }
+            return majorVersionsFound;
+        });
+    }
+
+
     public final MajorVersion getLatestLts(final boolean including_ea) {
-        List<MajorVersion> majorVersions = getAllMajorVersions(including_ea);
+        Queue<MajorVersion> majorVersions = getAllMajorVersions(including_ea);
         return majorVersions.stream()
                             .filter(majorVersion -> TermOfSupport.LTS == majorVersion.getTermOfSupport())
                             .filter(majorVersion -> including_ea ? majorVersion.getVersions().size() > 0 : majorVersion.getVersions().size() > 1)
@@ -780,7 +827,7 @@ public class DiscoClient {
 
 
     public final MajorVersion getLatestMts(final boolean including_ea) {
-        List<MajorVersion> majorVersions = getAllMajorVersions(including_ea);
+        Queue<MajorVersion> majorVersions = getAllMajorVersions(including_ea);
         return majorVersions.stream()
                             .filter(majorVersion -> TermOfSupport.MTS == majorVersion.getTermOfSupport())
                             .filter(majorVersion -> including_ea ? majorVersion.getVersions().size() > 0 : majorVersion.getVersions().size() > 1)
@@ -795,7 +842,7 @@ public class DiscoClient {
 
 
     public final MajorVersion getLatestSts(final boolean including_ea) {
-        List<MajorVersion> majorVersions = getAllMajorVersions(including_ea);
+        Queue<MajorVersion> majorVersions = getAllMajorVersions(including_ea);
         return majorVersions.stream()
                             .filter(majorVersion -> TermOfSupport.LTS != majorVersion.getTermOfSupport())
                             .filter(majorVersion -> including_ea ? majorVersion.getVersions().size() > 0 : majorVersion.getVersions().size() > 1)
@@ -1046,6 +1093,16 @@ public class DiscoClient {
     }
 
 
+    public List<Distribution> getDistributionsBasedOnOpenJDK() {
+        return Distribution.getDistributionsBasedOnOpenJDK();
+    }
+
+
+    public List<Distribution> getDistributionsBasedOnGraalVm() {
+        return Distribution.getDistributionsBasedOnGraalVm();
+    }
+
+
     public final String getPkgDirectDownloadUri(final String id, final SemVer javaVersion) {
         return getPkgInfo(id, javaVersion).getDirectDownloadUri();
     }
@@ -1227,7 +1284,11 @@ public class DiscoClient {
                     final VersionNumber maxNumber;
                     if (null == versionNumber || versionNumber.getFeature().isEmpty()) {
                         Optional<Pkg> pkgWithMaxVersionNumber = pkgCache.stream()
-                                                                        .filter(pkg -> distributions.isEmpty()                    ? (pkg.getDistribution() != null && !pkg.getDistribution().getUiString().equals(Distribution.GRAALVM_CE8.getUiString()) && !pkg.getDistribution().getUiString().equals(Distribution.GRAALVM_CE11.getUiString())) : distributions.contains(pkg.getDistribution()))
+                                                                        .filter(pkg -> distributions.isEmpty()                    ? (pkg.getDistribution() != null &&
+                                                                                                                                     pkg.getDistribution() != Distribution.GRAALVM_CE8 &&
+                                                                                                                                     pkg.getDistribution() != Distribution.GRAALVM_CE11 &&
+                                                                                                                                     pkg.getDistribution() != Distribution.LIBERICA_NATIVE &&
+                                                                                                                                     pkg.getDistribution() != Distribution.MANDREL) : distributions.contains(pkg.getDistribution()))
                                                                         .filter(pkg -> Constants.SCOPE_LOOKUP.get(pkg.getDistribution()).stream().anyMatch(scopes.stream().collect(toSet())::contains))
                                                                         .filter(pkg -> architectures.isEmpty()                    ? pkg.getArchitecture()        != null          : architectures.contains(pkg.getArchitecture()))
                                                                         .filter(pkg -> archiveTypes.isEmpty()                     ? pkg.getArchiveType()         != null          : archiveTypes.contains(pkg.getArchiveType()))
@@ -1420,7 +1481,7 @@ public class DiscoClient {
             VersionNumber  maxVersionNumber;
             Predicate<Pkg> greaterCheck;
             Predicate<Pkg> smallerCheck;
-            List<MajorVersion> majorVersions = majorVersionCache.isEmpty() ? getAllMajorVersions(true) : majorVersionCache;
+            Queue<MajorVersion> majorVersions = majorVersionCache.isEmpty() ? getAllMajorVersions(true) : majorVersionCache;
             switch (comparison) {
                 case EQUAL:
                     minVersionNumber = versionNumber;
@@ -1442,19 +1503,19 @@ public class DiscoClient {
                     break;
                 case GREATER_THAN:
                     minVersionNumber = versionNumber;
-                    maxVersionNumber = new VersionNumber(majorVersions.get(0).getAsInt());
+                    maxVersionNumber = new VersionNumber(majorVersions.peek().getAsInt());
                     greaterCheck     = pkg -> pkg.getJavaVersion().getVersionNumber().compareTo(minVersionNumber) > 0;
                     smallerCheck     = pkg -> pkg.getJavaVersion().getVersionNumber().compareTo(maxVersionNumber) <= 0;
                     break;
                 case GREATER_THAN_OR_EQUAL:
                     minVersionNumber = versionNumber;
-                    maxVersionNumber = new VersionNumber(majorVersions.get(0).getAsInt());
+                    maxVersionNumber = new VersionNumber(majorVersions.peek().getAsInt());
                     greaterCheck     = pkg -> pkg.getJavaVersion().getVersionNumber().compareTo(minVersionNumber) >= 0;
                     smallerCheck     = pkg -> pkg.getJavaVersion().getVersionNumber().compareTo(maxVersionNumber) <= 0;
                     break;
                 default:
                     minVersionNumber = new VersionNumber(6);
-                    maxVersionNumber = new VersionNumber(majorVersions.get(0).getAsInt());
+                    maxVersionNumber = new VersionNumber(majorVersions.peek().getAsInt());
                     greaterCheck     = pkg -> pkg.getJavaVersion().getVersionNumber().compareTo(minVersionNumber) >= 0;
                     smallerCheck     = pkg -> pkg.getJavaVersion().getVersionNumber().compareTo(maxVersionNumber) <= 0;
                     break;
