@@ -31,9 +31,11 @@ public enum Distribution implements ApiFeature {
     AOJ_OPENJ9("AOJ OpenJ9", "aoj_openj9"),
     CORRETTO("Corretto", "corretto"),
     DRAGONWELL("Dragonwell", "dragonwell"),
-    LIBERICA("Liberica", "liberica"),
     GRAALVM_CE8("Graal VM CE 8", "graalvm_ce8"),
     GRAALVM_CE11("Graal VM CE 11", "graalvm_ce11"),
+    LIBERICA("Liberica", "liberica"),
+    LIBERICA_NATIVE("Liberica Native", "liberica_native"),
+    MANDREL("Mandrel", "mandrel"),
     OJDK_BUILD("OJDKBuild", "ojdk_build"),
     ORACLE("Oracle", "oracle"),
     ORACLE_OPEN_JDK("Oracle OpenJDK", "oracle_openjdk"),
@@ -94,10 +96,6 @@ public enum Distribution implements ApiFeature {
             case "DRAGONWELL":
             case "Dragonwell":
                 return DRAGONWELL;
-            case "liberica":
-            case "LIBERICA":
-            case "Liberica":
-                return LIBERICA;
             case "graalvm_ce8":
             case "graalvmce8":
             case "GraalVM CE 8":
@@ -110,20 +108,27 @@ public enum Distribution implements ApiFeature {
             case "GraalVMCE11":
             case "GraalVM_CE11":
                 return GRAALVM_CE11;
-            case "sap_machine":
-            case "sapmachine":
-            case "SAPMACHINE":
-            case "SAP_MACHINE":
-            case "SAPMachine":
-            case "SAP Machine":
-            case "sap-machine":
-            case "SAP-Machine":
-            case "SAP-MACHINE":
-                return SAP_MACHINE;
-            case "zulu":
-            case "ZULU":
-            case "Zulu":
-                return ZULU;
+            case "liberica":
+            case "LIBERICA":
+            case "Liberica":
+                return LIBERICA;
+            case "liberica_native":
+            case "LIBERICA_NATIVE":
+            case "libericaNative":
+            case "LibericaNative":
+            case "liberica native":
+            case "LIBERICA NATIVE":
+            case "Liberica Native":
+                return LIBERICA_NATIVE;
+            case "mandrel":
+            case "MANDREL":
+            case "Mandrel":
+                return MANDREL;
+            case "ojdk_build":
+            case "OJDK_BUILD":
+            case "ojdkbuild":
+            case "OJDKBuild":
+                return OJDK_BUILD;
             case "oracle_open_jdk":
             case "ORACLE_OPEN_JDK":
             case "oracle_openjdk":
@@ -149,6 +154,16 @@ public enum Distribution implements ApiFeature {
             case "Oracle":
             case "ORACLE":
                 return ORACLE;
+            case "sap_machine":
+            case "sapmachine":
+            case "SAPMACHINE":
+            case "SAP_MACHINE":
+            case "SAPMachine":
+            case "SAP Machine":
+            case "sap-machine":
+            case "SAP-Machine":
+            case "SAP-MACHINE":
+                return SAP_MACHINE;
             case "RedHat":
             case "redhat":
             case "REDHAT":
@@ -161,11 +176,10 @@ public enum Distribution implements ApiFeature {
             case "Red-Hat":
             case "RED-HAT":
                 return RED_HAT;
-            case "ojdk_build":
-            case "OJDK_BUILD":
-            case "ojdkbuild":
-            case "OJDKBuild":
-                return OJDK_BUILD;
+            case "zulu":
+            case "ZULU":
+            case "Zulu":
+                return ZULU;
             default:
                 return NOT_FOUND;
         }
@@ -176,4 +190,24 @@ public enum Distribution implements ApiFeature {
     }
 
     public static List<Distribution> getAsList() { return Arrays.asList(values()); }
+
+    public static List<Distribution> getDistributionsBasedOnOpenJDK() {
+        return Arrays.stream(values())
+                     .filter(distribution -> Distribution.NONE != distribution)
+                     .filter(distribution -> Distribution.NOT_FOUND != distribution)
+                     .filter(distribution -> Distribution.GRAALVM_CE11 != distribution)
+                     .filter(distribution -> Distribution.GRAALVM_CE8 != distribution)
+                     .filter(distribution -> Distribution.MANDREL != distribution)
+                     .collect(Collectors.toList());
+    }
+
+    public static List<Distribution> getDistributionsBasedOnGraalVm() {
+        return Arrays.stream(values())
+                     .filter(distribution -> Distribution.NONE == distribution)
+                     .filter(distribution -> Distribution.NOT_FOUND == distribution)
+                     .filter(distribution -> Distribution.GRAALVM_CE11 == distribution)
+                     .filter(distribution -> Distribution.GRAALVM_CE8 == distribution)
+                     .filter(distribution -> Distribution.MANDREL == distribution)
+                     .collect(Collectors.toList());
+    }
 }
