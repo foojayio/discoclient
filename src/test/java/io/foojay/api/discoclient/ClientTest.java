@@ -51,6 +51,7 @@ import java.nio.file.Paths;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Queue;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
@@ -71,14 +72,14 @@ public class ClientTest {
     @Test
     public void downloadPkgTest() {
         DiscoClient discoClient = new DiscoClient();
-        List<Pkg> packagesFound = discoClient.getPkgs(Distribution.ZULU, new VersionNumber(11, 0, 9, 1), Latest.NONE, OperatingSystem.WINDOWS, LibCType.NONE,
-                                                        Architecture.X64, Bitness.BIT_64, ArchiveType.ZIP, PackageType.JDK, false, true, ReleaseStatus.GA, TermOfSupport.LTS, Scope.PUBLIC);
+        List<Pkg> packagesFound = discoClient.getPkgs(Distribution.ZULU, new VersionNumber(11, 0, 9, 1), Latest.EXPLICIT, OperatingSystem.WINDOWS, LibCType.C_STD_LIB,
+                                                      Architecture.X64, Bitness.BIT_64, ArchiveType.ZIP, PackageType.JRE, false, true, ReleaseStatus.GA, TermOfSupport.LTS, Scope.PUBLIC);
         assert packagesFound.size() > 0;
 
         Pkg     pkg     = packagesFound.get(0);
         PkgInfo pkgInfo = discoClient.getPkgInfo(pkg.getEphemeralId(), pkg.getJavaVersion());
 
-        assert "https://cdn.azul.com/zulu/bin/zulu11.43.55-ca-jdk11.0.9.1-win_x64.zip".equals(pkgInfo.getDirectDownloadUri());
+        assert "https://cdn.azul.com/zulu/bin/zulu11.43.55-ca-jre11.0.9.1-win_x64.zip".equals(pkgInfo.getDirectDownloadUri());
 
         Future<?> future = discoClient.downloadPkg(pkgInfo, "./" + pkgInfo.getFileName());
         try {
@@ -130,20 +131,20 @@ public class ClientTest {
     public void getVersionsPerDistributionTest() {
         DiscoClient discoClient = new DiscoClient();
         Map<Distribution, List<VersionNumber>> versionsPerDistribution = discoClient.getVersionsPerDistribution();
-        assert versionsPerDistribution.keySet().size() == 13;
+        assert versionsPerDistribution.keySet().size() == 15;
     }
 
     @Test
     public void testCache() {
         DiscoClient discoClient = new DiscoClient();
-        long start = System.currentTimeMillis();
-        List<Pkg> allPkgs = discoClient.getAllPackages();
+        long       start   = System.currentTimeMillis();
+        Queue<Pkg> allPkgs = discoClient.getAllPackages();
         assert (System.currentTimeMillis() - start) > 1000;
         long numberOfPackages = allPkgs.size();
         while (!discoClient.cacheReady.get()) { }
 
         start = System.currentTimeMillis();
-        List<Pkg> allPkgsFromCache = discoClient.getAllPackages();
+        Queue<Pkg> allPkgsFromCache = discoClient.getAllPackages();
         assert (System.currentTimeMillis() - start) < 1000;
         assert allPkgsFromCache.size() == numberOfPackages;
 
