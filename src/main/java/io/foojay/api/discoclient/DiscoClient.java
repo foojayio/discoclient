@@ -1240,7 +1240,7 @@ public class DiscoClient {
         switch (os) {
             case WINDOWS     : return List.of(ArchiveType.CAB, ArchiveType.MSI, ArchiveType.TAR, ArchiveType.ZIP);
             case MACOS       : return List.of(ArchiveType.DMG, ArchiveType.PKG, ArchiveType.TAR, ArchiveType.ZIP);
-            case LINUX       : return List.of(ArchiveType.DEB, ArchiveType.RPM, ArchiveType.TAR, ArchiveType.ZIP);
+            case LINUX       : return List.of(ArchiveType.APK, ArchiveType.DEB, ArchiveType.RPM, ArchiveType.TAR, ArchiveType.ZIP);
             case LINUX_MUSL  : return List.of(ArchiveType.DEB, ArchiveType.RPM, ArchiveType.TAR, ArchiveType.ZIP);
             case ALPINE_LINUX: return List.of(ArchiveType.DEB, ArchiveType.RPM, ArchiveType.TAR, ArchiveType.ZIP);
             case SOLARIS     : return List.of(ArchiveType.DEB, ArchiveType.RPM, ArchiveType.TAR, ArchiveType.ZIP);
