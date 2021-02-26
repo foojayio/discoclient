@@ -67,6 +67,10 @@ public enum ArchiveType implements ApiFeature {
 
     public static ArchiveType fromText(final String text) {
         switch (text) {
+            case "apk":
+            case ".apk":
+            case "APK":
+                return APK;
             case "bin":
             case ".bin":
             case "BIN":
@@ -130,7 +134,6 @@ public enum ArchiveType implements ApiFeature {
             for (String ending : ext.getFileEndings()) {
                 if (fileName.toLowerCase().endsWith(ending)) { return ext; }
             }
-
         }
         return ArchiveType.NONE;
     }
