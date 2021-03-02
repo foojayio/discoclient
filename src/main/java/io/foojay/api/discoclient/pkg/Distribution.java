@@ -66,6 +66,7 @@ public enum Distribution implements ApiFeature {
     @Override public Distribution[] getAll() { return values(); }
 
     public static Distribution fromText(final String text) {
+        if (null == text) { return NOT_FOUND; }
         switch (text) {
             case "aoj":
             case "AOJ":

@@ -67,6 +67,7 @@ public enum Architecture implements ApiFeature {
     @Override public Architecture[] getAll() { return values(); }
 
     public static Architecture fromText(final String text) {
+        if (null == text) { return NOT_FOUND; }
         switch (text) {
             case "aarch64":
             case "AARCH64":
