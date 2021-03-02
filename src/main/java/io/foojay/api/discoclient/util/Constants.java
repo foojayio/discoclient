@@ -57,6 +57,17 @@ public class Constants {
     public static final String  API_LATEST                = "latest";
     public static final String  API_DISCOVERY_SCOPE_ID    = "discovery_scope_id";
 
+    public static final String  SQUARE_BRACKET_OPEN       = "[";
+    public static final String  SQUARE_BRACKET_CLOSE      = "]";
+    public static final String  CURLY_BRACKET_OPEN        = "{";
+    public static final String  CURLY_BRACKET_CLOSE       = "}";
+    public static final String  INDENTED_QUOTES           = "  \"";
+    public static final String  QUOTES                    = "\"";
+    public static final String  COLON                     = ":";
+    public static final String  COMMA                     = ",";
+    public static final String  NEW_LINE                  = "\n";
+    public static final String  COMMA_NEW_LINE            = ",\n";
+
     public static final ConcurrentHashMap<Distribution, List<Scope>> SCOPE_LOOKUP = new ConcurrentHashMap<>() {{
         put(Distribution.AOJ, List.of(Scope.PUBLIC, Scope.BUILD_OF_OPEN_JDK, Scope.DIRECTLY_DOWNLOADABLE));
         put(Distribution.AOJ_OPENJ9, List.of(Scope.PUBLIC, Scope.DIRECTLY_DOWNLOADABLE));
