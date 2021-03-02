@@ -32,8 +32,12 @@ import java.net.http.HttpClient.Redirect;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandlers;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.concurrent.CompletableFuture;
 import java.util.regex.Pattern;
+
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 
 public class Helper {
@@ -82,6 +86,60 @@ public class Helper {
         } else {
             return TermOfSupport.NOT_FOUND;
         }
+    }
+
+    public static String getMD5(final String text) { return bytesToHex(getMD5Bytes(text.getBytes(UTF_8))); }
+    public static String getMD5(final byte[] bytes) {
+        return bytesToHex(getMD5Bytes(bytes));
+    }
+    public static byte[] getMD5Bytes(final byte[] bytes) {
+        final MessageDigest md;
+        try {
+            md = MessageDigest.getInstance("MD5");
+        } catch (NoSuchAlgorithmException e) {
+            LOGGER.error("Error getting MD5 algorithm. {}", e.getMessage());
+            return new byte[]{};
+        }
+        final byte[] result = md.digest(bytes);
+        return result;
+    }
+
+    public static String getSHA2_256(final String text) { return bytesToHex(getSHA2_256Bytes(text.getBytes(UTF_8))); }
+    public static String getSHA2_256(final byte[] bytes) {
+        return bytesToHex(getSHA2_256Bytes(bytes));
+    }
+    public static byte[] getSHA2_256Bytes(final byte[] bytes) {
+        final MessageDigest md;
+        try {
+            md = MessageDigest.getInstance("SHA-256");
+        } catch (NoSuchAlgorithmException e) {
+            LOGGER.error("Error getting SHA-256 algorithm. {}", e.getMessage());
+            return new byte[]{};
+        }
+        final byte[] result = md.digest(bytes);
+        return result;
+    }
+
+    public static String getSHA3_256(final String text) { return bytesToHex(getSHA3_256Bytes(text.getBytes(UTF_8))); }
+    public static String getSHA3_256(final byte[] bytes) {
+        return bytesToHex(getSHA3_256Bytes(bytes));
+    }
+    public static byte[] getSHA3_256Bytes(final byte[] bytes) {
+        final MessageDigest md;
+        try {
+            md = MessageDigest.getInstance("SHA3-256");
+        } catch (NoSuchAlgorithmException e) {
+            LOGGER.error("Error getting SHA3-256 algorithm. {}", e.getMessage());
+            return new byte[]{};
+        }
+        final byte[] result = md.digest(bytes);
+        return result;
+    }
+
+    public static String bytesToHex(final byte[] bytes) {
+        final StringBuilder builder = new StringBuilder();
+        for (byte b : bytes) { builder.append(String.format("%02x", b)); }
+        return builder.toString();
     }
 
 
