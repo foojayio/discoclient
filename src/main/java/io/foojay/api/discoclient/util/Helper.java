@@ -21,6 +21,7 @@
 
 package io.foojay.api.discoclient.util;
 
+import io.foojay.api.discoclient.pkg.HashAlgorithm;
 import io.foojay.api.discoclient.pkg.TermOfSupport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -88,6 +89,16 @@ public class Helper {
         }
     }
 
+    public static String getHash(final HashAlgorithm hashAlgorithm, final String text) {
+        switch (hashAlgorithm) {
+            case MD5     : return getMD5(text);
+            case SHA1    : return getSHA1(text);
+            case SHA2_256: return getSHA2_256(text);
+            case SHA3_256: return getSHA3_256(text);
+            default      : return "";
+        }
+    }
+
     public static String getMD5(final String text) { return bytesToHex(getMD5Bytes(text.getBytes(UTF_8))); }
     public static String getMD5(final byte[] bytes) {
         return bytesToHex(getMD5Bytes(bytes));
@@ -98,6 +109,22 @@ public class Helper {
             md = MessageDigest.getInstance("MD5");
         } catch (NoSuchAlgorithmException e) {
             LOGGER.error("Error getting MD5 algorithm. {}", e.getMessage());
+            return new byte[]{};
+        }
+        final byte[] result = md.digest(bytes);
+        return result;
+    }
+
+    public static String getSHA1(final String text) { return bytesToHex(getSHA1Bytes(text.getBytes(UTF_8))); }
+    public static String getSHA1(final byte[] bytes) {
+        return bytesToHex(getSHA1Bytes(bytes));
+    }
+    public static byte[] getSHA1Bytes(final byte[] bytes) {
+        final MessageDigest md;
+        try {
+            md = MessageDigest.getInstance("SHA-1");
+        } catch (NoSuchAlgorithmException e) {
+            LOGGER.error("Error getting SHA-1 algorithm. {}", e.getMessage());
             return new byte[]{};
         }
         final byte[] result = md.digest(bytes);
