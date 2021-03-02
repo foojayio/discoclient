@@ -29,6 +29,15 @@ import org.slf4j.LoggerFactory;
 import java.util.Objects;
 import java.util.OptionalInt;
 
+import static io.foojay.api.discoclient.util.Constants.COLON;
+import static io.foojay.api.discoclient.util.Constants.COMMA;
+import static io.foojay.api.discoclient.util.Constants.COMMA_NEW_LINE;
+import static io.foojay.api.discoclient.util.Constants.CURLY_BRACKET_CLOSE;
+import static io.foojay.api.discoclient.util.Constants.CURLY_BRACKET_OPEN;
+import static io.foojay.api.discoclient.util.Constants.INDENTED_QUOTES;
+import static io.foojay.api.discoclient.util.Constants.NEW_LINE;
+import static io.foojay.api.discoclient.util.Constants.QUOTES;
+
 
 public class Pkg {
     private static final Logger          LOGGER                       = LoggerFactory.getLogger(Pkg.class);
@@ -50,6 +59,10 @@ public class Pkg {
     public  static final String          FIELD_DIRECTLY_DOWNLOADABLE  = "directly_downloadable";
     public  static final String          FIELD_FILENAME               = "filename";
     public  static final String          FIELD_EPHEMERAL_ID           = "ephemeral_id";
+    public  static final String          FIELD_HASH                   = "hash";
+    public  static final String          FIELD_HASH_ALGORITHM         = "hash_algorithm";
+    public  static final String          FIELD_HASH_URI               = "hash_uri";
+    public  static final String          FIELD_SIGNATURE_URI          = "signature_uri";
 
     private              String          id;
     private              ArchiveType     archiveType;
@@ -68,6 +81,10 @@ public class Pkg {
     private              Boolean         directlyDownloadable;
     private              String          fileName;
     private              String          ephemeralId;
+    private              String          hash;
+    private              HashAlgorithm   hashAlgorithm;
+    private              String          hashUri;
+    private              String          signatureUri;
 
 
     public Pkg(final String packageJson) {
@@ -95,6 +112,10 @@ public class Pkg {
         this.directlyDownloadable = json.has(FIELD_DIRECTLY_DOWNLOADABLE)  ? json.get(FIELD_DIRECTLY_DOWNLOADABLE).getAsBoolean()                       : Boolean.FALSE;
         this.fileName             = json.has(FIELD_FILENAME)               ? json.get(FIELD_FILENAME).getAsString()                                     : "";
         this.ephemeralId          = json.has(FIELD_EPHEMERAL_ID)           ? json.get(FIELD_EPHEMERAL_ID).getAsString()                                 : "";
+        this.hash                 = json.has(FIELD_HASH)                   ? json.get(FIELD_HASH).getAsString()                                         : "";
+        this.hashAlgorithm        = json.has(FIELD_HASH_ALGORITHM)         ? HashAlgorithm.fromText(json.get(FIELD_HASH_ALGORITHM).getAsString())       : HashAlgorithm.NONE;
+        this.hashUri              = json.has(FIELD_HASH_URI)               ? json.get(FIELD_HASH_URI).getAsString()                                     : "";
+        this.signatureUri         = json.has(FIELD_SIGNATURE_URI)          ? json.get(FIELD_SIGNATURE_URI).getAsString()                                : "";
     }
 
 
@@ -144,6 +165,18 @@ public class Pkg {
 
     public String getEphemeralId() { return ephemeralId; }
 
+    public String getHash() { return hash; }
+    public void setHash(final String hash) { this.hash = null == hash ? "" : hash; }
+
+    public HashAlgorithm getHashAlgorithm() { return hashAlgorithm; }
+    public void setHashAlgorithm(final HashAlgorithm hashAlgorithm) { this.hashAlgorithm = hashAlgorithm; }
+
+    public String getHashUri() { return hashUri; }
+    public void setHashUri(final String hashUri) { this.hashUri = hashUri; }
+
+    public String getSignatureUri() { return signatureUri; }
+    public void setSignatureUri(final String signatureUri) { this.signatureUri = signatureUri; }
+
     @Override public boolean equals(final Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
@@ -158,22 +191,26 @@ public class Pkg {
     }
 
     @Override public String toString() {
-        return new StringBuilder().append("{\n")
-                                  .append("  \"").append(FIELD_ID).append("\"").append(":").append(getId()).append(",\n")
-                                  .append("  \"").append(FIELD_DISTRIBUTION).append("\"").append(":").append("\"").append(distribution.name()).append("\"").append(",\n")
-                                  .append("  \"").append(FIELD_JAVA_VERSION).append("\"").append(":").append("\"").append(javaVersion.toString()).append("\"").append(",\n")
-                                  .append("  \"").append(FIELD_DISTRIBUTION_VERSION).append("\"").append(":").append("\"").append(distributionVersion).append("\"").append(",\n")
-                                  .append("  \"").append(FIELD_LATEST_BUILD_AVAILABLE).append("\"").append(":").append(latestBuildAvailable).append(",\n")
-                                  .append("  \"").append(FIELD_ARCHITECTURE).append("\"").append(":").append("\"").append(architecture.name()).append("\"").append(",\n")
-                                  .append("  \"").append(FIELD_OPERATING_SYSTEM).append("\"").append(":").append("\"").append(operatingSystem.name()).append("\"").append(",\n")
-                                  .append("  \"").append(FIELD_PACKAGE_TYPE).append("\"").append(":").append("\"").append(packageType.name()).append("\"").append(",\n")
-                                  .append("  \"").append(FIELD_RELEASE_STATUS).append("\"").append(":").append("\"").append(releaseStatus.name()).append("\"").append(",\n")
-                                  .append("  \"").append(FIELD_ARCHIVE_TYPE).append("\"").append(":").append("\"").append(archiveType.getUiString()).append("\"").append(",\n")
-                                  .append("  \"").append(FIELD_TERM_OF_SUPPORT).append("\"").append(":").append("\"").append(termOfSupport.name()).append("\"").append(",\n")
-                                  .append("  \"").append(FIELD_JAVAFX_BUNDLED).append("\"").append(":").append(javafxBundled).append(",\n")
-                                  .append("  \"").append(FIELD_FILENAME).append("\"").append(":").append(fileName).append(",\n")
-                                  .append("  \"").append(FIELD_EPHEMERAL_ID).append("\"").append(":").append("\"").append(ephemeralId).append("\"").append("\n")
-                                  .append("}")
+        return new StringBuilder().append(CURLY_BRACKET_OPEN).append(NEW_LINE)
+                                  .append(INDENTED_QUOTES).append(FIELD_ID).append(QUOTES).append(COLON).append(getId()).append(COMMA_NEW_LINE)
+                                  .append(INDENTED_QUOTES).append(FIELD_DISTRIBUTION).append(QUOTES).append(COLON).append(QUOTES).append(distribution.name()).append(QUOTES).append(COMMA_NEW_LINE)
+                                  .append(INDENTED_QUOTES).append(FIELD_JAVA_VERSION).append(QUOTES).append(COLON).append(QUOTES).append(javaVersion.toString()).append(QUOTES).append(COMMA_NEW_LINE)
+                                  .append(INDENTED_QUOTES).append(FIELD_DISTRIBUTION_VERSION).append(QUOTES).append(COLON).append(QUOTES).append(distributionVersion).append(QUOTES).append(COMMA_NEW_LINE)
+                                  .append(INDENTED_QUOTES).append(FIELD_LATEST_BUILD_AVAILABLE).append(QUOTES).append(COLON).append(latestBuildAvailable).append(COMMA_NEW_LINE)
+                                  .append(INDENTED_QUOTES).append(FIELD_ARCHITECTURE).append(QUOTES).append(COLON).append(QUOTES).append(architecture.name()).append(QUOTES).append(COMMA_NEW_LINE)
+                                  .append(INDENTED_QUOTES).append(FIELD_OPERATING_SYSTEM).append(QUOTES).append(COLON).append(QUOTES).append(operatingSystem.name()).append(QUOTES).append(COMMA_NEW_LINE)
+                                  .append(INDENTED_QUOTES).append(FIELD_PACKAGE_TYPE).append(QUOTES).append(COLON).append(QUOTES).append(packageType.name()).append(QUOTES).append(COMMA_NEW_LINE)
+                                  .append(INDENTED_QUOTES).append(FIELD_RELEASE_STATUS).append(QUOTES).append(COLON).append(QUOTES).append(releaseStatus.name()).append(QUOTES).append(COMMA_NEW_LINE)
+                                  .append(INDENTED_QUOTES).append(FIELD_ARCHIVE_TYPE).append(QUOTES).append(COLON).append(QUOTES).append(archiveType.getUiString()).append(QUOTES).append(COMMA_NEW_LINE)
+                                  .append(INDENTED_QUOTES).append(FIELD_TERM_OF_SUPPORT).append(QUOTES).append(COLON).append(QUOTES).append(termOfSupport.name()).append(QUOTES).append(COMMA_NEW_LINE)
+                                  .append(INDENTED_QUOTES).append(FIELD_JAVAFX_BUNDLED).append(QUOTES).append(COLON).append(javafxBundled).append(COMMA_NEW_LINE)
+                                  .append(INDENTED_QUOTES).append(FIELD_FILENAME).append(QUOTES).append(COLON).append(fileName).append(COMMA_NEW_LINE)
+                                  .append(INDENTED_QUOTES).append(FIELD_EPHEMERAL_ID).append(QUOTES).append(COLON).append(QUOTES).append(ephemeralId).append(QUOTES).append(COMMA_NEW_LINE)
+                                  .append(INDENTED_QUOTES).append(FIELD_HASH).append(QUOTES).append(COLON).append(QUOTES).append(hash).append(QUOTES).append(COMMA_NEW_LINE)
+                                  .append(INDENTED_QUOTES).append(FIELD_HASH_ALGORITHM).append(QUOTES).append(COLON).append(QUOTES).append(hashAlgorithm.getApiString()).append(QUOTES).append(COMMA_NEW_LINE)
+                                  .append(INDENTED_QUOTES).append(FIELD_HASH_URI).append(QUOTES).append(COLON).append(QUOTES).append(hashUri).append(QUOTES).append(COMMA_NEW_LINE)
+                                  .append(INDENTED_QUOTES).append(FIELD_SIGNATURE_URI).append(QUOTES).append(COLON).append(QUOTES).append(signatureUri).append(QUOTES).append(NEW_LINE)
+                                  .append(CURLY_BRACKET_CLOSE)
                                   .toString();
     }
 }
