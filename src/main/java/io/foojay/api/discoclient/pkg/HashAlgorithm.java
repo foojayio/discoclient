@@ -23,8 +23,8 @@ package io.foojay.api.discoclient.pkg;
 
 public enum HashAlgorithm implements ApiFeature {
     MD5("MSD5", "md5", 128),
-    SHA1("SHA-1", "sha1", 160),
-    SHA256("SHA 256", "sha256", 256),
+    SHA1("SHA1", "sha1", 160),
+    SHA256("SHA256", "sha256", 256),
     SHA3_256("SHA-3 256", "sha3_256", 256),
     NONE("-", "", 0),
     NOT_FOUND("", "", 0);
