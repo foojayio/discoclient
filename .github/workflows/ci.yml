@@ -19,4 +19,4 @@ jobs:
       - uses: actions/upload-artifact@v2
         with:
           name: discoclient.jar
-          files: '.\target\discoclient-1.0.jar'
+          path: '.\target\discoclient-1.0.jar'
