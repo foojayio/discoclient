@@ -59,10 +59,6 @@ public class Pkg {
     public  static final String          FIELD_DIRECTLY_DOWNLOADABLE  = "directly_downloadable";
     public  static final String          FIELD_FILENAME               = "filename";
     public  static final String          FIELD_EPHEMERAL_ID           = "ephemeral_id";
-    public  static final String          FIELD_HASH                   = "hash";
-    public  static final String          FIELD_HASH_ALGORITHM         = "hash_algorithm";
-    public  static final String          FIELD_HASH_URI               = "hash_uri";
-    public  static final String          FIELD_SIGNATURE_URI          = "signature_uri";
 
     private              String          id;
     private              ArchiveType     archiveType;
@@ -81,10 +77,6 @@ public class Pkg {
     private              Boolean         directlyDownloadable;
     private              String          fileName;
     private              String          ephemeralId;
-    private              String          hash;
-    private              HashAlgorithm   hashAlgorithm;
-    private              String          hashUri;
-    private              String          signatureUri;
 
 
     public Pkg(final String packageJson) {
@@ -112,10 +104,6 @@ public class Pkg {
         this.directlyDownloadable = json.has(FIELD_DIRECTLY_DOWNLOADABLE)  ? json.get(FIELD_DIRECTLY_DOWNLOADABLE).getAsBoolean()                       : Boolean.FALSE;
         this.fileName             = json.has(FIELD_FILENAME)               ? json.get(FIELD_FILENAME).getAsString()                                     : "";
         this.ephemeralId          = json.has(FIELD_EPHEMERAL_ID)           ? json.get(FIELD_EPHEMERAL_ID).getAsString()                                 : "";
-        this.hash                 = json.has(FIELD_HASH)                   ? json.get(FIELD_HASH).getAsString()                                         : "";
-        this.hashAlgorithm        = json.has(FIELD_HASH_ALGORITHM)         ? HashAlgorithm.fromText(json.get(FIELD_HASH_ALGORITHM).getAsString())       : HashAlgorithm.NONE;
-        this.hashUri              = json.has(FIELD_HASH_URI)               ? json.get(FIELD_HASH_URI).getAsString()                                     : "";
-        this.signatureUri         = json.has(FIELD_SIGNATURE_URI)          ? json.get(FIELD_SIGNATURE_URI).getAsString()                                : "";
     }
 
 
@@ -165,18 +153,6 @@ public class Pkg {
 
     public String getEphemeralId() { return ephemeralId; }
 
-    public String getHash() { return hash; }
-    public void setHash(final String hash) { this.hash = null == hash ? "" : hash; }
-
-    public HashAlgorithm getHashAlgorithm() { return hashAlgorithm; }
-    public void setHashAlgorithm(final HashAlgorithm hashAlgorithm) { this.hashAlgorithm = hashAlgorithm; }
-
-    public String getHashUri() { return hashUri; }
-    public void setHashUri(final String hashUri) { this.hashUri = hashUri; }
-
-    public String getSignatureUri() { return signatureUri; }
-    public void setSignatureUri(final String signatureUri) { this.signatureUri = signatureUri; }
-
     @Override public boolean equals(final Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
@@ -205,11 +181,7 @@ public class Pkg {
                                   .append(INDENTED_QUOTES).append(FIELD_TERM_OF_SUPPORT).append(QUOTES).append(COLON).append(QUOTES).append(termOfSupport.name()).append(QUOTES).append(COMMA_NEW_LINE)
                                   .append(INDENTED_QUOTES).append(FIELD_JAVAFX_BUNDLED).append(QUOTES).append(COLON).append(javafxBundled).append(COMMA_NEW_LINE)
                                   .append(INDENTED_QUOTES).append(FIELD_FILENAME).append(QUOTES).append(COLON).append(fileName).append(COMMA_NEW_LINE)
-                                  .append(INDENTED_QUOTES).append(FIELD_EPHEMERAL_ID).append(QUOTES).append(COLON).append(QUOTES).append(ephemeralId).append(QUOTES).append(COMMA_NEW_LINE)
-                                  .append(INDENTED_QUOTES).append(FIELD_HASH).append(QUOTES).append(COLON).append(QUOTES).append(hash).append(QUOTES).append(COMMA_NEW_LINE)
-                                  .append(INDENTED_QUOTES).append(FIELD_HASH_ALGORITHM).append(QUOTES).append(COLON).append(QUOTES).append(hashAlgorithm.getApiString()).append(QUOTES).append(COMMA_NEW_LINE)
-                                  .append(INDENTED_QUOTES).append(FIELD_HASH_URI).append(QUOTES).append(COLON).append(QUOTES).append(hashUri).append(QUOTES).append(COMMA_NEW_LINE)
-                                  .append(INDENTED_QUOTES).append(FIELD_SIGNATURE_URI).append(QUOTES).append(COLON).append(QUOTES).append(signatureUri).append(QUOTES).append(NEW_LINE)
+                                  .append(INDENTED_QUOTES).append(FIELD_EPHEMERAL_ID).append(QUOTES).append(COLON).append(QUOTES).append(ephemeralId).append(QUOTES).append(NEW_LINE)
                                   .append(CURLY_BRACKET_CLOSE)
                                   .toString();
     }
