@@ -64,11 +64,9 @@ public class ClientTest {
         List<Pkg> packagesFound = discoClient.getPkgs(Distribution.ZULU, new VersionNumber(11, 0, 9, 1), Latest.NONE, OperatingSystem.WINDOWS, LibCType.NONE,
                                                       Architecture.X64, Bitness.BIT_64, ArchiveType.ZIP, PackageType.JDK, false, true, ReleaseStatus.GA, TermOfSupport.LTS, Scope.PUBLIC);
         assert packagesFound.size() == 1;
-
-        packagesFound = discoClient.getPkgs(Distribution.ZULU, VersionNumber.fromText("14-ea.36"), Latest.NONE, OperatingSystem.WINDOWS, LibCType.NONE,
-                                            Architecture.X64, Bitness.BIT_64, ArchiveType.ZIP, PackageType.JDK, false, true, ReleaseStatus.GA, TermOfSupport.LTS, Scope.PUBLIC);
     }
 
+    /*
     @Test
     public void downloadPkgTest() {
         DiscoClient discoClient = new DiscoClient();
@@ -92,6 +90,7 @@ public class ClientTest {
 
         }
     }
+    */
 
     @Test
     public void getPkgsAsJsonTest() {
