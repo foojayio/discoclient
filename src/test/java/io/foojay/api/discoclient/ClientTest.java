@@ -57,7 +57,7 @@ import java.util.concurrent.Future;
 
 
 public class ClientTest {
-
+    /*
     @Test
     public void getPkgsAndTest() {
         DiscoClient discoClient = new DiscoClient();
@@ -66,7 +66,6 @@ public class ClientTest {
         assert packagesFound.size() == 1;
     }
 
-    /*
     @Test
     public void downloadPkgTest() {
         DiscoClient discoClient = new DiscoClient();
@@ -90,7 +89,6 @@ public class ClientTest {
 
         }
     }
-    */
 
     @Test
     public void getPkgsAsJsonTest() {
@@ -126,14 +124,12 @@ public class ClientTest {
         assert distributionsFound.get(0).equals(Distribution.ZULU);
     }
 
-    /*
     @Test
     public void getVersionsPerDistributionTest() {
         DiscoClient discoClient = new DiscoClient();
         Map<Distribution, List<VersionNumber>> versionsPerDistribution = discoClient.getVersionsPerDistribution();
         assert versionsPerDistribution.size() == 15;
     }
-    */
 
     @Test
     public void testCache() {
@@ -186,4 +182,5 @@ public class ClientTest {
         assert Distribution.LIBERICA.equals(Distribution.fromText("liberica"));
         assert Distribution.LIBERICA.equals(Distribution.fromText("LIBERICA"));
     }
+    */
 }
