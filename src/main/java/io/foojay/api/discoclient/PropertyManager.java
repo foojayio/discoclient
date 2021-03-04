@@ -94,7 +94,7 @@ public enum PropertyManager {
     private void createProperties(Properties properties) {
         final String propFilePath = new StringBuilder(System.getProperty("user.home")).append(File.separator).append(PROPERTIES_FILE_NAME).toString();
         try (OutputStream output = new FileOutputStream(propFilePath)) {
-            properties.put(Constants.PROPERTY_KEY_DISCO_URL, "https://api.foojay.io");
+            properties.put(Constants.PROPERTY_KEY_DISCO_URL, Constants.DISCO_API_BASE_URL);
             properties.store(output, null);
         } catch (IOException ex) {
             LOGGER.debug("Error creating {} file: {}", PROPERTIES_FILE_NAME, ex.getMessage());

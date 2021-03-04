@@ -120,7 +120,7 @@ public class DiscoClient {
     public Queue<Pkg> getAllPackages() {
         if (cacheReady.get()) { return pkgCache; }
 
-        StringBuilder queryBuilder = new StringBuilder().append(PropertyManager.INSTANCE.getString(Constants.PROPERTY_KEY_DISCO_URL))
+        StringBuilder queryBuilder = new StringBuilder().append(getDiscoApiUrl())
                                                         .append(Constants.PACKAGES_PATH)
                                                         .append("?release_status=ea")
                                                         .append("&release_status=ga");
@@ -154,7 +154,7 @@ public class DiscoClient {
             future.complete(pkgCache);
             return future;
         }
-        StringBuilder queryBuilder = new StringBuilder().append(PropertyManager.INSTANCE.getString(Constants.PROPERTY_KEY_DISCO_URL))
+        StringBuilder queryBuilder = new StringBuilder().append(getDiscoApiUrl())
                                                         .append(Constants.PACKAGES_PATH)
                                                         .append("?release_status=ea")
                                                         .append("&release_status=ga");
@@ -182,7 +182,7 @@ public class DiscoClient {
                              final LibCType libcType, final Architecture architecture, final Bitness bitness, final ArchiveType archiveType, final PackageType packageType,
                              final Boolean javafxBundled, final Boolean directlyDownloadable, final ReleaseStatus releaseStatus, final TermOfSupport termOfSupport, final Scope scope) {
 
-        StringBuilder queryBuilder = new StringBuilder().append(PropertyManager.INSTANCE.getString(Constants.PROPERTY_KEY_DISCO_URL))
+        StringBuilder queryBuilder = new StringBuilder().append(getDiscoApiUrl())
                                                         .append(Constants.PACKAGES_PATH);
         final int initialLength = queryBuilder.length();
 
@@ -323,7 +323,7 @@ public class DiscoClient {
                                                      final LibCType libCType, final Architecture architecture, final Bitness bitness, final ArchiveType archiveType, final PackageType packageType,
                                                      final Boolean javafxBundled, final Boolean directlyDownloadable, final ReleaseStatus releaseStatus, final TermOfSupport termOfSupport, final Scope scope) {
 
-        StringBuilder queryBuilder = new StringBuilder().append(PropertyManager.INSTANCE.getString(Constants.PROPERTY_KEY_DISCO_URL))
+        StringBuilder queryBuilder = new StringBuilder().append(getDiscoApiUrl())
                                                         .append(Constants.PACKAGES_PATH);
         final int initialLength = queryBuilder.length();
 
@@ -474,7 +474,7 @@ public class DiscoClient {
 
 
     public final MajorVersion getMajorVersion(final String parameter) {
-        StringBuilder queryBuilder = new StringBuilder().append(PropertyManager.INSTANCE.getString(Constants.PROPERTY_KEY_DISCO_URL))
+        StringBuilder queryBuilder = new StringBuilder().append(getDiscoApiUrl())
                                                         .append(Constants.MAJOR_VERSIONS_PATH);
         if (null != parameter || !parameter.isEmpty()) {
             queryBuilder.append("/").append(parameter);
@@ -497,7 +497,7 @@ public class DiscoClient {
         }
     }
     public final CompletableFuture<MajorVersion> getMajorVersionAsync(final String parameter) {
-        StringBuilder queryBuilder = new StringBuilder().append(PropertyManager.INSTANCE.getString(Constants.PROPERTY_KEY_DISCO_URL))
+        StringBuilder queryBuilder = new StringBuilder().append(getDiscoApiUrl())
                                                         .append(Constants.MAJOR_VERSIONS_PATH);
         if (null != parameter || !parameter.isEmpty()) {
             queryBuilder.append("/").append(parameter);
@@ -524,7 +524,7 @@ public class DiscoClient {
 
     public final Queue<MajorVersion> getAllMajorVersions() { return getAllMajorVersions(false); }
     public final Queue<MajorVersion> getAllMajorVersions(final boolean include_ea) {
-        StringBuilder queryBuilder = new StringBuilder().append(PropertyManager.INSTANCE.getString(Constants.PROPERTY_KEY_DISCO_URL))
+        StringBuilder queryBuilder = new StringBuilder().append(getDiscoApiUrl())
                                                         .append(Constants.MAJOR_VERSIONS_PATH)
                                                         .append("?ea=")
                                                         .append(include_ea);
@@ -545,7 +545,7 @@ public class DiscoClient {
         return majorVersionsFound;
     }
     public final List<MajorVersion> getAllMajorVersions(final Optional<Boolean> maintained, final Optional<Boolean> includingEA, final Optional<Boolean> includingGA) {
-        StringBuilder queryBuilder = new StringBuilder().append(PropertyManager.INSTANCE.getString(Constants.PROPERTY_KEY_DISCO_URL))
+        StringBuilder queryBuilder = new StringBuilder().append(getDiscoApiUrl())
                                                         .append(Constants.MAJOR_VERSIONS_PATH);
         int initialLength = queryBuilder.length();
         if (null != maintained && maintained.isPresent()) {
@@ -580,7 +580,7 @@ public class DiscoClient {
 
     public final CompletableFuture<List<MajorVersion>> getAllMajorVersionsAsync() { return getAllMajorVersionsAsync(false); }
     public final CompletableFuture<List<MajorVersion>> getAllMajorVersionsAsync(final boolean include_ea) {
-        StringBuilder queryBuilder = new StringBuilder().append(PropertyManager.INSTANCE.getString(Constants.PROPERTY_KEY_DISCO_URL))
+        StringBuilder queryBuilder = new StringBuilder().append(getDiscoApiUrl())
                                                         .append(Constants.MAJOR_VERSIONS_PATH)
                                                         .append("?ea=")
                                                         .append(include_ea);
@@ -600,7 +600,7 @@ public class DiscoClient {
         });
     }
     public final CompletableFuture<List<MajorVersion>> getAllMajorVersionsAsync(final Optional<Boolean> maintained, final Optional<Boolean> includingEA, final Optional<Boolean> includingGA) {
-        StringBuilder queryBuilder = new StringBuilder().append(PropertyManager.INSTANCE.getString(Constants.PROPERTY_KEY_DISCO_URL))
+        StringBuilder queryBuilder = new StringBuilder().append(getDiscoApiUrl())
                                                         .append(Constants.MAJOR_VERSIONS_PATH);
         int initialLength = queryBuilder.length();
         if (null != maintained && maintained.isPresent()) {
@@ -634,7 +634,7 @@ public class DiscoClient {
 
 
     public final MajorVersion getMajorVersion(final int featureVersion, final boolean include_ea) {
-        StringBuilder queryBuilder = new StringBuilder().append(PropertyManager.INSTANCE.getString(Constants.PROPERTY_KEY_DISCO_URL))
+        StringBuilder queryBuilder = new StringBuilder().append(getDiscoApiUrl())
                                                         .append(Constants.MAJOR_VERSIONS_PATH)
                                                         .append("?include_ea=")
                                                         .append(include_ea);
@@ -659,7 +659,7 @@ public class DiscoClient {
         }
     }
     public final CompletableFuture<MajorVersion> getMajorVersionAsync(final int featureVersion, final boolean include_ea) {
-        StringBuilder queryBuilder = new StringBuilder().append(PropertyManager.INSTANCE.getString(Constants.PROPERTY_KEY_DISCO_URL))
+        StringBuilder queryBuilder = new StringBuilder().append(getDiscoApiUrl())
                                                         .append(Constants.MAJOR_VERSIONS_PATH)
                                                         .append("?include_ea=")
                                                         .append(include_ea);
@@ -716,7 +716,7 @@ public class DiscoClient {
 
     public final List<MajorVersion> getMaintainedMajorVersions() { return getMaintainedMajorVersions(false); }
     public final List<MajorVersion> getMaintainedMajorVersions(final boolean include_ea) {
-        StringBuilder queryBuilder = new StringBuilder().append(PropertyManager.INSTANCE.getString(Constants.PROPERTY_KEY_DISCO_URL))
+        StringBuilder queryBuilder = new StringBuilder().append(getDiscoApiUrl())
                                                         .append(Constants.MAJOR_VERSIONS_PATH)
                                                         .append("?maintained=true&ga=true")
                                                         .append(include_ea ? "&ea=true" : "")
@@ -741,7 +741,7 @@ public class DiscoClient {
 
     public final CompletableFuture<List<MajorVersion>> getMaintainedMajorVersionsAsync() { return getMaintainedMajorVersionsAsync(false); }
     public final CompletableFuture<List<MajorVersion>> getMaintainedMajorVersionsAsync(final boolean include_ea) {
-        StringBuilder queryBuilder = new StringBuilder().append(PropertyManager.INSTANCE.getString(Constants.PROPERTY_KEY_DISCO_URL))
+        StringBuilder queryBuilder = new StringBuilder().append(getDiscoApiUrl())
                                                         .append(Constants.MAJOR_VERSIONS_PATH)
                                                         .append("?maintained=true&ga=true")
                                                         .append(include_ea ? "&ea=true" : "")
@@ -766,7 +766,7 @@ public class DiscoClient {
 
 
     public final List<MajorVersion> getUsefulMajorVersions() {
-        StringBuilder queryBuilder = new StringBuilder().append(PropertyManager.INSTANCE.getString(Constants.PROPERTY_KEY_DISCO_URL))
+        StringBuilder queryBuilder = new StringBuilder().append(getDiscoApiUrl())
                                                         .append(Constants.MAJOR_VERSIONS_PATH)
                                                         .append("/useful");
 
@@ -788,7 +788,7 @@ public class DiscoClient {
 
 
     public final CompletableFuture<List<MajorVersion>> getUsefulMajorVersionsAsync() {
-        StringBuilder queryBuilder = new StringBuilder().append(PropertyManager.INSTANCE.getString(Constants.PROPERTY_KEY_DISCO_URL))
+        StringBuilder queryBuilder = new StringBuilder().append(getDiscoApiUrl())
                                                         .append(Constants.MAJOR_VERSIONS_PATH)
                                                         .append("/useful");
 
@@ -906,7 +906,7 @@ public class DiscoClient {
 
 
     public final List<Distribution> getDistributions() {
-        StringBuilder queryBuilder = new StringBuilder().append(PropertyManager.INSTANCE.getString(Constants.PROPERTY_KEY_DISCO_URL))
+        StringBuilder queryBuilder = new StringBuilder().append(getDiscoApiUrl())
                                                         .append(Constants.DISTRIBUTIONS_PATH);
 
         String             query              = queryBuilder.toString();
@@ -926,7 +926,7 @@ public class DiscoClient {
         return distributionsFound;
     }
     public final CompletableFuture<List<Distribution>> getDistributionsAsync() {
-        StringBuilder queryBuilder = new StringBuilder().append(PropertyManager.INSTANCE.getString(Constants.PROPERTY_KEY_DISCO_URL))
+        StringBuilder queryBuilder = new StringBuilder().append(getDiscoApiUrl())
                                                         .append(Constants.DISTRIBUTIONS_PATH);
         String query = queryBuilder.toString();
         return Helper.getAsync(query).thenApply(bodyText -> {
@@ -947,7 +947,7 @@ public class DiscoClient {
 
 
     public final List<Distribution> getDistributionsForSemVer(final SemVer semVer) {
-        StringBuilder queryBuilder = new StringBuilder().append(PropertyManager.INSTANCE.getString(Constants.PROPERTY_KEY_DISCO_URL))
+        StringBuilder queryBuilder = new StringBuilder().append(getDiscoApiUrl())
                                                         .append(Constants.DISTRIBUTIONS_PATH)
                                                         .append("/versions/")
                                                         .append(semVer.toString());
@@ -969,7 +969,7 @@ public class DiscoClient {
         return distributionsFound;
     }
     public final CompletableFuture<List<Distribution>> getDistributionsForSemVerAsync(final SemVer semVer) {
-        StringBuilder queryBuilder = new StringBuilder().append(PropertyManager.INSTANCE.getString(Constants.PROPERTY_KEY_DISCO_URL))
+        StringBuilder queryBuilder = new StringBuilder().append(getDiscoApiUrl())
                                                         .append(Constants.DISTRIBUTIONS_PATH)
                                                         .append("/versions/")
                                                         .append(semVer.toString());
@@ -993,7 +993,7 @@ public class DiscoClient {
 
 
     public final List<Distribution> getDistributionsForVersion(final VersionNumber versionNumber) {
-        StringBuilder queryBuilder = new StringBuilder().append(PropertyManager.INSTANCE.getString(Constants.PROPERTY_KEY_DISCO_URL))
+        StringBuilder queryBuilder = new StringBuilder().append(getDiscoApiUrl())
                                                         .append(Constants.DISTRIBUTIONS_PATH)
                                                         .append("/versions/")
                                                         .append(versionNumber.toString());
@@ -1015,7 +1015,7 @@ public class DiscoClient {
         return distributionsFound;
     }
     public final CompletableFuture<List<Distribution>> getDistributionsForVersionAsync(final VersionNumber versionNumber) {
-        StringBuilder queryBuilder = new StringBuilder().append(PropertyManager.INSTANCE.getString(Constants.PROPERTY_KEY_DISCO_URL))
+        StringBuilder queryBuilder = new StringBuilder().append(getDiscoApiUrl())
                                                         .append(Constants.DISTRIBUTIONS_PATH)
                                                         .append("/versions/")
                                                         .append(versionNumber.toString());
@@ -1039,7 +1039,7 @@ public class DiscoClient {
 
 
     public static Map<Distribution, List<VersionNumber>> getVersionsPerDistribution() {
-        StringBuilder queryBuilder = new StringBuilder().append(PropertyManager.INSTANCE.getString(Constants.PROPERTY_KEY_DISCO_URL))
+        StringBuilder queryBuilder = new StringBuilder().append(getDiscoApiUrl())
                                                         .append(Constants.DISTRIBUTIONS_PATH);
 
         String                                 query              = queryBuilder.toString();
@@ -1065,7 +1065,7 @@ public class DiscoClient {
         return distributionsFound;
     }
     public static CompletableFuture<Map<Distribution, List<VersionNumber>>> getVersionsPerDistributionAsync() {
-        StringBuilder queryBuilder = new StringBuilder().append(PropertyManager.INSTANCE.getString(Constants.PROPERTY_KEY_DISCO_URL))
+        StringBuilder queryBuilder = new StringBuilder().append(getDiscoApiUrl())
                                                         .append(Constants.DISTRIBUTIONS_PATH);
 
         String query = queryBuilder.toString();
@@ -1112,7 +1112,7 @@ public class DiscoClient {
 
 
     public PkgInfo getPkgInfo(final String ephemeralId, final SemVer javaVersion) {
-        StringBuilder queryBuilder = new StringBuilder().append(PropertyManager.INSTANCE.getString(Constants.PROPERTY_KEY_DISCO_URL))
+        StringBuilder queryBuilder = new StringBuilder().append(getDiscoApiUrl())
                                                         .append(Constants.EPHEMERAL_IDS_PATH)
                                                         .append("/")
                                                         .append(ephemeralId);
@@ -1133,7 +1133,7 @@ public class DiscoClient {
         return null;
     }
     public CompletableFuture<PkgInfo> getPkgInfoAsync(final String ephemeralId, final SemVer javaVersion) {
-        StringBuilder queryBuilder = new StringBuilder().append(PropertyManager.INSTANCE.getString(Constants.PROPERTY_KEY_DISCO_URL))
+        StringBuilder queryBuilder = new StringBuilder().append(getDiscoApiUrl())
                                                         .append(Constants.EPHEMERAL_IDS_PATH)
                                                         .append("/")
                                                         .append(ephemeralId);
@@ -1182,7 +1182,7 @@ public class DiscoClient {
 
     public Pkg getPkg(final String pkgId) {
         if (cacheReady.get()) { return pkgCache.stream().filter(pkg -> pkg.getId().equals(pkgId)).findFirst().orElse(null); }
-        StringBuilder queryBuilder = new StringBuilder().append(PropertyManager.INSTANCE.getString(Constants.PROPERTY_KEY_DISCO_URL))
+        StringBuilder queryBuilder = new StringBuilder().append(getDiscoApiUrl())
                                                         .append(Constants.PACKAGES_PATH)
                                                         .append("/")
                                                         .append(pkgId);
@@ -1199,7 +1199,7 @@ public class DiscoClient {
         }
     }
     public CompletableFuture<Pkg> getPkgAsync(final String pkgId) {
-        StringBuilder queryBuilder = new StringBuilder().append(PropertyManager.INSTANCE.getString(Constants.PROPERTY_KEY_DISCO_URL))
+        StringBuilder queryBuilder = new StringBuilder().append(getDiscoApiUrl())
                                                         .append(Constants.PACKAGES_PATH)
                                                         .append("/")
                                                         .append(pkgId);
@@ -1270,6 +1270,15 @@ public class DiscoClient {
                 return false;
             }
         });
+    }
+
+    private static final String getDiscoApiUrl() {
+        try {
+            final String url = PropertyManager.INSTANCE.getString(Constants.PROPERTY_KEY_DISCO_URL);
+            return null == url ? Constants.DISCO_API_BASE_URL : url;
+        } catch (Exception e) {
+            return Constants.DISCO_API_BASE_URL;
+        }
     }
 
 
