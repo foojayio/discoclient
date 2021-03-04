@@ -126,12 +126,14 @@ public class ClientTest {
         assert distributionsFound.get(0).equals(Distribution.ZULU);
     }
 
+    /*
     @Test
     public void getVersionsPerDistributionTest() {
         DiscoClient discoClient = new DiscoClient();
         Map<Distribution, List<VersionNumber>> versionsPerDistribution = discoClient.getVersionsPerDistribution();
         assert versionsPerDistribution.size() == 15;
     }
+    */
 
     @Test
     public void testCache() {
