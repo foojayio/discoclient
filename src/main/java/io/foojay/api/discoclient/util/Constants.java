@@ -32,6 +32,8 @@ import java.util.regex.Pattern;
 public class Constants {
     public static final String  NAME                      = "discoclient";
 
+    public static final String  DISCO_API_BASE_URL        = "https://api.foojay.io";
+
     public static final String  PROPERTY_KEY_DISCO_URL    = "url";
 
     public static final Pattern POSITIVE_INTEGER_PATTERN  = Pattern.compile("\\d+");

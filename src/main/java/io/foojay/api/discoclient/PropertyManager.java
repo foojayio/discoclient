@@ -35,6 +35,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Properties;
 
+import static io.foojay.api.discoclient.util.Constants.DISCO_API_BASE_URL;
+
 
 public enum PropertyManager {
     INSTANCE;
@@ -94,7 +96,7 @@ public enum PropertyManager {
     private void createProperties(Properties properties) {
         final String propFilePath = new StringBuilder(System.getProperty("user.home")).append(File.separator).append(PROPERTIES_FILE_NAME).toString();
         try (OutputStream output = new FileOutputStream(propFilePath)) {
-            properties.put(Constants.PROPERTY_KEY_DISCO_URL, "https://api.foojay.io");
+            properties.put(Constants.PROPERTY_KEY_DISCO_URL, DISCO_API_BASE_URL);
             properties.store(output, null);
         } catch (IOException ex) {
             LOGGER.debug("Error creating {} file: {}", PROPERTIES_FILE_NAME, ex.getMessage());
