@@ -421,7 +421,7 @@ public class DiscoClient {
 
         String query = queryBuilder.toString();
         if (query.isEmpty()) { return new CompletableFuture<>(); }
-
+        
         if (cacheReady.get()) {
             CompletableFuture<List<Pkg>> future = new CompletableFuture<>();
             future.complete(getPkgsFromCache(versionNumber,
