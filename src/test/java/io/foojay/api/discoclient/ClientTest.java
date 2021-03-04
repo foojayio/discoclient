@@ -166,14 +166,14 @@ public class ClientTest {
         SemVer        semVer        = SemVer.fromText("11.0.10-ea").getSemVer1();
         ReleaseStatus releaseStatus = semVer.getReleaseStatus();
         try {
-            assert discoClient.getPkgsAsync(Distribution.NONE, semVer.getVersionNumber(), Latest.NONE, OperatingSystem.MACOS, LibCType.NONE, Architecture.NONE, Bitness.NONE, ArchiveType.NONE, PackageType.JDK, null, true, releaseStatus, TermOfSupport.NONE, Scope.PUBLIC).get().size() >= 160;
+            assert discoClient.getPkgsAsync(Distribution.NONE, semVer.getVersionNumber(), Latest.NONE, OperatingSystem.MACOS, LibCType.NONE, Architecture.NONE, Bitness.NONE, ArchiveType.NONE, PackageType.JDK, null, true, releaseStatus, TermOfSupport.NONE, Scope.PUBLIC).get().size() >= 34;
         } catch (ExecutionException | InterruptedException e) {
             e.printStackTrace();
         }
 
         while (!discoClient.cacheReady.get()) { }
         try {
-            assert discoClient.getPkgsAsync(Distribution.NONE, semVer.getVersionNumber(), Latest.NONE, OperatingSystem.MACOS, LibCType.NONE, Architecture.NONE, Bitness.NONE, ArchiveType.NONE, PackageType.JDK, null, true, releaseStatus, TermOfSupport.NONE, Scope.PUBLIC).get().size() >= 160;
+            assert discoClient.getPkgsAsync(Distribution.NONE, semVer.getVersionNumber(), Latest.NONE, OperatingSystem.MACOS, LibCType.NONE, Architecture.NONE, Bitness.NONE, ArchiveType.NONE, PackageType.JDK, null, true, releaseStatus, TermOfSupport.NONE, Scope.PUBLIC).get().size() >= 34;
         } catch (ExecutionException | InterruptedException e) {
             e.printStackTrace();
         }
