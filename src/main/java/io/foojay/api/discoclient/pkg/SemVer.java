@@ -29,10 +29,15 @@ import io.foojay.api.discoclient.util.SemVerParser;
 import io.foojay.api.discoclient.util.SemVerParsingResult;
 
 import java.util.List;
+import java.util.Scanner;
+import java.util.Spliterator;
+import java.util.Spliterators;
+import java.util.function.Consumer;
 import java.util.regex.MatchResult;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 
 public class SemVer implements Comparable<SemVer> {
@@ -73,15 +78,21 @@ public class SemVer implements Comparable<SemVer> {
 
         // Extract early access preBuild
         if (null != this.pre) {
-            final Matcher           eaMatcher = EA_PATTERN.matcher(this.pre);
-            final List<MatchResult> eaResults = eaMatcher.results().collect(Collectors.toList());
+            //final Matcher           eaMatcher = EA_PATTERN.matcher(this.pre);
+            //final List<MatchResult> eaResults = eaMatcher.results().collect(Collectors.toList());
+
+            final List<MatchResult> eaResults;
+            try(Scanner s = new Scanner(this.pre)) {
+                eaResults = Helper.findAll(s, EA_PATTERN).collect(Collectors.toList());
+            }
+
             if (eaResults.size() > 0) {
                 final MatchResult eaResult = eaResults.get(0);
                 if (null != eaResult.group(1)) {
                     this.versionNumber.setReleaseStatus(ReleaseStatus.EA);
                     if (null != eaResult.group(4)) {
                         this.preBuild = eaResult.group(4);
-                        if (null == this.versionNumber.getPreBuild() || this.versionNumber.getPreBuild().isEmpty()) {
+                        if (null == this.versionNumber.getPreBuild() || !this.versionNumber.getPreBuild().isPresent()) {
                             this.versionNumber.setPreBuild(Integer.parseInt(this.preBuild));
                         }
                     }
@@ -104,12 +115,17 @@ public class SemVer implements Comparable<SemVer> {
         // Extract metadata e.g. build number
         if (null != this.metadata) {
             final Matcher           buildNumberMatcher = BUILD_NUMBER_PATTERN.matcher(this.metadata);
-            final List<MatchResult> buildNumberResults = buildNumberMatcher.results().collect(Collectors.toList());
+            //final List<MatchResult> buildNumberResults = buildNumberMatcher.results().collect(Collectors.toList());
+            final List<MatchResult> buildNumberResults;
+            try(Scanner s = new Scanner(this.metadata)) {
+                buildNumberResults = Helper.findAll(s, BUILD_NUMBER_PATTERN).collect(Collectors.toList());
+            }
+
             if (buildNumberResults.size() > 0) {
                 final MatchResult buildNumberResult = buildNumberResults.get(0);
                 if (null != buildNumberResult.group(1)) {
                     if (null != buildNumberResult.group(2)) {
-                        if (null == this.versionNumber.getBuild() || this.versionNumber.getBuild().isEmpty()) {
+                        if (null == this.versionNumber.getBuild() || !this.versionNumber.getBuild().isPresent()) {
                             this.versionNumber.setBuild(Integer.parseInt(buildNumberResult.group(2)));
                         }
                     }

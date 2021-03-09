@@ -25,6 +25,7 @@ import io.foojay.api.discoclient.pkg.SemVer;
 import io.foojay.api.discoclient.pkg.VersionNumber;
 
 import java.util.List;
+import java.util.Scanner;
 import java.util.function.Predicate;
 import java.util.regex.MatchResult;
 import java.util.regex.Matcher;
@@ -50,8 +51,13 @@ public class SemVerParser {
             versionText1 = versionText1.replace("u", ".0.");
         }
 
-        final Matcher           semverMatcher = SEM_VER_PATTERN.matcher(versionText1);
-        final List<MatchResult> results       = semverMatcher.results().collect(Collectors.toList());
+        //final Matcher           semverMatcher = SEM_VER_PATTERN.matcher(versionText1);
+        //final List<MatchResult> results       = semverMatcher.results().collect(Collectors.toList());
+
+        final List<MatchResult> results;
+        try(Scanner s = new Scanner(versionText1)) {
+            results = Helper.findAll(s, SEM_VER_PATTERN).collect(Collectors.toList());
+        }
 
         if (results.isEmpty()) {
             parsingResult.setError1(new Error("Invalid semver: " + versionText1));

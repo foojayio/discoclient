@@ -34,6 +34,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.OptionalInt;
+import java.util.Scanner;
 import java.util.regex.MatchResult;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -234,8 +235,14 @@ public class VersionNumber implements Comparable<VersionNumber> {
         // Remove leading "1." to get correct version number e.g. 1.8u262 -> 8u262
         String version = text.startsWith("1.") ? text.replace("1.", "") : text;
 
-        final Matcher           versionNoMatcher = VERSION_NO_PATTERN.matcher(version);
-        final List<MatchResult> results          = versionNoMatcher.results().collect(Collectors.toList());
+        //final Matcher           versionNoMatcher = VERSION_NO_PATTERN.matcher(version);
+        //final List<MatchResult> results          = versionNoMatcher.results().collect(Collectors.toList());
+
+        final List<MatchResult> results;
+        try(Scanner s = new Scanner(version)) {
+            results = Helper.findAll(s, VERSION_NO_PATTERN).collect(Collectors.toList());
+        }
+
         final int               noOfResults      = results.size();
         final int               resultToTake     = noOfResults > resultToMatch ? resultToMatch : 0;
         List<VersionNumber>     numbersFound     = new ArrayList<>();
@@ -337,16 +344,28 @@ public class VersionNumber implements Comparable<VersionNumber> {
 
             // Extract early access preBuild
             if (null != result.group(16)) {
-                final Matcher           eaMatcher = EA_PATTERN.matcher(result.group(16));
-                final List<MatchResult> eaResults = eaMatcher.results().collect(Collectors.toList());
+                //final Matcher           eaMatcher = EA_PATTERN.matcher(result.group(16));
+                //final List<MatchResult> eaResults = eaMatcher.results().collect(Collectors.toList());
+
+                final List<MatchResult> eaResults;
+                try(Scanner s = new Scanner(result.group(16))) {
+                    eaResults = Helper.findAll(s, EA_PATTERN).collect(Collectors.toList());
+                }
+
                 if (eaResults.size() > 0) {
                     final MatchResult eaResult = eaResults.get(0);
                     if (null != eaResult.group(1)) {
                 versionNumber.setReleaseStatus(ReleaseStatus.EA);
                         if (null == eaResult.group(4)) {
                 if (null != result.group(17)) {
-                                final Matcher           eaBuildNumberMatcher = EA_BUILD_NUMBER_PATTERN.matcher(result.group(17));
-                                final List<MatchResult> eaBuildNumberResults = eaBuildNumberMatcher.results().collect(Collectors.toList());
+                                //final Matcher           eaBuildNumberMatcher = EA_BUILD_NUMBER_PATTERN.matcher(result.group(17));
+                                //final List<MatchResult> eaBuildNumberResults = eaBuildNumberMatcher.results().collect(Collectors.toList());
+
+                                final List<MatchResult> eaBuildNumberResults;
+                                try(Scanner s = new Scanner(result.group(17))) {
+                                    eaBuildNumberResults = Helper.findAll(s, EA_BUILD_NUMBER_PATTERN).collect(Collectors.toList());
+                                }
+
                                 if (eaBuildNumberResults.size() > 0) {
                                     final MatchResult eaBuildNumberResult = eaBuildNumberResults.get(0);
                                     versionNumber.setPreBuild(Integer.parseInt(eaBuildNumberResult.group(2)));
@@ -360,8 +379,14 @@ public class VersionNumber implements Comparable<VersionNumber> {
                     }
 
             // Extract build number
-            final Matcher           buildNumberMatcher = BUILD_NUMBER_PATTERN.matcher(version);
-            final List<MatchResult> buildNumberResults = buildNumberMatcher.results().collect(Collectors.toList());
+            //final Matcher           buildNumberMatcher = BUILD_NUMBER_PATTERN.matcher(version);
+            //final List<MatchResult> buildNumberResults = buildNumberMatcher.results().collect(Collectors.toList());
+
+            final List<MatchResult> buildNumberResults;
+            try(Scanner s = new Scanner(version)) {
+                buildNumberResults = Helper.findAll(s, BUILD_NUMBER_PATTERN).collect(Collectors.toList());
+            }
+
             if (buildNumberResults.size() > 0) {
                 final MatchResult buildNumberResult = buildNumberResults.get(0);
                 if (null != buildNumberResult.group(2)) {
@@ -369,19 +394,19 @@ public class VersionNumber implements Comparable<VersionNumber> {
                 }
             }
 
-            if (!versionNumber.getInterim().isPresent() || versionNumber.getInterim().isEmpty()) {
+            if (!versionNumber.getInterim().isPresent() || !versionNumber.getInterim().isPresent()) {
                 versionNumber.setInterim(0);
             }
-            if (!versionNumber.getUpdate().isPresent() || versionNumber.getUpdate().isEmpty()) {
+            if (!versionNumber.getUpdate().isPresent() || !versionNumber.getUpdate().isPresent()) {
                 versionNumber.setUpdate(0);
             }
-            if (!versionNumber.getPatch().isPresent() || versionNumber.getPatch().isEmpty()) {
+            if (!versionNumber.getPatch().isPresent() || !versionNumber.getPatch().isPresent()) {
                 versionNumber.setPatch(0);
             }
-            if (!versionNumber.getFifth().isPresent() || versionNumber.getFifth().isEmpty()) {
+            if (!versionNumber.getFifth().isPresent() || !versionNumber.getFifth().isPresent()) {
                 versionNumber.setFifth(0);
             }
-            if (!versionNumber.getSixth().isPresent() || versionNumber.getSixth().isEmpty()) {
+            if (!versionNumber.getSixth().isPresent() || !versionNumber.getSixth().isPresent()) {
                 versionNumber.setSixth(0);
             }
 
@@ -710,9 +735,9 @@ public class VersionNumber implements Comparable<VersionNumber> {
                     ret = equal;
                 }
             } else if (releaseStatus.isPresent() && ReleaseStatus.EA == releaseStatus.get() && preBuild.isPresent() &&
-                       otherVersionNumber.getReleaseStatus().isPresent() && ReleaseStatus.EA == otherVersionNumber.getReleaseStatus().get() && otherVersionNumber.getPreBuild().isEmpty()) {
+                       otherVersionNumber.getReleaseStatus().isPresent() && ReleaseStatus.EA == otherVersionNumber.getReleaseStatus().get() && !otherVersionNumber.getPreBuild().isPresent()) {
                 ret = largerThan;
-            } else if (releaseStatus.isPresent() && ReleaseStatus.EA == releaseStatus.get() && preBuild.isEmpty() &&
+            } else if (releaseStatus.isPresent() && ReleaseStatus.EA == releaseStatus.get() && !preBuild.isPresent() &&
                        otherVersionNumber.getReleaseStatus().isPresent() && ReleaseStatus.EA == otherVersionNumber.getReleaseStatus().get() && otherVersionNumber.getPreBuild().isPresent()) {
                 ret = smallerThan;
             } else {

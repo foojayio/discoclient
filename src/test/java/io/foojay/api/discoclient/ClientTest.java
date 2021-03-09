@@ -128,8 +128,9 @@ public class ClientTest {
     public void getVersionsPerDistributionTest() {
         DiscoClient discoClient = new DiscoClient();
         Map<Distribution, List<VersionNumber>> versionsPerDistribution = discoClient.getVersionsPerDistribution();
-        assert versionsPerDistribution.size() == 15;
+        assert versionsPerDistribution.size() == 14;
     }
+
 
     @Test
     public void testCache() {
@@ -138,7 +139,13 @@ public class ClientTest {
         Queue<Pkg> allPkgs = discoClient.getAllPackages();
         assert (System.currentTimeMillis() - start) > 1000;
         long numberOfPackages = allPkgs.size();
-        while (!discoClient.cacheReady.get()) { }
+        while (!discoClient.cacheReady.get()) {
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException e) {
+
+            }
+        }
 
         start = System.currentTimeMillis();
         Queue<Pkg> allPkgsFromCache = discoClient.getAllPackages();

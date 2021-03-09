@@ -50,7 +50,7 @@ public enum ArchiveType implements ApiFeature {
     ArchiveType(final String uiString, final String apiString, final String... fileEndings) {
         this.uiString    = uiString;
         this.apiString   = apiString;
-        this.fileEndings = List.of(fileEndings);
+        this.fileEndings = Arrays.asList(fileEndings);
     }
 
 

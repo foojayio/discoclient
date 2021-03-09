@@ -279,24 +279,24 @@ public class DiscoClient {
         }
 
         String query = queryBuilder.toString();
-        if (query.isEmpty()) { return List.of(); }
+        if (query.isEmpty()) { return new ArrayList<>(); }
 
         if (cacheReady.get()) {
             return getPkgsFromCache(versionNumber,
                                     Comparison.EQUAL,
-                                    Distribution.NONE    == distributionCache    ? new ArrayList<>() : List.of(distributionCache),
-                                    Architecture.NONE    == architectureCache    ? new ArrayList<>() : List.of(architectureCache),
-                                    ArchiveType.NONE     == archiveTypeCache     ? new ArrayList<>() : List.of(archiveTypeCache),
+                                    Distribution.NONE    == distributionCache    ? new ArrayList<>() : Arrays.asList(distributionCache),
+                                    Architecture.NONE    == architectureCache    ? new ArrayList<>() : Arrays.asList(architectureCache),
+                                    ArchiveType.NONE     == archiveTypeCache     ? new ArrayList<>() : Arrays.asList(archiveTypeCache),
                                     packageTypeCache,
-                                    OperatingSystem.NONE == operatingSystemCache ? new ArrayList<>() : List.of(operatingSystemCache),
-                                    LibCType.NONE        == libcTypeCache        ? new ArrayList<>() : List.of(libcTypeCache),
-                                    ReleaseStatus.NONE   == releaseStatusCache   ? new ArrayList<>() : List.of(releaseStatusCache),
-                                    TermOfSupport.NONE   == termOfSupportCache   ? new ArrayList<>() : List.of(termOfSupportCache),
+                                    OperatingSystem.NONE == operatingSystemCache ? new ArrayList<>() : Arrays.asList(operatingSystemCache),
+                                    LibCType.NONE        == libcTypeCache        ? new ArrayList<>() : Arrays.asList(libcTypeCache),
+                                    ReleaseStatus.NONE   == releaseStatusCache   ? new ArrayList<>() : Arrays.asList(releaseStatusCache),
+                                    TermOfSupport.NONE   == termOfSupportCache   ? new ArrayList<>() : Arrays.asList(termOfSupportCache),
                                     bitnessCache,
                                     javafxBundled,
                                     directlyDownloadable,
                                     latestCache,
-                                    Scope.NONE           == scopeCache           ? new ArrayList<>() : List.of(scopeCache));
+                                    Scope.NONE           == scopeCache           ? new ArrayList<>() : Arrays.asList(scopeCache));
         }
 
         List<Pkg>   pkgs     = new LinkedList<>();
@@ -426,19 +426,19 @@ public class DiscoClient {
             CompletableFuture<List<Pkg>> future = new CompletableFuture<>();
             future.complete(getPkgsFromCache(versionNumber,
                                              Comparison.EQUAL,
-                                             Distribution.NONE    == distributionCache    ? new ArrayList<>() : List.of(distributionCache),
-                                             Architecture.NONE    == architectureCache    ? new ArrayList<>() : List.of(architectureCache),
-                                             ArchiveType.NONE     == archiveTypeCache     ? new ArrayList<>() : List.of(archiveTypeCache),
+                                             Distribution.NONE    == distributionCache    ? new ArrayList<>() : Arrays.asList(distributionCache),
+                                             Architecture.NONE    == architectureCache    ? new ArrayList<>() : Arrays.asList(architectureCache),
+                                             ArchiveType.NONE     == archiveTypeCache     ? new ArrayList<>() : Arrays.asList(archiveTypeCache),
                                              packageTypeCache,
-                                             OperatingSystem.NONE == operatingSystemCache ? new ArrayList<>() : List.of(operatingSystemCache),
-                                             LibCType.NONE        == libcTypeCache        ? new ArrayList<>() : List.of(libcTypeCache),
-                                             ReleaseStatus.NONE   == releaseStatusCache   ? new ArrayList<>() : List.of(releaseStatusCache),
-                                             TermOfSupport.NONE   == termOfSupportCache   ? new ArrayList<>() : List.of(termOfSupportCache),
+                                             OperatingSystem.NONE == operatingSystemCache ? new ArrayList<>() : Arrays.asList(operatingSystemCache),
+                                             LibCType.NONE        == libcTypeCache        ? new ArrayList<>() : Arrays.asList(libcTypeCache),
+                                             ReleaseStatus.NONE   == releaseStatusCache   ? new ArrayList<>() : Arrays.asList(releaseStatusCache),
+                                             TermOfSupport.NONE   == termOfSupportCache   ? new ArrayList<>() : Arrays.asList(termOfSupportCache),
                                              bitnessCache,
                                              javafxBundled,
                                              directlyDownloadable,
                                              latestCache,
-                                             Scope.NONE           == scopeCache           ? new ArrayList<>() : List.of(scopeCache)));
+                                             Scope.NONE           == scopeCache           ? new ArrayList<>() : Arrays.asList(scopeCache)));
             return future;
         }
         return Helper.getAsync(query).thenApply(bodyText -> {
@@ -1238,14 +1238,14 @@ public class DiscoClient {
 
     public final List<ArchiveType> getArchiveTypes(final OperatingSystem os) {
         switch (os) {
-            case WINDOWS     : return List.of(ArchiveType.CAB, ArchiveType.MSI, ArchiveType.TAR, ArchiveType.ZIP);
-            case MACOS       : return List.of(ArchiveType.DMG, ArchiveType.PKG, ArchiveType.TAR, ArchiveType.ZIP);
-            case LINUX       : return List.of(ArchiveType.DEB, ArchiveType.RPM, ArchiveType.TAR, ArchiveType.ZIP);
-            case LINUX_MUSL  : return List.of(ArchiveType.DEB, ArchiveType.RPM, ArchiveType.TAR, ArchiveType.ZIP);
-            case ALPINE_LINUX: return List.of(ArchiveType.DEB, ArchiveType.RPM, ArchiveType.TAR, ArchiveType.ZIP);
-            case SOLARIS     : return List.of(ArchiveType.DEB, ArchiveType.RPM, ArchiveType.TAR, ArchiveType.ZIP);
-            case AIX         : return List.of(ArchiveType.DEB, ArchiveType.RPM, ArchiveType.TAR, ArchiveType.ZIP);
-            case QNX         : return List.of(ArchiveType.DEB, ArchiveType.RPM, ArchiveType.TAR, ArchiveType.ZIP);
+            case WINDOWS     : return Arrays.asList(ArchiveType.CAB, ArchiveType.MSI, ArchiveType.TAR, ArchiveType.ZIP);
+            case MACOS       : return Arrays.asList(ArchiveType.DMG, ArchiveType.PKG, ArchiveType.TAR, ArchiveType.ZIP);
+            case LINUX       : return Arrays.asList(ArchiveType.DEB, ArchiveType.RPM, ArchiveType.TAR, ArchiveType.ZIP);
+            case LINUX_MUSL  : return Arrays.asList(ArchiveType.DEB, ArchiveType.RPM, ArchiveType.TAR, ArchiveType.ZIP);
+            case ALPINE_LINUX: return Arrays.asList(ArchiveType.DEB, ArchiveType.RPM, ArchiveType.TAR, ArchiveType.ZIP);
+            case SOLARIS     : return Arrays.asList(ArchiveType.DEB, ArchiveType.RPM, ArchiveType.TAR, ArchiveType.ZIP);
+            case AIX         : return Arrays.asList(ArchiveType.DEB, ArchiveType.RPM, ArchiveType.TAR, ArchiveType.ZIP);
+            case QNX         : return Arrays.asList(ArchiveType.DEB, ArchiveType.RPM, ArchiveType.TAR, ArchiveType.ZIP);
             default          : return Arrays.stream(ArchiveType.values()).filter(ext -> ArchiveType.NONE != ext).filter(ext -> ArchiveType.NOT_FOUND != ext).collect(Collectors.toList());
         }
     }
@@ -1291,7 +1291,7 @@ public class DiscoClient {
             switch(latest) {
                 case OVERALL:
                     final VersionNumber maxNumber;
-                    if (null == versionNumber || versionNumber.getFeature().isEmpty()) {
+                    if (null == versionNumber || !versionNumber.getFeature().isPresent()) {
                         Optional<Pkg> pkgWithMaxVersionNumber = pkgCache.stream()
                                                                         .filter(pkg -> distributions.isEmpty()                    ? (pkg.getDistribution() != null &&
                                                                                                                                      pkg.getDistribution() != Distribution.GRAALVM_CE8 &&

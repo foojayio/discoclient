@@ -22,18 +22,37 @@
 package io.foojay.api.discoclient.util;
 
 import io.foojay.api.discoclient.pkg.TermOfSupport;
+import org.apache.hc.client5.http.async.methods.SimpleHttpRequest;
+import org.apache.hc.client5.http.async.methods.SimpleHttpRequests;
+import org.apache.hc.client5.http.async.methods.SimpleHttpResponse;
+import org.apache.hc.client5.http.classic.methods.HttpGet;
+import org.apache.hc.client5.http.impl.async.CloseableHttpAsyncClient;
+import org.apache.hc.client5.http.impl.async.HttpAsyncClients;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
+import org.apache.hc.client5.http.impl.classic.HttpClients;
+import org.apache.hc.core5.concurrent.FutureCallback;
+import org.apache.hc.core5.http.HttpEntity;
+import org.apache.hc.core5.http.HttpHeaders;
+import org.apache.hc.core5.http.ParseException;
+import org.apache.hc.core5.http.io.entity.EntityUtils;
+import org.apache.hc.core5.io.CloseMode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpClient.Redirect;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
-import java.net.http.HttpResponse.BodyHandlers;
+import java.util.Scanner;
+import java.util.Spliterator;
+import java.util.Spliterators;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+import java.util.function.Consumer;
+import java.util.regex.MatchResult;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 
 public class Helper {
@@ -84,35 +103,73 @@ public class Helper {
         }
     }
 
+    public static Stream<MatchResult> findAll(Scanner s, Pattern pattern) {
+        return StreamSupport.stream(new Spliterators.AbstractSpliterator<MatchResult>(
+            1000, Spliterator.ORDERED | Spliterator.NONNULL) {
+            public boolean tryAdvance(Consumer<? super MatchResult> action) {
+                if(s.findWithinHorizon(pattern, 0)!=null) {
+                    action.accept(s.match());
+                    return true;
+                }
+                else return false;
+            }
+        }, false);
+    }
+
 
     // ******************** REST calls ****************************************
     public static final String get(final String uri) {
-        HttpClient  client  = HttpClient.newBuilder().followRedirects(Redirect.NEVER).version(java.net.http.HttpClient.Version.HTTP_2).build();
-        HttpRequest request = HttpRequest.newBuilder()
-                                         .uri(URI.create(uri))
-                                         .build();
-        try {
-            HttpResponse<String> response  = client.send(request, BodyHandlers.ofString());
-            if (response.statusCode() == 200) {
-                return response.body();
-            } else {
-                // Problem with url request
-                LOGGER.debug("Error executing get request {}", uri);
-                LOGGER.debug("Response ({}) {} ", response.statusCode(), response.body());
-                return "";
+        String result;
+        try (final CloseableHttpClient httpClient = HttpClients.createDefault()) {
+            final HttpGet httpGet = new HttpGet(URI.create(uri));
+            httpGet.addHeader(HttpHeaders.USER_AGENT, "DiscoClient");
+
+            try (final CloseableHttpResponse response = httpClient.execute(httpGet)) {
+                if (response.getCode() == 200) {
+                    final HttpEntity entity = response.getEntity();
+                    result = null == entity ? "" : EntityUtils.toString(entity);
+                    EntityUtils.consume(entity);
+                } else {
+                    result = "";
+                    LOGGER.debug("Error executing get request {}, response code {}", uri, response.getCode());
+                }
             }
-        } catch (InterruptedException | IOException e) {
-            LOGGER.error("Error executing get request {} : {}", uri, e.getMessage());
-            return "";
+        } catch (IOException | ParseException e) {
+            LOGGER.debug("Error executing get request {}", uri);
+            result = "";
         }
+        return result;
     }
 
     public static final CompletableFuture<String> getAsync(final String uri) {
-        HttpClient  client  = HttpClient.newBuilder().followRedirects(Redirect.NEVER).version(java.net.http.HttpClient.Version.HTTP_2).build();
-        HttpRequest request = HttpRequest.newBuilder()
-                                         .uri(URI.create(uri))
-                                         .build();
-        return client.sendAsync(request, BodyHandlers.ofString())
-                     .thenApply(HttpResponse::body);
+        final CloseableHttpAsyncClient client = HttpAsyncClients.createHttp2Default();
+        client.start();
+
+        final CompletableFuture<String>  toComplete = new CompletableFuture<>();
+        final SimpleHttpRequest          request    = SimpleHttpRequests.get(URI.create(uri));
+        final Future<SimpleHttpResponse> future     = client.execute(request, new FutureCallback<SimpleHttpResponse>() {
+            @Override public void completed(final SimpleHttpResponse response) {
+                toComplete.complete(response.getBodyText());
+            }
+
+            @Override public void failed(final Exception e) {
+                LOGGER.debug("Error executing get request {}, {}", uri, e.getMessage());
+                toComplete.completeExceptionally(e);
+            }
+
+            @Override public void cancelled() {
+                LOGGER.debug("Request to {} was cancelled", uri);
+                toComplete.cancel(true);
+            }
+        });
+
+        try {
+            future.get();
+        } catch (InterruptedException | ExecutionException e) {
+            LOGGER.debug("Error executing get request {}, {}", uri, e.getMessage());
+        }
+        client.close(CloseMode.GRACEFUL);
+
+        return toComplete;
     }
 }
