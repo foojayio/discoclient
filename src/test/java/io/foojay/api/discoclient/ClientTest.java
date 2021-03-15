@@ -57,7 +57,7 @@ import java.util.concurrent.Future;
 
 
 public class ClientTest {
-    /*
+
     @Test
     public void getPkgsAndTest() {
         DiscoClient discoClient = new DiscoClient();
@@ -69,7 +69,7 @@ public class ClientTest {
     @Test
     public void downloadPkgTest() {
         DiscoClient discoClient = new DiscoClient();
-        List<Pkg> packagesFound = discoClient.getPkgs(Distribution.ZULU, new VersionNumber(11, 0, 9, 1), Latest.EXPLICIT, OperatingSystem.WINDOWS, LibCType.C_STD_LIB,
+        List<Pkg> packagesFound = discoClient.getPkgs(Distribution.ZULU, new VersionNumber(11, 0, 9, 1), Latest.NONE, OperatingSystem.WINDOWS, LibCType.C_STD_LIB,
                                                       Architecture.X64, Bitness.BIT_64, ArchiveType.ZIP, PackageType.JRE, false, true, ReleaseStatus.GA, TermOfSupport.LTS, Scope.PUBLIC);
         assert packagesFound.size() > 0;
 
@@ -189,5 +189,4 @@ public class ClientTest {
         assert Distribution.LIBERICA.equals(Distribution.fromText("liberica"));
         assert Distribution.LIBERICA.equals(Distribution.fromText("LIBERICA"));
     }
-    */
 }

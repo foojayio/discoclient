@@ -896,7 +896,7 @@ public class DiscoClient {
     public final CompletableFuture<List<Distribution>> getDistributionsThatSupportAsync(final SemVer semVer, final OperatingSystem operatingSystem, final Architecture architecture,
                                                                                         final LibCType libcType, final ArchiveType archiveType, final PackageType packageType,
                                                                                         final Boolean javafxBundled, final Boolean directlyDownloadable) {
-        return getPkgsAsync(Distribution.NONE, semVer.getVersionNumber(), Latest.EXPLICIT, operatingSystem, libcType, architecture,
+        return getPkgsAsync(Distribution.NONE, semVer.getVersionNumber(), Latest.NONE, operatingSystem, libcType, architecture,
                             Bitness.NONE, archiveType, packageType, javafxBundled, directlyDownloadable, semVer.getReleaseStatus(),
                             TermOfSupport.NONE, Scope.PUBLIC).thenApply(pkgs -> pkgs.stream()
                                                                                     .map(pkg -> pkg.getDistribution())
@@ -1413,31 +1413,13 @@ public class DiscoClient {
                                         .sorted(Comparator.comparing(Pkg::getDistributionName).reversed().thenComparing(Comparator.comparing((Pkg pkg1) -> pkg1.getJavaVersion().getVersionNumber()).reversed()))
                                         .collect(Collectors.toList());
                     break;
-                case EXPLICIT:
-                    pkgsFound = pkgCache.stream()
-                                        .filter(pkg -> distributions.isEmpty()                    ? pkg.getDistribution()        != null          : distributions.contains(pkg.getDistribution()))
-                                        .filter(pkg -> Constants.SCOPE_LOOKUP.get(pkg.getDistribution()).stream().anyMatch(scopes.stream().collect(toSet())::contains))
-                                        .filter(pkg -> null != versionNumber ? pkg.getJavaVersion().getVersionNumber().compareTo(versionNumber) == 0 : null != pkg.getJavaVersion().getVersionNumber())
-                                        .filter(pkg -> architectures.isEmpty()                    ? pkg.getArchitecture()        != null          : architectures.contains(pkg.getArchitecture()))
-                                        .filter(pkg -> archiveTypes.isEmpty()                     ? pkg.getArchiveType()         != null          : archiveTypes.contains(pkg.getArchiveType()))
-                                        .filter(pkg -> operatingSystems.isEmpty()                 ? pkg.getOperatingSystem()     != null          : operatingSystems.contains(pkg.getOperatingSystem()))
-                                        .filter(pkg -> libCTypes.isEmpty()                        ? pkg.getLibCType()            != null          : libCTypes.contains(pkg.getLibCType()))
-                                        .filter(pkg -> termsOfSupport.isEmpty()                   ? pkg.getTermOfSupport()       != null          : termsOfSupport.contains(pkg.getTermOfSupport()))
-                                        .filter(pkg -> PackageType.NONE   == packageType          ? pkg.getPackageType()         != packageType   : pkg.getPackageType()         == packageType)
-                                        .filter(pkg -> releaseStatus.isEmpty()                    ? pkg.getReleaseStatus()       != null          : releaseStatus.contains(pkg.getReleaseStatus()))
-                                        .filter(pkg -> Bitness.NONE       == bitness              ? pkg.getBitness()             != bitness       : pkg.getBitness()             == bitness)
-                                        .filter(pkg -> null               == javafxBundled        ? pkg.isJavaFXBundled()        != null          : pkg.isJavaFXBundled()        == javafxBundled)
-                                        .filter(pkg -> null               == directlyDownloadable ? pkg.isDirectlyDownloadable() != null          : pkg.isDirectlyDownloadable() == directlyDownloadable)
-                                        .sorted(Comparator.comparing(Pkg::getDistributionName).reversed().thenComparing(Comparator.comparing((Pkg pkg1) -> pkg1.getJavaVersion().getVersionNumber()).reversed()))
-                                        .collect(Collectors.toList());
-                    break;
                 case NONE:
                 case NOT_FOUND:
                 default:
                     pkgsFound = pkgCache.stream()
                                         .filter(pkg -> distributions.isEmpty()                    ? pkg.getDistribution()        != null          : distributions.contains(pkg.getDistribution()))
                                         .filter(pkg -> Constants.SCOPE_LOOKUP.get(pkg.getDistribution()).stream().anyMatch(scopes.stream().collect(toSet())::contains))
-                                        .filter(pkg -> pkg.getJavaVersion().getVersionNumber() != null)
+                                        .filter(pkg -> null != versionNumber ? pkg.getJavaVersion().getVersionNumber().compareTo(versionNumber) == 0 : null != pkg.getJavaVersion().getVersionNumber())
                                         .filter(pkg -> architectures.isEmpty()                    ? pkg.getArchitecture()        != null          : architectures.contains(pkg.getArchitecture()))
                                         .filter(pkg -> archiveTypes.isEmpty()                     ? pkg.getArchiveType()         != null          : archiveTypes.contains(pkg.getArchiveType()))
                                         .filter(pkg -> operatingSystems.isEmpty()                 ? pkg.getOperatingSystem()     != null          : operatingSystems.contains(pkg.getOperatingSystem()))
