@@ -41,6 +41,7 @@ public enum Distribution implements ApiFeature {
     ORACLE_OPEN_JDK("Oracle OpenJDK", "oracle_openjdk"),
     RED_HAT("Red Hat", "redhat"),
     SAP_MACHINE("SAP Machine", "sapmachine"),
+    TRAVA("Trava", "trava"),
     ZULU("Zulu", "zulu"),
     NONE("-", ""),
     NOT_FOUND("", "");
@@ -154,16 +155,6 @@ public enum Distribution implements ApiFeature {
             case "Oracle":
             case "ORACLE":
                 return ORACLE;
-            case "sap_machine":
-            case "sapmachine":
-            case "SAPMACHINE":
-            case "SAP_MACHINE":
-            case "SAPMachine":
-            case "SAP Machine":
-            case "sap-machine":
-            case "SAP-Machine":
-            case "SAP-MACHINE":
-                return SAP_MACHINE;
             case "RedHat":
             case "redhat":
             case "REDHAT":
@@ -176,6 +167,19 @@ public enum Distribution implements ApiFeature {
             case "Red-Hat":
             case "RED-HAT":
                 return RED_HAT;
+            case "sap_machine":
+            case "sapmachine":
+            case "SAPMACHINE":
+            case "SAP_MACHINE":
+            case "SAPMachine":
+            case "SAP Machine":
+            case "sap-machine":
+            case "SAP-Machine":
+            case "SAP-MACHINE":
+                return SAP_MACHINE;
+            case "trava":
+            case "TRAVA":
+                return TRAVA;
             case "zulu":
             case "ZULU":
             case "Zulu":
@@ -198,6 +202,7 @@ public enum Distribution implements ApiFeature {
                      .filter(distribution -> Distribution.GRAALVM_CE11 != distribution)
                      .filter(distribution -> Distribution.GRAALVM_CE8 != distribution)
                      .filter(distribution -> Distribution.MANDREL != distribution)
+                     .filter(distribution -> Distribution.LIBERICA_NATIVE != distribution)
                      .collect(Collectors.toList());
     }
 
@@ -208,6 +213,7 @@ public enum Distribution implements ApiFeature {
                      .filter(distribution -> Distribution.GRAALVM_CE11 == distribution)
                      .filter(distribution -> Distribution.GRAALVM_CE8 == distribution)
                      .filter(distribution -> Distribution.MANDREL == distribution)
+                     .filter(distribution -> Distribution.LIBERICA_NATIVE == distribution)
                      .collect(Collectors.toList());
     }
 }
