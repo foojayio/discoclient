@@ -35,6 +35,7 @@ import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandlers;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
 import java.util.regex.Pattern;
 
@@ -175,6 +176,7 @@ public class Helper {
         HttpClient  client  = HttpClient.newBuilder().followRedirects(Redirect.NEVER).version(java.net.http.HttpClient.Version.HTTP_2).build();
         HttpRequest request = HttpRequest.newBuilder()
                                          .uri(URI.create(uri))
+                                         .timeout(Duration.ofSeconds(10))
                                          .build();
         try {
             HttpResponse<String> response  = client.send(request, BodyHandlers.ofString());
@@ -196,6 +198,7 @@ public class Helper {
         HttpClient  client  = HttpClient.newBuilder().followRedirects(Redirect.NEVER).version(java.net.http.HttpClient.Version.HTTP_2).build();
         HttpRequest request = HttpRequest.newBuilder()
                                          .uri(URI.create(uri))
+                                         .timeout(Duration.ofSeconds(10))
                                          .build();
         return client.sendAsync(request, BodyHandlers.ofString())
                      .thenApply(HttpResponse::body);
