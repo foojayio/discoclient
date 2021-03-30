@@ -856,6 +856,39 @@ public class DiscoClient {
     }
 
 
+    public final List<Pkg> updateAvailableFor(final Distribution distribution, final SemVer semVer, final Architecture architecture, final Boolean javafxBundled) {
+        List<Pkg> pkgs = getPkgs(distribution, semVer.getVersionNumber(), Latest.OVERALL, getOperatingSystem(), LibCType.NONE, architecture, Bitness.NONE, ArchiveType.NONE, PackageType.JDK, javafxBundled,
+                                 Boolean.TRUE, semVer.getReleaseStatus(), TermOfSupport.NONE, Scope.PUBLIC);
+        List<Pkg> updatesFound = new ArrayList<>();
+        if (pkgs.isEmpty()) {
+            return updatesFound;
+        } else {
+            Pkg firstEntry = pkgs.get(0);
+            SemVer semVerFound = firstEntry.getJavaVersion();
+            if (semVerFound.compareTo(semVer) > 0) {
+                updatesFound = pkgs.stream().filter(pkg -> pkg.getJavaVersion().compareTo(semVerFound) == 0).collect(Collectors.toList());
+            }
+            return updatesFound;
+        }
+    }
+    public final CompletableFuture<List<Pkg>> updateAvailableForAsync(final Distribution distribution, final SemVer semVer, final Architecture architecture, final Boolean javafxBundled) {
+        return getPkgsAsync(distribution, semVer.getVersionNumber(), Latest.OVERALL, getOperatingSystem(), LibCType.NONE, architecture, Bitness.NONE, ArchiveType.NONE, PackageType.JDK, javafxBundled,
+                            Boolean.TRUE, semVer.getReleaseStatus(), TermOfSupport.NONE, Scope.PUBLIC).thenApply(pkgs -> {
+            List<Pkg> updatesFound = new ArrayList<>();
+            if (pkgs.isEmpty()) {
+                return updatesFound;
+            } else {
+                Pkg firstEntry = pkgs.get(0);
+                SemVer semVerFound = firstEntry.getJavaVersion();
+                if (semVerFound.compareTo(semVer) > 0) {
+                    updatesFound = pkgs.stream().filter(pkg -> pkg.getJavaVersion().compareTo(semVerFound) == 0).collect(Collectors.toList());
+                }
+                return updatesFound;
+            }
+        });
+    }
+
+
     public final List<Distribution> getDistributionsThatSupportVersion(final String version) {
         SemVer semver = SemVer.fromText(version).getSemVer1();
         if (null == semver) {
