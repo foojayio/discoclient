@@ -1255,6 +1255,9 @@ public class DiscoClient {
     }
 
 
+    public void cancelRequest() { Helper.cancelRequest(); }
+
+
     public static final OperatingSystem getOperatingSystem() {
         String os = System.getProperty("os.name").toLowerCase();
         if (os.indexOf("win") >= 0) {

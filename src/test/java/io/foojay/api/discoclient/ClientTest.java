@@ -57,7 +57,27 @@ import java.util.concurrent.Future;
 
 
 public class ClientTest {
+
     /*
+    @Test
+    public void cancelRequestTest() {
+        DiscoClient discoClient = new DiscoClient();
+        List<Pkg> pkgs = discoClient.getPkgs(Distribution.NONE, new VersionNumber(11), Latest.OVERALL, OperatingSystem.NONE, LibCType.NONE,
+                                             Architecture.NONE, Bitness.NONE, ArchiveType.NONE, PackageType.NONE, false, true, ReleaseStatus.NONE, TermOfSupport.NONE, Scope.PUBLIC);
+        System.out.println(pkgs.size() + " pkgs found");
+
+        discoClient.getPkgsAsync(Distribution.NONE, new VersionNumber(11), Latest.OVERALL, OperatingSystem.NONE, LibCType.NONE,
+                                 Architecture.NONE, Bitness.NONE, ArchiveType.NONE, PackageType.NONE, false, true, ReleaseStatus.NONE, TermOfSupport.NONE, Scope.PUBLIC).thenAccept(e -> System.out.println(e.size() + " pkgs found async"));
+
+        try {
+            Thread.sleep(500);
+        } catch (InterruptedException e) {
+            System.out.println(e.getMessage());
+        }
+
+        discoClient.cancelRequest();
+    }
+
     @Test
     public void getPkgsAndTest() {
         DiscoClient discoClient = new DiscoClient();

@@ -32,7 +32,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpClient.Redirect;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.net.http.HttpResponse.BodyHandlers;
+import java.net.http.HttpResponse.BodyHandler;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.Duration;
@@ -43,8 +43,9 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 
 
 public class Helper {
-    private static final Logger  LOGGER                 = LoggerFactory.getLogger(Helper.class);
-    public  static final Pattern NUMBER_IN_TEXT_PATTERN = Pattern.compile("(.*)?([0-9]+)(.*)?");
+    private static final Logger             LOGGER                 = LoggerFactory.getLogger(Helper.class);
+    public  static final Pattern            NUMBER_IN_TEXT_PATTERN = Pattern.compile("(.*)?([0-9]+)(.*)?");
+    private static       BodyHandlerWrapper handlerWrapper         = null;
 
 
     public static boolean isPositiveInteger(final String text) {
@@ -178,8 +179,13 @@ public class Helper {
                                          .uri(URI.create(uri))
                                          .timeout(Duration.ofSeconds(10))
                                          .build();
+
+        BodyHandler<String> handler = HttpResponse.BodyHandlers.ofString();
+        handlerWrapper = new BodyHandlerWrapper(handler);
+
+
         try {
-            HttpResponse<String> response  = client.send(request, BodyHandlers.ofString());
+            HttpResponse<String> response  = client.send(request, handler);
             if (response.statusCode() == 200) {
                 return response.body();
             } else {
@@ -200,7 +206,15 @@ public class Helper {
                                          .uri(URI.create(uri))
                                          .timeout(Duration.ofSeconds(10))
                                          .build();
-        return client.sendAsync(request, BodyHandlers.ofString())
+
+        BodyHandler<String> handler = HttpResponse.BodyHandlers.ofString();
+        handlerWrapper = new BodyHandlerWrapper(handler);
+
+        return client.sendAsync(request, handler)
                      .thenApply(HttpResponse::body);
+    }
+
+    public static final void cancelRequest() {
+        if (null != handlerWrapper) { handlerWrapper.cancel(); }
     }
 }
