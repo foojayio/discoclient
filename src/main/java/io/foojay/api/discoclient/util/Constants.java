@@ -60,6 +60,9 @@ public class Constants {
     public static final String  API_LATEST                = "latest";
     public static final String  API_DISCOVERY_SCOPE_ID    = "discovery_scope_id";
 
+    public static final String  RESPONSE_RESULT           = "result";
+    public static final String  RESPONSE_MESSAGE          = "message";
+
     public static final ConcurrentHashMap<Distribution, List<Scope>> SCOPE_LOOKUP = new ConcurrentHashMap<>();
     static {
         SCOPE_LOOKUP.put(Distribution.AOJ, Arrays.asList(Scope.PUBLIC, Scope.BUILD_OF_OPEN_JDK, Scope.DIRECTLY_DOWNLOADABLE));

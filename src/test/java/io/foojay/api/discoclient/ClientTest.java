@@ -128,9 +128,8 @@ public class ClientTest {
     public void getVersionsPerDistributionTest() {
         DiscoClient discoClient = new DiscoClient();
         Map<Distribution, List<VersionNumber>> versionsPerDistribution = discoClient.getVersionsPerDistribution();
-        assert versionsPerDistribution.size() == 14;
+        assert versionsPerDistribution.size() == 17;
     }
-
 
     @Test
     public void testCache() {
