@@ -1341,7 +1341,7 @@ public class DiscoClient {
     }
 
 
-    public final  OperatingSystem getOperatingSystem() {
+    public static final  OperatingSystem getOperatingSystem() {
         String os = System.getProperty("os.name").toLowerCase();
         if (os.indexOf("win") >= 0) {
             return OperatingSystem.WINDOWS;
@@ -1360,7 +1360,7 @@ public class DiscoClient {
         switch (os) {
             case WINDOWS     : return Arrays.asList(ArchiveType.CAB, ArchiveType.MSI, ArchiveType.TAR, ArchiveType.ZIP);
             case MACOS       : return Arrays.asList(ArchiveType.DMG, ArchiveType.PKG, ArchiveType.TAR, ArchiveType.ZIP);
-            case LINUX       : return Arrays.asList(ArchiveType.DEB, ArchiveType.RPM, ArchiveType.TAR, ArchiveType.ZIP);
+            case LINUX       : return Arrays.asList(ArchiveType.APK, ArchiveType.DEB, ArchiveType.RPM, ArchiveType.TAR, ArchiveType.ZIP);
             case LINUX_MUSL  : return Arrays.asList(ArchiveType.DEB, ArchiveType.RPM, ArchiveType.TAR, ArchiveType.ZIP);
             case ALPINE_LINUX: return Arrays.asList(ArchiveType.DEB, ArchiveType.RPM, ArchiveType.TAR, ArchiveType.ZIP);
             case SOLARIS     : return Arrays.asList(ArchiveType.DEB, ArchiveType.RPM, ArchiveType.TAR, ArchiveType.ZIP);
