@@ -177,7 +177,7 @@ public class Helper {
         HttpClient  client  = HttpClient.newBuilder().followRedirects(Redirect.NEVER).version(java.net.http.HttpClient.Version.HTTP_2).build();
         HttpRequest request = HttpRequest.newBuilder()
                                          .uri(URI.create(uri))
-                                         .timeout(Duration.ofSeconds(10))
+                                         //.timeout(Duration.ofSeconds(10))
                                          .build();
 
         BodyHandler<String> handler = HttpResponse.BodyHandlers.ofString();
@@ -204,7 +204,7 @@ public class Helper {
         HttpClient  client  = HttpClient.newBuilder().followRedirects(Redirect.NEVER).version(java.net.http.HttpClient.Version.HTTP_2).build();
         HttpRequest request = HttpRequest.newBuilder()
                                          .uri(URI.create(uri))
-                                         .timeout(Duration.ofSeconds(10))
+                                         //.timeout(Duration.ofSeconds(10))
                                          .build();
 
         BodyHandler<String> handler = HttpResponse.BodyHandlers.ofString();

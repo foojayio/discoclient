@@ -24,7 +24,9 @@ package io.foojay.api.discoclient.util;
 import io.foojay.api.discoclient.pkg.Distribution;
 import io.foojay.api.discoclient.pkg.Scope;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
 
@@ -71,6 +73,9 @@ public class Constants {
     public static final String  COMMA_NEW_LINE            = ",\n";
 
     public static final ConcurrentHashMap<Distribution, List<Scope>> SCOPE_LOOKUP = new ConcurrentHashMap<>() {{
+        put(Distribution.NONE, List.of(Scope.PUBLIC));
+        put(Distribution.NOT_FOUND, List.of(Scope.PUBLIC));
+        put(Distribution.ADOPTIUM, List.of(Scope.PUBLIC, Scope.BUILD_OF_OPEN_JDK, Scope.DIRECTLY_DOWNLOADABLE));
         put(Distribution.AOJ, List.of(Scope.PUBLIC, Scope.BUILD_OF_OPEN_JDK, Scope.DIRECTLY_DOWNLOADABLE));
         put(Distribution.AOJ_OPENJ9, List.of(Scope.PUBLIC, Scope.DIRECTLY_DOWNLOADABLE));
         put(Distribution.CORRETTO, List.of(Scope.PUBLIC, Scope.BUILD_OF_OPEN_JDK, Scope.DIRECTLY_DOWNLOADABLE));
@@ -84,6 +89,7 @@ public class Constants {
         put(Distribution.ORACLE, List.of(Scope.PUBLIC, Scope.BUILD_OF_OPEN_JDK, Scope.NOT_DIRECTLY_DOWNLOADABLE));
         put(Distribution.ORACLE_OPEN_JDK, List.of(Scope.PUBLIC, Scope.BUILD_OF_OPEN_JDK, Scope.DIRECTLY_DOWNLOADABLE));
         put(Distribution.RED_HAT, List.of(Scope.PUBLIC, Scope.BUILD_OF_OPEN_JDK, Scope.NOT_DIRECTLY_DOWNLOADABLE));
+        put(Distribution.TRAVA, List.of(Scope.PUBLIC, Scope.BUILD_OF_OPEN_JDK, Scope.DIRECTLY_DOWNLOADABLE));
         put(Distribution.SAP_MACHINE, List.of(Scope.PUBLIC, Scope.BUILD_OF_OPEN_JDK, Scope.DIRECTLY_DOWNLOADABLE));
         put(Distribution.ZULU, List.of(Scope.PUBLIC, Scope.BUILD_OF_OPEN_JDK, Scope.DIRECTLY_DOWNLOADABLE));
     }};

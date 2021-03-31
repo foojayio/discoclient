@@ -84,6 +84,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.toSet;
@@ -284,19 +285,19 @@ public class DiscoClient {
         if (cacheReady.get()) {
             return getPkgsFromCache(versionNumber,
                                     Comparison.EQUAL,
-                                    Distribution.NONE    == distributionCache    ? new ArrayList<>() : List.of(distributionCache),
-                                    Architecture.NONE    == architectureCache    ? new ArrayList<>() : List.of(architectureCache),
-                                    ArchiveType.NONE     == archiveTypeCache     ? new ArrayList<>() : List.of(archiveTypeCache),
+                                    Distribution.NONE    == distributionCache    ? List.of() : List.of(distributionCache),
+                                    Architecture.NONE    == architectureCache    ? List.of() : List.of(architectureCache),
+                                    ArchiveType.NONE     == archiveTypeCache     ? List.of() : List.of(archiveTypeCache),
                                     packageTypeCache,
-                                    OperatingSystem.NONE == operatingSystemCache ? new ArrayList<>() : List.of(operatingSystemCache),
-                                    LibCType.NONE        == libcTypeCache        ? new ArrayList<>() : List.of(libcTypeCache),
-                                    ReleaseStatus.NONE   == releaseStatusCache   ? new ArrayList<>() : List.of(releaseStatusCache),
-                                    TermOfSupport.NONE   == termOfSupportCache   ? new ArrayList<>() : List.of(termOfSupportCache),
+                                    OperatingSystem.NONE == operatingSystemCache ? List.of() : List.of(operatingSystemCache),
+                                    LibCType.NONE        == libcTypeCache        ? List.of() : List.of(libcTypeCache),
+                                    ReleaseStatus.NONE   == releaseStatusCache   ? List.of() : List.of(releaseStatusCache),
+                                    TermOfSupport.NONE   == termOfSupportCache   ? List.of() : List.of(termOfSupportCache),
                                     bitnessCache,
                                     javafxBundled,
                                     directlyDownloadable,
                                     latestCache,
-                                    Scope.NONE           == scopeCache           ? new ArrayList<>() : List.of(scopeCache));
+                                    Scope.NONE           == scopeCache           ? List.of(Scope.PUBLIC) : List.of(scopeCache));
         }
 
         List<Pkg>   pkgs     = new LinkedList<>();
@@ -423,24 +424,279 @@ public class DiscoClient {
         if (query.isEmpty()) { return new CompletableFuture<>(); }
 
         if (cacheReady.get()) {
+            Distribution                 finalDistributionCache    = distributionCache;
+            Architecture                 finalArchitectureCache    = architectureCache;
+            ArchiveType                  finalArchiveTypeCache     = archiveTypeCache;
+            PackageType                  finalPackageTypeCache     = packageTypeCache;
+            OperatingSystem              finalOperatingSystemCache = operatingSystemCache;
+            LibCType                     finalLibcTypeCache        = libcTypeCache;
+            ReleaseStatus                finalReleaseStatusCache   = releaseStatusCache;
+            TermOfSupport                finalTermOfSupportCache   = termOfSupportCache;
+            Bitness                      finalBitnessCache         = bitnessCache;
+            Latest                       finalLatestCache          = latestCache;
+            Scope                        finalScopeCache           = scopeCache;
             CompletableFuture<List<Pkg>> future = new CompletableFuture<>();
-            future.complete(getPkgsFromCache(versionNumber,
-                                             Comparison.EQUAL,
-                                             Distribution.NONE    == distributionCache    ? new ArrayList<>() : List.of(distributionCache),
-                                             Architecture.NONE    == architectureCache    ? new ArrayList<>() : List.of(architectureCache),
-                                             ArchiveType.NONE     == archiveTypeCache     ? new ArrayList<>() : List.of(archiveTypeCache),
-                                             packageTypeCache,
-                                             OperatingSystem.NONE == operatingSystemCache ? new ArrayList<>() : List.of(operatingSystemCache),
-                                             LibCType.NONE        == libcTypeCache        ? new ArrayList<>() : List.of(libcTypeCache),
-                                             ReleaseStatus.NONE   == releaseStatusCache   ? new ArrayList<>() : List.of(releaseStatusCache),
-                                             TermOfSupport.NONE   == termOfSupportCache   ? new ArrayList<>() : List.of(termOfSupportCache),
-                                             bitnessCache,
-                                             javafxBundled,
-                                             directlyDownloadable,
-                                             latestCache,
-                                             Scope.NONE           == scopeCache           ? new ArrayList<>() : List.of(scopeCache)));
-            return future;
+            return future.supplyAsync(() -> getPkgsFromCache(versionNumber,
+                                                             Comparison.EQUAL,
+                                                             Distribution.NONE    == finalDistributionCache    ? List.of() : List.of(finalDistributionCache),
+                                                             Architecture.NONE    == finalArchitectureCache    ? List.of() : List.of(finalArchitectureCache),
+                                                             ArchiveType.NONE     == finalArchiveTypeCache     ? List.of() : List.of(finalArchiveTypeCache),
+                                                             finalPackageTypeCache,
+                                                             OperatingSystem.NONE == finalOperatingSystemCache ? List.of() : List.of(finalOperatingSystemCache),
+                                                             LibCType.NONE        == finalLibcTypeCache        ? List.of() : List.of(finalLibcTypeCache),
+                                                             ReleaseStatus.NONE   == finalReleaseStatusCache   ? List.of() : List.of(finalReleaseStatusCache),
+                                                             TermOfSupport.NONE   == finalTermOfSupportCache   ? List.of() : List.of(finalTermOfSupportCache),
+                                                             finalBitnessCache,
+                                                             javafxBundled,
+                                                             directlyDownloadable,
+                                                             finalLatestCache,
+                                                             Scope.NONE == finalScopeCache                     ? List.of() : List.of(finalScopeCache)), service);
         }
+
+        return Helper.getAsync(query).thenApply(bodyText -> {
+            List<Pkg>   pkgs      = new LinkedList<>();
+            List<Pkg>   pkgsFound = new ArrayList<>();
+            Gson        gson      = new Gson();
+            JsonElement element   = gson.fromJson(bodyText, JsonElement.class);
+            if (element instanceof JsonArray) {
+                JsonArray jsonArray = element.getAsJsonArray();
+                for (int i = 0; i < jsonArray.size(); i++) {
+                    JsonObject pkgJsonObj = jsonArray.get(i).getAsJsonObject();
+                    pkgsFound.add(new Pkg(pkgJsonObj.toString()));
+                }
+            }
+            pkgs.addAll(pkgsFound);
+            HashSet<Pkg> unique = new HashSet<>(pkgs);
+            pkgs = new LinkedList<>(unique);
+            return pkgs;
+        });
+    }
+
+    public List<Pkg> getPkgsUncached(final Distribution distribution, final VersionNumber versionNumber, final Latest latest, final OperatingSystem operatingSystem,
+                                     final LibCType libcType, final Architecture architecture, final Bitness bitness, final ArchiveType archiveType, final PackageType packageType,
+                                     final Boolean javafxBundled, final Boolean directlyDownloadable, final ReleaseStatus releaseStatus, final TermOfSupport termOfSupport, final Scope scope) {
+
+        StringBuilder queryBuilder = new StringBuilder().append(PropertyManager.INSTANCE.getString(Constants.PROPERTY_KEY_DISCO_URL))
+                                                        .append(Constants.PACKAGES_PATH);
+        final int initialLength = queryBuilder.length();
+
+        Distribution distributionCache = Distribution.NONE;
+        if (null != distribution && Distribution.NONE != distribution && Distribution.NOT_FOUND != distribution) {
+            queryBuilder.append(queryBuilder.length() == initialLength ? "?" : "&");
+            queryBuilder.append(Constants.API_DISTRIBUTION).append("=").append(distribution.getApiString());
+            distributionCache = distribution;
+        }
+
+        if (null != versionNumber) {
+            queryBuilder.append(queryBuilder.length() == initialLength ? "?" : "&");
+            queryBuilder.append(Constants.API_VERSION).append("=").append(versionNumber.toString());
+        }
+
+        Latest latestCache = Latest.NONE;
+        if (null != latest && Latest.NONE != latest && Latest.NOT_FOUND != latest) {
+            queryBuilder.append(queryBuilder.length() == initialLength ? "?" : "&");
+            queryBuilder.append(Constants.API_LATEST).append("=").append(latest.getApiString());
+            latestCache = latest;
+        }
+
+        OperatingSystem operatingSystemCache = OperatingSystem.NONE;
+        if (null != operatingSystem && OperatingSystem.NONE != operatingSystem && OperatingSystem.NOT_FOUND != operatingSystem) {
+            queryBuilder.append(queryBuilder.length() == initialLength ? "?" : "&");
+            queryBuilder.append(Constants.API_OPERATING_SYSTEM).append("=").append(operatingSystem.getApiString());
+            operatingSystemCache = operatingSystem;
+        }
+
+        LibCType libcTypeCache = LibCType.NONE;
+        if (null != libcType && LibCType.NONE != libcType && LibCType.NOT_FOUND != libcType) {
+            queryBuilder.append(queryBuilder.length() == initialLength ? "?" : "&");
+            queryBuilder.append(Constants.API_LIBC_TYPE).append("=").append(libcType.getApiString());
+            libcTypeCache = libcType;
+        }
+
+        Architecture architectureCache = Architecture.NONE;
+        if (null != architecture && Architecture.NONE != architecture && Architecture.NOT_FOUND != architecture) {
+            queryBuilder.append(queryBuilder.length() == initialLength ? "?" : "&");
+            queryBuilder.append(Constants.API_ARCHITECTURE).append("=").append(architecture.getApiString());
+            architectureCache = architecture;
+        }
+
+        Bitness bitnessCache = Bitness.NONE;
+        if (null != bitness && Bitness.NONE != bitness && Bitness.NOT_FOUND != bitness) {
+            queryBuilder.append(queryBuilder.length() == initialLength ? "?" : "&");
+            queryBuilder.append(Constants.API_BITNESS).append("=").append(bitness.getApiString());
+            bitnessCache = bitness;
+        }
+
+        ArchiveType archiveTypeCache = ArchiveType.NONE;
+        if (null != archiveType && ArchiveType.NONE != archiveType && ArchiveType.NOT_FOUND != archiveType) {
+            queryBuilder.append(queryBuilder.length() == initialLength ? "?" : "&");
+            queryBuilder.append(Constants.API_ARCHIVE_TYPE).append("=").append(archiveType.getApiString());
+            archiveTypeCache = archiveType;
+        }
+
+        PackageType packageTypeCache = PackageType.NONE;
+        if (null != packageType && PackageType.NONE != packageType && PackageType.NOT_FOUND != packageType) {
+            queryBuilder.append(queryBuilder.length() == initialLength ? "?" : "&");
+            queryBuilder.append(Constants.API_PACKAGE_TYPE).append("=").append(packageType.getApiString());
+            packageTypeCache = packageType;
+        }
+
+        Scope scopeCache = Scope.PUBLIC;
+        if (null != scope && Scope.NONE != scope && Scope.NOT_FOUND != scope) {
+            queryBuilder.append(queryBuilder.length() == initialLength ? "?" : "&");
+            queryBuilder.append(Constants.API_DISCOVERY_SCOPE_ID).append("=").append(scope.getApiString());
+            scopeCache = scope;
+        }
+
+        if (null != javafxBundled) {
+            queryBuilder.append(queryBuilder.length() == initialLength ? "?" : "&");
+            queryBuilder.append(Constants.API_JAVAFX_BUNDLED).append("=").append(javafxBundled);
+        }
+
+        if (null != directlyDownloadable) {
+            queryBuilder.append(queryBuilder.length() == initialLength ? "?" : "&");
+            queryBuilder.append(Constants.API_DIRECTLY_DOWNLOADABLE).append("=").append(directlyDownloadable);
+        }
+
+        ReleaseStatus releaseStatusCache = ReleaseStatus.NONE;
+        if (null != releaseStatus && ReleaseStatus.NONE != releaseStatus && ReleaseStatus.NOT_FOUND != releaseStatus) {
+            queryBuilder.append(queryBuilder.length() == initialLength ? "?" : "&");
+            queryBuilder.append(Constants.API_RELEASE_STATUS).append("=").append(releaseStatus.getApiString());
+            releaseStatusCache = releaseStatus;
+        }
+
+        TermOfSupport termOfSupportCache = TermOfSupport.NONE;
+        if (null != termOfSupport && TermOfSupport.NONE != termOfSupport && TermOfSupport.NOT_FOUND != termOfSupport) {
+            queryBuilder.append(queryBuilder.length() == initialLength ? "?" : "&");
+            queryBuilder.append(Constants.API_SUPPORT_TERM).append("=").append(termOfSupport.getApiString());
+            termOfSupportCache = termOfSupport;
+        }
+
+        String query = queryBuilder.toString();
+        if (query.isEmpty()) { return List.of(); }
+
+        List<Pkg>   pkgs     = new LinkedList<>();
+        String      bodyText = Helper.get(query);
+
+        List<Pkg>   pkgsFound = new ArrayList<>();
+        Gson        gson      = new Gson();
+        JsonElement element   = gson.fromJson(bodyText, JsonElement.class);
+        if (element instanceof JsonArray) {
+            JsonArray jsonArray = element.getAsJsonArray();
+            for (int i = 0; i < jsonArray.size(); i++) {
+                JsonObject pkgJsonObj = jsonArray.get(i).getAsJsonObject();
+                pkgsFound.add(new Pkg(pkgJsonObj.toString()));
+            }
+        }
+
+        pkgs.addAll(pkgsFound);
+        HashSet<Pkg> unique = new HashSet<>(pkgs);
+        pkgs = new LinkedList<>(unique);
+
+        return pkgs;
+    }
+    public CompletableFuture<List<Pkg>> getPkgsAsyncUncached(final Distribution distribution, final VersionNumber versionNumber, final Latest latest, final OperatingSystem operatingSystem,
+                                                             final LibCType libCType, final Architecture architecture, final Bitness bitness, final ArchiveType archiveType, final PackageType packageType,
+                                                             final Boolean javafxBundled, final Boolean directlyDownloadable, final ReleaseStatus releaseStatus, final TermOfSupport termOfSupport, final Scope scope) {
+
+        StringBuilder queryBuilder = new StringBuilder().append(PropertyManager.INSTANCE.getString(Constants.PROPERTY_KEY_DISCO_URL))
+                                                        .append(Constants.PACKAGES_PATH);
+        final int initialLength = queryBuilder.length();
+
+        Distribution distributionCache = Distribution.NONE;
+        if (null != distribution && Distribution.NONE != distribution && Distribution.NOT_FOUND != distribution) {
+            queryBuilder.append(queryBuilder.length() == initialLength ? "?" : "&");
+            queryBuilder.append(Constants.API_DISTRIBUTION).append("=").append(distribution.getApiString());
+            distributionCache = distribution;
+        }
+
+        if (null != versionNumber) {
+            queryBuilder.append(queryBuilder.length() == initialLength ? "?" : "&");
+            queryBuilder.append(Constants.API_VERSION).append("=").append(versionNumber.toString(OutputFormat.REDUCED, true, true));
+        }
+
+        Latest latestCache = Latest.NONE;
+        if (null != latest && Latest.NONE != latest && Latest.NOT_FOUND != latest) {
+            queryBuilder.append(queryBuilder.length() == initialLength ? "?" : "&");
+            queryBuilder.append(Constants.API_LATEST).append("=").append(latest.getApiString());
+            latestCache = latest;
+        }
+
+        OperatingSystem operatingSystemCache = OperatingSystem.NONE;
+        if (null != operatingSystem && OperatingSystem.NONE != operatingSystem && OperatingSystem.NOT_FOUND != operatingSystem) {
+            queryBuilder.append(queryBuilder.length() == initialLength ? "?" : "&");
+            queryBuilder.append(Constants.API_OPERATING_SYSTEM).append("=").append(operatingSystem.getApiString());
+            operatingSystemCache = operatingSystem;
+        }
+
+        LibCType libcTypeCache = LibCType.NONE;
+        if (null != libCType && LibCType.NONE != libCType && LibCType.NOT_FOUND != libCType) {
+            queryBuilder.append(queryBuilder.length() == initialLength ? "?" : "&");
+            queryBuilder.append(Constants.API_LIBC_TYPE).append("=").append(libCType.getApiString());
+            libcTypeCache = libCType;
+        }
+
+        Architecture architectureCache = Architecture.NONE;
+        if (null != architecture && Architecture.NONE != architecture && Architecture.NOT_FOUND != architecture) {
+            queryBuilder.append(queryBuilder.length() == initialLength ? "?" : "&");
+            queryBuilder.append(Constants.API_ARCHITECTURE).append("=").append(architecture.getApiString());
+            architectureCache = architecture;
+        }
+
+        Bitness bitnessCache = Bitness.NONE;
+        if (null != bitness && Bitness.NONE != bitness && Bitness.NOT_FOUND != bitness) {
+            queryBuilder.append(queryBuilder.length() == initialLength ? "?" : "&");
+            queryBuilder.append(Constants.API_BITNESS).append("=").append(bitness.getApiString());
+            bitnessCache = bitness;
+        }
+
+        ArchiveType archiveTypeCache = ArchiveType.NONE;
+        if (null != archiveType && ArchiveType.NONE != archiveType && ArchiveType.NOT_FOUND != archiveType) {
+            queryBuilder.append(queryBuilder.length() == initialLength ? "?" : "&");
+            queryBuilder.append(Constants.API_ARCHIVE_TYPE).append("=").append(archiveType.getApiString());
+            archiveTypeCache = archiveType;
+        }
+
+        PackageType packageTypeCache = PackageType.NONE;
+        if (null != packageType && PackageType.NONE != packageType && PackageType.NOT_FOUND != packageType) {
+            queryBuilder.append(queryBuilder.length() == initialLength ? "?" : "&");
+            queryBuilder.append(Constants.API_PACKAGE_TYPE).append("=").append(packageType.getApiString());
+            packageTypeCache = packageType;
+        }
+
+        Scope scopeCache = Scope.PUBLIC;
+        if (null != scope && Scope.NONE != scope && Scope.NOT_FOUND != scope) {
+            queryBuilder.append(queryBuilder.length() == initialLength ? "?" : "&");
+            queryBuilder.append(Constants.API_DISCOVERY_SCOPE_ID).append("=").append(scope.getApiString());
+            scopeCache = scope;
+        }
+
+        if (null != javafxBundled) {
+            queryBuilder.append(queryBuilder.length() == initialLength ? "?" : "&");
+            queryBuilder.append(Constants.API_JAVAFX_BUNDLED).append("=").append(javafxBundled);
+        }
+
+        if (null != directlyDownloadable) {
+            queryBuilder.append(queryBuilder.length() == initialLength ? "?" : "&");
+            queryBuilder.append(Constants.API_DIRECTLY_DOWNLOADABLE).append("=").append(directlyDownloadable);
+        }
+
+        ReleaseStatus releaseStatusCache = ReleaseStatus.NONE;
+        if (null != releaseStatus && ReleaseStatus.NONE != releaseStatus && ReleaseStatus.NOT_FOUND != releaseStatus) {
+            queryBuilder.append(queryBuilder.length() == initialLength ? "?" : "&");
+            queryBuilder.append(Constants.API_RELEASE_STATUS).append("=").append(releaseStatus.getApiString());
+            releaseStatusCache = releaseStatus;
+        }
+
+        TermOfSupport termOfSupportCache = TermOfSupport.NONE;
+        if (null != termOfSupport && TermOfSupport.NONE != termOfSupport && TermOfSupport.NOT_FOUND != termOfSupport) {
+            queryBuilder.append(queryBuilder.length() == initialLength ? "?" : "&");
+            queryBuilder.append(Constants.API_SUPPORT_TERM).append("=").append(termOfSupport.getApiString());
+            termOfSupportCache = termOfSupport;
+        }
+
+        String query = queryBuilder.toString();
+        if (query.isEmpty()) { return new CompletableFuture<>(); }
 
         return Helper.getAsync(query).thenApply(bodyText -> {
             List<Pkg>   pkgs      = new LinkedList<>();
@@ -907,8 +1163,8 @@ public class DiscoClient {
 
 
     public final List<Pkg> updateAvailableFor(final Distribution distribution, final SemVer semVer, final Architecture architecture, final Boolean javafxBundled) {
-        List<Pkg> pkgs = getPkgs(distribution, semVer.getVersionNumber(), Latest.OVERALL, getOperatingSystem(), LibCType.NONE, architecture, Bitness.NONE, ArchiveType.NONE, PackageType.JDK, javafxBundled,
-                                 Boolean.TRUE, semVer.getReleaseStatus(), TermOfSupport.NONE, Scope.PUBLIC);
+        List<Pkg> pkgs = getPkgsUncached(distribution, semVer.getVersionNumber(), Latest.OVERALL, getOperatingSystem(), LibCType.NONE, architecture, Bitness.NONE, ArchiveType.NONE, PackageType.JDK, javafxBundled,
+                                         Boolean.TRUE, semVer.getReleaseStatus(), TermOfSupport.NONE, Scope.PUBLIC);
         List<Pkg> updatesFound = new ArrayList<>();
         if (pkgs.isEmpty()) {
             return updatesFound;
@@ -922,13 +1178,13 @@ public class DiscoClient {
         }
     }
     public final CompletableFuture<List<Pkg>> updateAvailableForAsync(final Distribution distribution, final SemVer semVer, final Architecture architecture, final Boolean javafxBundled) {
-        return getPkgsAsync(distribution, semVer.getVersionNumber(), Latest.OVERALL, getOperatingSystem(), LibCType.NONE, architecture, Bitness.NONE, ArchiveType.NONE, PackageType.JDK, javafxBundled,
-                            Boolean.TRUE, semVer.getReleaseStatus(), TermOfSupport.NONE, Scope.PUBLIC).thenApply(pkgs -> {
+        return getPkgsAsyncUncached(distribution, semVer.getVersionNumber(), Latest.OVERALL, getOperatingSystem(), LibCType.NONE, architecture, Bitness.NONE, ArchiveType.NONE, PackageType.JDK, javafxBundled,
+                                    Boolean.TRUE, semVer.getReleaseStatus(), TermOfSupport.NONE, Scope.PUBLIC).thenApplyAsync(pkgs -> {
             List<Pkg> updatesFound = new ArrayList<>();
             if (pkgs.isEmpty()) {
                 return updatesFound;
             } else {
-                Pkg firstEntry = pkgs.get(0);
+                Pkg    firstEntry  = pkgs.get(0);
                 SemVer semVerFound = firstEntry.getJavaVersion();
                 if (semVerFound.compareTo(semVer) > 0) {
                     updatesFound = pkgs.stream().filter(pkg -> pkg.getJavaVersion().compareTo(semVerFound) == 0).collect(Collectors.toList());

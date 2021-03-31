@@ -27,6 +27,7 @@ import java.util.stream.Collectors;
 
 
 public enum Distribution implements ApiFeature {
+    ADOPTIUM("Adoptium", "adoptium"),
     AOJ("AOJ", "aoj"),
     AOJ_OPENJ9("AOJ OpenJ9", "aoj_openj9"),
     CORRETTO("Corretto", "corretto"),
@@ -41,6 +42,7 @@ public enum Distribution implements ApiFeature {
     ORACLE_OPEN_JDK("Oracle OpenJDK", "oracle_openjdk"),
     RED_HAT("Red Hat", "redhat"),
     SAP_MACHINE("SAP Machine", "sapmachine"),
+    TRAVA("Trava", "trava"),
     ZULU("Zulu", "zulu"),
     NONE("-", ""),
     NOT_FOUND("", "");
