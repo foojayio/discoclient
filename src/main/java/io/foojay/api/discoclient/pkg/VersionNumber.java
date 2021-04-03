@@ -423,12 +423,12 @@ public class VersionNumber implements Comparable<VersionNumber> {
 
     /**
      * Returns the numbers that are available in the version number
-     * e.g. Feature                      -> 1
-     *      Feature.Interim              -> 2
-     *      Feature.Interim.Update       -> 3
-     *      Feature.Interim.Update.Patch -> 4
-     *      Feature.Interim.Update.Patch.Fifth       -> 5
-     *      Feature.Interim.Update.Patch.Fifth.Sixth -> 6
+     * e.g. Feature                      - 1
+     *      Feature.Interim              - 2
+     *      Feature.Interim.Update       - 3
+     *      Feature.Interim.Update.Patch - 4
+     *      Feature.Interim.Update.Patch.Fifth       - 5
+     *      Feature.Interim.Update.Patch.Fifth.Sixth - 6
      * @return the numbers that are available in the version number
      */
     public int numbersAvailable() {
