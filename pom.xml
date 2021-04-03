@@ -29,6 +29,33 @@
     <artifactId>discoclient</artifactId>
     <version>1.0</version>
 
+<name>Discovery Client</name>
+<url>https://github.com/foojay2020/discoclient</url>
+<description>A Java library that makes it easier to access the foojay disco api</description>
+    <developers>
+        <developer>
+            <id>HanSolo</id>
+            <name>Gerrit Grunwald</name>
+        </developer>
+        <developer>
+            <id>emilianbold</id>
+            <name>Emilian Bold</name>
+        </developer>
+    </developers>
+
+    <licenses>
+        <license>
+            <name>BSD</name>
+            <url>https://github.com/foojay2020/discoclient/blob/main/LICENSE</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+    <scm>
+        <connection>scm:git:https://github.com/foojay2020/discoclient.git</connection>
+        <developerConnection>scm:git:https://github.com/foojay2020/discoclient.git</developerConnection>
+        <url>https://github.com/foojay2020/discoclient/tree/java8</url>
+        <tag>java8</tag>
+    </scm>
     <build>
         <plugins>
             <plugin>
@@ -40,8 +67,80 @@
                     <target>8</target>
                 </configuration>
             </plugin>
+		 <plugin>
+		      <groupId>org.sonatype.plugins</groupId>
+		      <artifactId>nexus-staging-maven-plugin</artifactId>
+		      <version>1.6.7</version>
+		      <extensions>true</extensions>
+		      <configuration>
+			<serverId>ossrh</serverId>
+			<nexusUrl>https://s01.oss.sonatype.org/</nexusUrl>
+			<autoReleaseAfterClose>true</autoReleaseAfterClose>
+		      </configuration>
+		 </plugin>
+		<plugin>
+		      <groupId>org.apache.maven.plugins</groupId>
+		      <artifactId>maven-source-plugin</artifactId>
+		      <version>2.2.1</version>
+		      <executions>
+			<execution>
+			  <id>attach-sources</id>
+			  <goals>
+			    <goal>jar-no-fork</goal>
+			  </goals>
+			</execution>
+		      </executions>
+		    </plugin>
+		    <plugin>
+		      <groupId>org.apache.maven.plugins</groupId>
+		      <artifactId>maven-javadoc-plugin</artifactId>
+		      <version>2.9.1</version>
+		      <executions>
+			<execution>
+			  <id>attach-javadocs</id>
+			  <goals>
+			    <goal>jar</goal>
+			  </goals>
+			</execution>
+		      </executions>
+		    </plugin>
+		    <plugin>
+		      <groupId>org.apache.maven.plugins</groupId>
+		      <artifactId>maven-gpg-plugin</artifactId>
+		      <version>1.5</version>
+		      <executions>
+			<execution>
+			  <id>sign-artifacts</id>
+			  <phase>verify</phase>
+			  <goals>
+			    <goal>sign</goal>
+			  </goals>
+			</execution>
+		      </executions>
+		    </plugin>
+		<plugin>
+		  <groupId>org.sonatype.plugins</groupId>
+		  <artifactId>nexus-staging-maven-plugin</artifactId>
+		  <version>1.6.7</version>
+		  <extensions>true</extensions>
+		  <configuration>
+		     <serverId>ossrh</serverId>
+		     <nexusUrl>https://s01.oss.sonatype.org/</nexusUrl>
+		     <autoReleaseAfterClose>true</autoReleaseAfterClose>
+		  </configuration>
+		</plugin>
         </plugins>
     </build>
+	<distributionManagement>
+	  <snapshotRepository>
+	    <id>ossrh</id>
+	    <url>https://s01.oss.sonatype.org/content/repositories/snapshots</url>
+	  </snapshotRepository>
+	  <repository>
+	    <id>ossrh</id>
+	    <url>https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+	  </repository>
+	</distributionManagement>
     <dependencies>
         <dependency>
             <groupId>com.google.code.gson</groupId>
