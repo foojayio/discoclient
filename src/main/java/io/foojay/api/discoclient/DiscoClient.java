@@ -123,8 +123,7 @@ public class DiscoClient {
 
         StringBuilder queryBuilder = new StringBuilder().append(PropertyManager.INSTANCE.getString(Constants.PROPERTY_KEY_DISCO_URL))
                                                         .append(Constants.PACKAGES_PATH)
-                                                        .append("?release_status=ea")
-                                                        .append("&release_status=ga");
+                                                        .append("/all");
 
         String query = queryBuilder.toString();
         if (query.isEmpty()) { return new ConcurrentLinkedQueue<>(); }
@@ -157,8 +156,7 @@ public class DiscoClient {
         }
         StringBuilder queryBuilder = new StringBuilder().append(PropertyManager.INSTANCE.getString(Constants.PROPERTY_KEY_DISCO_URL))
                                                         .append(Constants.PACKAGES_PATH)
-                                                        .append("?release_status=ea")
-                                                        .append("&release_status=ga");
+                                                        .append("/all");
         String query = queryBuilder.toString();
 
         CompletableFuture<Queue<Pkg>> future = Helper.getAsync(query).thenApply(response -> {

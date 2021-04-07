@@ -37,6 +37,7 @@ public enum Distribution implements ApiFeature {
     LIBERICA("Liberica", "liberica"),
     LIBERICA_NATIVE("Liberica Native", "liberica_native"),
     MANDREL("Mandrel", "mandrel"),
+    MICROSOFT("Microsoft", "microsoft"),
     OJDK_BUILD("OJDKBuild", "ojdk_build"),
     ORACLE("Oracle", "oracle"),
     ORACLE_OPEN_JDK("Oracle OpenJDK", "oracle_openjdk"),
@@ -72,10 +73,7 @@ public enum Distribution implements ApiFeature {
         switch (text) {
             case "aoj":
             case "AOJ":
-            case "adopt":
-            case "ADOPT":
             case "adoptopenjdk":
-            case "Adopt":
             case "AdoptOpenJDK":
                 return AOJ;
             case "aoj_openj9":
@@ -84,11 +82,7 @@ public enum Distribution implements ApiFeature {
             case "AOJ OpenJ9":
             case "AOJ OPENJ9":
             case "aoj openj9":
-            case "adopt_openj9":
-            case "ADOPT_OPENJ9":
-            case "Adopt OpenJ9":
             case "adoptopenjdk_openj9":
-            case "Adopt_OpenJ9":
             case "AdoptOpenJDK_OpenJ9":
                 return AOJ_OPENJ9;
             case "corretto":
@@ -127,6 +121,11 @@ public enum Distribution implements ApiFeature {
             case "MANDREL":
             case "Mandrel":
                 return MANDREL;
+            case "microsoft":
+            case "Microsoft":
+            case "MICROSOFT":
+            case "Microsoft Build of OpenJDK":
+                return MICROSOFT;
             case "ojdk_build":
             case "OJDK_BUILD":
             case "ojdkbuild":
@@ -179,6 +178,10 @@ public enum Distribution implements ApiFeature {
             case "Red-Hat":
             case "RED-HAT":
                 return RED_HAT;
+            case "trava":
+            case "TRAVA":
+            case "Trava":
+                return TRAVA;
             case "zulu":
             case "ZULU":
             case "Zulu":
