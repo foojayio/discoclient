@@ -25,7 +25,6 @@ import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import io.foojay.api.discoclient.event.CacheEvt;
 import io.foojay.api.discoclient.event.DCEvt;
 import io.foojay.api.discoclient.event.DownloadEvt;
 import io.foojay.api.discoclient.event.Evt;
@@ -46,7 +45,6 @@ import io.foojay.api.discoclient.pkg.Scope;
 import io.foojay.api.discoclient.pkg.SemVer;
 import io.foojay.api.discoclient.pkg.TermOfSupport;
 import io.foojay.api.discoclient.pkg.VersionNumber;
-import io.foojay.api.discoclient.util.Comparison;
 import io.foojay.api.discoclient.util.Constants;
 import io.foojay.api.discoclient.util.Helper;
 import io.foojay.api.discoclient.util.OutputFormat;
@@ -63,8 +61,6 @@ import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
@@ -80,47 +76,20 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.FutureTask;
-import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.function.Predicate;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
-
-import static java.util.stream.Collectors.toSet;
 
 
 public class DiscoClient {
-    private static final Logger                         LOGGER            = LoggerFactory.getLogger(DiscoClient.class);
-    public         final AtomicBoolean                  cacheReady        = new AtomicBoolean(false);
-    private        final Queue<Pkg>                     pkgCache          = new ConcurrentLinkedQueue<>(); // Collections.synchronizedList(new LinkedList<>());
-    private        final Queue<MajorVersion>            majorVersionCache = new ConcurrentLinkedQueue<>(); // Collections.synchronizedList(new LinkedList<>());
-    private        final Map<String, List<EvtObserver>> observers         = new ConcurrentHashMap<>();
-    private        final ScheduledExecutorService       service           = Executors.newScheduledThreadPool(2);
-    private        final Runnable                       updateCache       = () -> {
-        cacheReady.set(false);
-        fireEvt(new CacheEvt(DiscoClient.this, CacheEvt.CACHE_UPDATING));
-        pkgCache.clear();
-        getAllPackagesAsync().thenAccept(r -> {
-            List<Pkg>    tmpList = new LinkedList<>(r);
-            HashSet<Pkg> unique  = new HashSet<>(tmpList);
-            pkgCache.addAll(unique);
-            cacheReady.set(true);
-            fireEvt(new CacheEvt(DiscoClient.this, CacheEvt.CACHE_READY));
-        });
-    };
+    private static final Logger                         LOGGER    = LoggerFactory.getLogger(DiscoClient.class);
+    private        final Map<String, List<EvtObserver>> observers = new ConcurrentHashMap<>();
 
 
     public DiscoClient() {
-        getAllMajorVersionsAsync(true).thenAccept(r -> majorVersionCache.addAll(r));
-        service.scheduleAtFixedRate(updateCache, 1, 3600, TimeUnit.SECONDS);
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> service.shutdownNow()));
     }
 
 
     public Queue<Pkg> getAllPackages() {
-        if (cacheReady.get()) { return pkgCache; }
-
         StringBuilder queryBuilder = new StringBuilder().append(PropertyManager.INSTANCE.getString(Constants.PROPERTY_KEY_DISCO_URL))
                                                         .append(Constants.PACKAGES_PATH)
                                                         .append("/all");
@@ -149,18 +118,12 @@ public class DiscoClient {
         return pkgs;
     }
     public CompletableFuture<Queue<Pkg>> getAllPackagesAsync() {
-        if (cacheReady.get()) {
-            CompletableFuture<Queue<Pkg>> future = new CompletableFuture<>();
-            future.complete(pkgCache);
-            return future;
-        }
         StringBuilder queryBuilder = new StringBuilder().append(PropertyManager.INSTANCE.getString(Constants.PROPERTY_KEY_DISCO_URL))
                                                         .append(Constants.PACKAGES_PATH)
                                                         .append("/all");
         String query = queryBuilder.toString();
 
         CompletableFuture<Queue<Pkg>> future = Helper.getAsync(query).thenApply(response -> {
-            if (cacheReady.get()) { return pkgCache; }
             Queue<Pkg>  pkgsFound = new ConcurrentLinkedQueue<>();
             Gson        gson      = new Gson();
             JsonElement element   = gson.fromJson(response, JsonElement.class);
@@ -280,24 +243,6 @@ public class DiscoClient {
         String query = queryBuilder.toString();
         if (query.isEmpty()) { return List.of(); }
 
-        if (cacheReady.get()) {
-            return getPkgsFromCache(versionNumber,
-                                    Comparison.EQUAL,
-                                    Distribution.NONE    == distributionCache    ? List.of() : List.of(distributionCache),
-                                    Architecture.NONE    == architectureCache    ? List.of() : List.of(architectureCache),
-                                    ArchiveType.NONE     == archiveTypeCache     ? List.of() : List.of(archiveTypeCache),
-                                    packageTypeCache,
-                                    OperatingSystem.NONE == operatingSystemCache ? List.of() : List.of(operatingSystemCache),
-                                    LibCType.NONE        == libcTypeCache        ? List.of() : List.of(libcTypeCache),
-                                    ReleaseStatus.NONE   == releaseStatusCache   ? List.of() : List.of(releaseStatusCache),
-                                    TermOfSupport.NONE   == termOfSupportCache   ? List.of() : List.of(termOfSupportCache),
-                                    bitnessCache,
-                                    javafxBundled,
-                                    directlyDownloadable,
-                                    latestCache,
-                                    Scope.NONE           == scopeCache           ? List.of(Scope.PUBLIC) : List.of(scopeCache));
-        }
-
         List<Pkg>   pkgs     = new LinkedList<>();
         String      bodyText = Helper.get(query);
 
@@ -321,281 +266,6 @@ public class DiscoClient {
     public CompletableFuture<List<Pkg>> getPkgsAsync(final Distribution distribution, final VersionNumber versionNumber, final Latest latest, final OperatingSystem operatingSystem,
                                                      final LibCType libCType, final Architecture architecture, final Bitness bitness, final ArchiveType archiveType, final PackageType packageType,
                                                      final Boolean javafxBundled, final Boolean directlyDownloadable, final ReleaseStatus releaseStatus, final TermOfSupport termOfSupport, final Scope scope) {
-
-        StringBuilder queryBuilder = new StringBuilder().append(PropertyManager.INSTANCE.getString(Constants.PROPERTY_KEY_DISCO_URL))
-                                                        .append(Constants.PACKAGES_PATH);
-        final int initialLength = queryBuilder.length();
-
-        Distribution distributionCache = Distribution.NONE;
-        if (null != distribution && Distribution.NONE != distribution && Distribution.NOT_FOUND != distribution) {
-            queryBuilder.append(queryBuilder.length() == initialLength ? "?" : "&");
-            queryBuilder.append(Constants.API_DISTRIBUTION).append("=").append(distribution.getApiString());
-            distributionCache = distribution;
-        }
-
-        if (null != versionNumber) {
-            queryBuilder.append(queryBuilder.length() == initialLength ? "?" : "&");
-            queryBuilder.append(Constants.API_VERSION).append("=").append(versionNumber.toString(OutputFormat.REDUCED, true, true));
-        }
-
-        Latest latestCache = Latest.NONE;
-        if (null != latest && Latest.NONE != latest && Latest.NOT_FOUND != latest) {
-            queryBuilder.append(queryBuilder.length() == initialLength ? "?" : "&");
-            queryBuilder.append(Constants.API_LATEST).append("=").append(latest.getApiString());
-            latestCache = latest;
-        }
-
-        OperatingSystem operatingSystemCache = OperatingSystem.NONE;
-        if (null != operatingSystem && OperatingSystem.NONE != operatingSystem && OperatingSystem.NOT_FOUND != operatingSystem) {
-            queryBuilder.append(queryBuilder.length() == initialLength ? "?" : "&");
-            queryBuilder.append(Constants.API_OPERATING_SYSTEM).append("=").append(operatingSystem.getApiString());
-            operatingSystemCache = operatingSystem;
-        }
-
-        LibCType libcTypeCache = LibCType.NONE;
-        if (null != libCType && LibCType.NONE != libCType && LibCType.NOT_FOUND != libCType) {
-            queryBuilder.append(queryBuilder.length() == initialLength ? "?" : "&");
-            queryBuilder.append(Constants.API_LIBC_TYPE).append("=").append(libCType.getApiString());
-            libcTypeCache = libCType;
-        }
-
-        Architecture architectureCache = Architecture.NONE;
-        if (null != architecture && Architecture.NONE != architecture && Architecture.NOT_FOUND != architecture) {
-            queryBuilder.append(queryBuilder.length() == initialLength ? "?" : "&");
-            queryBuilder.append(Constants.API_ARCHITECTURE).append("=").append(architecture.getApiString());
-            architectureCache = architecture;
-        }
-
-        Bitness bitnessCache = Bitness.NONE;
-        if (null != bitness && Bitness.NONE != bitness && Bitness.NOT_FOUND != bitness) {
-            queryBuilder.append(queryBuilder.length() == initialLength ? "?" : "&");
-            queryBuilder.append(Constants.API_BITNESS).append("=").append(bitness.getApiString());
-            bitnessCache = bitness;
-        }
-
-        ArchiveType archiveTypeCache = ArchiveType.NONE;
-        if (null != archiveType && ArchiveType.NONE != archiveType && ArchiveType.NOT_FOUND != archiveType) {
-            queryBuilder.append(queryBuilder.length() == initialLength ? "?" : "&");
-            queryBuilder.append(Constants.API_ARCHIVE_TYPE).append("=").append(archiveType.getApiString());
-            archiveTypeCache = archiveType;
-        }
-
-        PackageType packageTypeCache = PackageType.NONE;
-        if (null != packageType && PackageType.NONE != packageType && PackageType.NOT_FOUND != packageType) {
-            queryBuilder.append(queryBuilder.length() == initialLength ? "?" : "&");
-            queryBuilder.append(Constants.API_PACKAGE_TYPE).append("=").append(packageType.getApiString());
-            packageTypeCache = packageType;
-        }
-
-        Scope scopeCache = Scope.PUBLIC;
-        if (null != scope && Scope.NONE != scope && Scope.NOT_FOUND != scope) {
-            queryBuilder.append(queryBuilder.length() == initialLength ? "?" : "&");
-            queryBuilder.append(Constants.API_DISCOVERY_SCOPE_ID).append("=").append(scope.getApiString());
-            scopeCache = scope;
-        }
-
-        if (null != javafxBundled) {
-            queryBuilder.append(queryBuilder.length() == initialLength ? "?" : "&");
-            queryBuilder.append(Constants.API_JAVAFX_BUNDLED).append("=").append(javafxBundled);
-        }
-
-        if (null != directlyDownloadable) {
-            queryBuilder.append(queryBuilder.length() == initialLength ? "?" : "&");
-            queryBuilder.append(Constants.API_DIRECTLY_DOWNLOADABLE).append("=").append(directlyDownloadable);
-        }
-
-        ReleaseStatus releaseStatusCache = ReleaseStatus.NONE;
-        if (null != releaseStatus && ReleaseStatus.NONE != releaseStatus && ReleaseStatus.NOT_FOUND != releaseStatus) {
-            queryBuilder.append(queryBuilder.length() == initialLength ? "?" : "&");
-            queryBuilder.append(Constants.API_RELEASE_STATUS).append("=").append(releaseStatus.getApiString());
-            releaseStatusCache = releaseStatus;
-        }
-
-        TermOfSupport termOfSupportCache = TermOfSupport.NONE;
-        if (null != termOfSupport && TermOfSupport.NONE != termOfSupport && TermOfSupport.NOT_FOUND != termOfSupport) {
-            queryBuilder.append(queryBuilder.length() == initialLength ? "?" : "&");
-            queryBuilder.append(Constants.API_SUPPORT_TERM).append("=").append(termOfSupport.getApiString());
-            termOfSupportCache = termOfSupport;
-        }
-
-        String query = queryBuilder.toString();
-        if (query.isEmpty()) { return new CompletableFuture<>(); }
-
-        if (cacheReady.get()) {
-            Distribution                 finalDistributionCache    = distributionCache;
-            Architecture                 finalArchitectureCache    = architectureCache;
-            ArchiveType                  finalArchiveTypeCache     = archiveTypeCache;
-            PackageType                  finalPackageTypeCache     = packageTypeCache;
-            OperatingSystem              finalOperatingSystemCache = operatingSystemCache;
-            LibCType                     finalLibcTypeCache        = libcTypeCache;
-            ReleaseStatus                finalReleaseStatusCache   = releaseStatusCache;
-            TermOfSupport                finalTermOfSupportCache   = termOfSupportCache;
-            Bitness                      finalBitnessCache         = bitnessCache;
-            Latest                       finalLatestCache          = latestCache;
-            Scope                        finalScopeCache           = scopeCache;
-            CompletableFuture<List<Pkg>> future = new CompletableFuture<>();
-            return future.supplyAsync(() -> getPkgsFromCache(versionNumber,
-                                                             Comparison.EQUAL,
-                                                             Distribution.NONE    == finalDistributionCache    ? List.of() : List.of(finalDistributionCache),
-                                                             Architecture.NONE    == finalArchitectureCache    ? List.of() : List.of(finalArchitectureCache),
-                                                             ArchiveType.NONE     == finalArchiveTypeCache     ? List.of() : List.of(finalArchiveTypeCache),
-                                                             finalPackageTypeCache,
-                                                             OperatingSystem.NONE == finalOperatingSystemCache ? List.of() : List.of(finalOperatingSystemCache),
-                                                             LibCType.NONE        == finalLibcTypeCache        ? List.of() : List.of(finalLibcTypeCache),
-                                                             ReleaseStatus.NONE   == finalReleaseStatusCache   ? List.of() : List.of(finalReleaseStatusCache),
-                                                             TermOfSupport.NONE   == finalTermOfSupportCache   ? List.of() : List.of(finalTermOfSupportCache),
-                                                             finalBitnessCache,
-                                                             javafxBundled,
-                                                             directlyDownloadable,
-                                                             finalLatestCache,
-                                                             Scope.NONE == finalScopeCache                     ? List.of() : List.of(finalScopeCache)), service);
-        }
-
-        return Helper.getAsync(query).thenApply(bodyText -> {
-            List<Pkg>   pkgs      = new LinkedList<>();
-            List<Pkg>   pkgsFound = new ArrayList<>();
-            Gson        gson      = new Gson();
-            JsonElement element   = gson.fromJson(bodyText, JsonElement.class);
-            if (element instanceof JsonArray) {
-                JsonArray jsonArray = element.getAsJsonArray();
-                for (int i = 0; i < jsonArray.size(); i++) {
-                    JsonObject pkgJsonObj = jsonArray.get(i).getAsJsonObject();
-                    pkgsFound.add(new Pkg(pkgJsonObj.toString()));
-                }
-            }
-            pkgs.addAll(pkgsFound);
-            HashSet<Pkg> unique = new HashSet<>(pkgs);
-            pkgs = new LinkedList<>(unique);
-            return pkgs;
-        });
-    }
-
-    public List<Pkg> getPkgsUncached(final Distribution distribution, final VersionNumber versionNumber, final Latest latest, final OperatingSystem operatingSystem,
-                                     final LibCType libcType, final Architecture architecture, final Bitness bitness, final ArchiveType archiveType, final PackageType packageType,
-                                     final Boolean javafxBundled, final Boolean directlyDownloadable, final ReleaseStatus releaseStatus, final TermOfSupport termOfSupport, final Scope scope) {
-
-        StringBuilder queryBuilder = new StringBuilder().append(PropertyManager.INSTANCE.getString(Constants.PROPERTY_KEY_DISCO_URL))
-                                                        .append(Constants.PACKAGES_PATH);
-        final int initialLength = queryBuilder.length();
-
-        Distribution distributionCache = Distribution.NONE;
-        if (null != distribution && Distribution.NONE != distribution && Distribution.NOT_FOUND != distribution) {
-            queryBuilder.append(queryBuilder.length() == initialLength ? "?" : "&");
-            queryBuilder.append(Constants.API_DISTRIBUTION).append("=").append(distribution.getApiString());
-            distributionCache = distribution;
-        }
-
-        if (null != versionNumber) {
-            queryBuilder.append(queryBuilder.length() == initialLength ? "?" : "&");
-            queryBuilder.append(Constants.API_VERSION).append("=").append(versionNumber.toString());
-        }
-
-        Latest latestCache = Latest.NONE;
-        if (null != latest && Latest.NONE != latest && Latest.NOT_FOUND != latest) {
-            queryBuilder.append(queryBuilder.length() == initialLength ? "?" : "&");
-            queryBuilder.append(Constants.API_LATEST).append("=").append(latest.getApiString());
-            latestCache = latest;
-        }
-
-        OperatingSystem operatingSystemCache = OperatingSystem.NONE;
-        if (null != operatingSystem && OperatingSystem.NONE != operatingSystem && OperatingSystem.NOT_FOUND != operatingSystem) {
-            queryBuilder.append(queryBuilder.length() == initialLength ? "?" : "&");
-            queryBuilder.append(Constants.API_OPERATING_SYSTEM).append("=").append(operatingSystem.getApiString());
-            operatingSystemCache = operatingSystem;
-        }
-
-        LibCType libcTypeCache = LibCType.NONE;
-        if (null != libcType && LibCType.NONE != libcType && LibCType.NOT_FOUND != libcType) {
-            queryBuilder.append(queryBuilder.length() == initialLength ? "?" : "&");
-            queryBuilder.append(Constants.API_LIBC_TYPE).append("=").append(libcType.getApiString());
-            libcTypeCache = libcType;
-        }
-
-        Architecture architectureCache = Architecture.NONE;
-        if (null != architecture && Architecture.NONE != architecture && Architecture.NOT_FOUND != architecture) {
-            queryBuilder.append(queryBuilder.length() == initialLength ? "?" : "&");
-            queryBuilder.append(Constants.API_ARCHITECTURE).append("=").append(architecture.getApiString());
-            architectureCache = architecture;
-        }
-
-        Bitness bitnessCache = Bitness.NONE;
-        if (null != bitness && Bitness.NONE != bitness && Bitness.NOT_FOUND != bitness) {
-            queryBuilder.append(queryBuilder.length() == initialLength ? "?" : "&");
-            queryBuilder.append(Constants.API_BITNESS).append("=").append(bitness.getApiString());
-            bitnessCache = bitness;
-        }
-
-        ArchiveType archiveTypeCache = ArchiveType.NONE;
-        if (null != archiveType && ArchiveType.NONE != archiveType && ArchiveType.NOT_FOUND != archiveType) {
-            queryBuilder.append(queryBuilder.length() == initialLength ? "?" : "&");
-            queryBuilder.append(Constants.API_ARCHIVE_TYPE).append("=").append(archiveType.getApiString());
-            archiveTypeCache = archiveType;
-        }
-
-        PackageType packageTypeCache = PackageType.NONE;
-        if (null != packageType && PackageType.NONE != packageType && PackageType.NOT_FOUND != packageType) {
-            queryBuilder.append(queryBuilder.length() == initialLength ? "?" : "&");
-            queryBuilder.append(Constants.API_PACKAGE_TYPE).append("=").append(packageType.getApiString());
-            packageTypeCache = packageType;
-        }
-
-        Scope scopeCache = Scope.PUBLIC;
-        if (null != scope && Scope.NONE != scope && Scope.NOT_FOUND != scope) {
-            queryBuilder.append(queryBuilder.length() == initialLength ? "?" : "&");
-            queryBuilder.append(Constants.API_DISCOVERY_SCOPE_ID).append("=").append(scope.getApiString());
-            scopeCache = scope;
-        }
-
-        if (null != javafxBundled) {
-            queryBuilder.append(queryBuilder.length() == initialLength ? "?" : "&");
-            queryBuilder.append(Constants.API_JAVAFX_BUNDLED).append("=").append(javafxBundled);
-        }
-
-        if (null != directlyDownloadable) {
-            queryBuilder.append(queryBuilder.length() == initialLength ? "?" : "&");
-            queryBuilder.append(Constants.API_DIRECTLY_DOWNLOADABLE).append("=").append(directlyDownloadable);
-        }
-
-        ReleaseStatus releaseStatusCache = ReleaseStatus.NONE;
-        if (null != releaseStatus && ReleaseStatus.NONE != releaseStatus && ReleaseStatus.NOT_FOUND != releaseStatus) {
-            queryBuilder.append(queryBuilder.length() == initialLength ? "?" : "&");
-            queryBuilder.append(Constants.API_RELEASE_STATUS).append("=").append(releaseStatus.getApiString());
-            releaseStatusCache = releaseStatus;
-        }
-
-        TermOfSupport termOfSupportCache = TermOfSupport.NONE;
-        if (null != termOfSupport && TermOfSupport.NONE != termOfSupport && TermOfSupport.NOT_FOUND != termOfSupport) {
-            queryBuilder.append(queryBuilder.length() == initialLength ? "?" : "&");
-            queryBuilder.append(Constants.API_SUPPORT_TERM).append("=").append(termOfSupport.getApiString());
-            termOfSupportCache = termOfSupport;
-        }
-
-        String query = queryBuilder.toString();
-        if (query.isEmpty()) { return List.of(); }
-
-        List<Pkg>   pkgs     = new LinkedList<>();
-        String      bodyText = Helper.get(query);
-
-        List<Pkg>   pkgsFound = new ArrayList<>();
-        Gson        gson      = new Gson();
-        JsonElement element   = gson.fromJson(bodyText, JsonElement.class);
-        if (element instanceof JsonArray) {
-            JsonArray jsonArray = element.getAsJsonArray();
-            for (int i = 0; i < jsonArray.size(); i++) {
-                JsonObject pkgJsonObj = jsonArray.get(i).getAsJsonObject();
-                pkgsFound.add(new Pkg(pkgJsonObj.toString()));
-            }
-        }
-
-        pkgs.addAll(pkgsFound);
-        HashSet<Pkg> unique = new HashSet<>(pkgs);
-        pkgs = new LinkedList<>(unique);
-
-        return pkgs;
-    }
-    public CompletableFuture<List<Pkg>> getPkgsAsyncUncached(final Distribution distribution, final VersionNumber versionNumber, final Latest latest, final OperatingSystem operatingSystem,
-                                                             final LibCType libCType, final Architecture architecture, final Bitness bitness, final ArchiveType archiveType, final PackageType packageType,
-                                                             final Boolean javafxBundled, final Boolean directlyDownloadable, final ReleaseStatus releaseStatus, final TermOfSupport termOfSupport, final Scope scope) {
 
         StringBuilder queryBuilder = new StringBuilder().append(PropertyManager.INSTANCE.getString(Constants.PROPERTY_KEY_DISCO_URL))
                                                         .append(Constants.PACKAGES_PATH);
@@ -1161,8 +831,8 @@ public class DiscoClient {
 
 
     public final List<Pkg> updateAvailableFor(final Distribution distribution, final SemVer semVer, final Architecture architecture, final Boolean javafxBundled) {
-        List<Pkg> pkgs = getPkgsUncached(distribution, semVer.getVersionNumber(), Latest.OVERALL, getOperatingSystem(), LibCType.NONE, architecture, Bitness.NONE, ArchiveType.NONE, PackageType.JDK, javafxBundled,
-                                         Boolean.TRUE, semVer.getReleaseStatus(), TermOfSupport.NONE, Scope.PUBLIC);
+        List<Pkg> pkgs = getPkgs(distribution, semVer.getVersionNumber(), Latest.OVERALL, getOperatingSystem(), LibCType.NONE, architecture, Bitness.NONE, ArchiveType.NONE, PackageType.JDK, javafxBundled,
+                                 Boolean.TRUE, semVer.getReleaseStatus(), TermOfSupport.NONE, Scope.PUBLIC);
         List<Pkg> updatesFound = new ArrayList<>();
         if (pkgs.isEmpty()) {
             return updatesFound;
@@ -1176,8 +846,8 @@ public class DiscoClient {
         }
     }
     public final CompletableFuture<List<Pkg>> updateAvailableForAsync(final Distribution distribution, final SemVer semVer, final Architecture architecture, final Boolean javafxBundled) {
-        return getPkgsAsyncUncached(distribution, semVer.getVersionNumber(), Latest.OVERALL, getOperatingSystem(), LibCType.NONE, architecture, Bitness.NONE, ArchiveType.NONE, PackageType.JDK, javafxBundled,
-                                    Boolean.TRUE, semVer.getReleaseStatus(), TermOfSupport.NONE, Scope.PUBLIC).thenApplyAsync(pkgs -> {
+        return getPkgsAsync(distribution, semVer.getVersionNumber(), Latest.OVERALL, getOperatingSystem(), LibCType.NONE, architecture, Bitness.NONE, ArchiveType.NONE, PackageType.JDK, javafxBundled,
+                            Boolean.TRUE, semVer.getReleaseStatus(), TermOfSupport.NONE, Scope.PUBLIC).thenApplyAsync(pkgs -> {
             List<Pkg> updatesFound = new ArrayList<>();
             if (pkgs.isEmpty()) {
                 return updatesFound;
@@ -1453,23 +1123,32 @@ public class DiscoClient {
     }
     public final Future<?> downloadPkg(final String ephemeralId, final SemVer javaVersion, final String targetFileName) {
         final String              url      = getPkgInfo(ephemeralId,javaVersion).getDirectDownloadUri();
-        final FutureTask<Boolean> task     = createTask(targetFileName, url);
+        final FutureTask<Boolean> task     = createDownloadTask(targetFileName, url);
         final ExecutorService     executor = Executors.newSingleThreadExecutor();
         final Future<?>           future   = executor.submit(task);
         executor.shutdown();
+        try {
+            executor.awaitTermination(10, TimeUnit.MINUTES);
+        } catch (InterruptedException e) {
+            LOGGER.error("Error shutdown executor. {}", e.getMessage());
+        }
         return future;
     }
     public final Future<?> downloadPkg(final PkgInfo pkgInfo, final String targetFileName) {
-        final FutureTask<Boolean> task     = createTask(targetFileName, pkgInfo.getDirectDownloadUri());
+        final FutureTask<Boolean> task     = createDownloadTask(targetFileName, pkgInfo.getDirectDownloadUri());
         final ExecutorService     executor = Executors.newSingleThreadExecutor();
         final Future<?>           future   = executor.submit(task);
         executor.shutdown();
+        try {
+            executor.awaitTermination(10, TimeUnit.MINUTES);
+        } catch (InterruptedException e) {
+            LOGGER.error("Error shutdown executor. {}", e.getMessage());
+        }
         return future;
     }
 
 
     public Pkg getPkg(final String pkgId) {
-        if (cacheReady.get()) { return pkgCache.stream().filter(pkg -> pkg.getId().equals(pkgId)).findFirst().orElse(null); }
         StringBuilder queryBuilder = new StringBuilder().append(PropertyManager.INSTANCE.getString(Constants.PROPERTY_KEY_DISCO_URL))
                                                         .append(Constants.PACKAGES_PATH)
                                                         .append("/")
@@ -1492,11 +1171,6 @@ public class DiscoClient {
                                                         .append("/")
                                                         .append(pkgId);
         String query = queryBuilder.toString();
-        if (cacheReady.get()) {
-            CompletableFuture<Pkg> future = new CompletableFuture<>();
-            future.complete(pkgCache.stream().filter(pkg -> pkg.getId().equals(pkgId)).findFirst().orElse(null));
-            return future;
-        }
         return Helper.getAsync(query).thenApply(bodyText -> {
             Gson        pkgGson    = new Gson();
             JsonElement pkgElement = pkgGson.fromJson(bodyText, JsonElement.class);
@@ -1541,7 +1215,7 @@ public class DiscoClient {
         }
     }
 
-    private final FutureTask<Boolean> createTask(final String fileName, final String url) {
+    private final FutureTask<Boolean> createDownloadTask(final String fileName, final String url) {
         return new FutureTask<>(() -> {
             try {
                 final URLConnection         connection = new URL(url).openConnection();
@@ -1555,266 +1229,15 @@ public class DiscoClient {
                 rcbc.close();
                 rbc.close();
                 fireEvt(new DownloadEvt(DiscoClient.this, DownloadEvt.DOWNLOAD_FINISHED, fileSize));
+                LOGGER.debug("Successfully downloaded file: {}", fileName);
                 return true;
             } catch (IOException ex) {
                 fireEvt(new DownloadEvt(DiscoClient.this, DownloadEvt.DOWNLOAD_FAILED, 0));
+                LOGGER.error("Error downloading file: {} with message {}", fileName, ex.getMessage());
                 return false;
             }
         });
     }
-
-
-    // ******************** Cache *********************************************
-    public List<Pkg> getPkgsFromCache(final VersionNumber versionNumber, final Comparison comparison, final List<Distribution> distributions, final List<Architecture> architectures, final List<ArchiveType> archiveTypes,
-                                      final PackageType packageType, final List<OperatingSystem> operatingSystems, final List<LibCType> libCTypes, final List<ReleaseStatus> releaseStatus, final List<TermOfSupport> termsOfSupport,
-                                      final Bitness bitness, final Boolean javafxBundled, final Boolean directlyDownloadable, final Latest latest, final List<Scope> scopes) {
-        List<Pkg> pkgsFound;
-        if (Comparison.EQUAL == comparison) {
-            switch(latest) {
-                case OVERALL:
-                    final VersionNumber maxNumber;
-                    if (null == versionNumber || versionNumber.getFeature().isEmpty()) {
-                        Optional<Pkg> pkgWithMaxVersionNumber = pkgCache.stream()
-                                                                        .filter(pkg -> distributions.isEmpty()                    ? (pkg.getDistribution() != null &&
-                                                                                                                                     pkg.getDistribution() != Distribution.GRAALVM_CE8 &&
-                                                                                                                                     pkg.getDistribution() != Distribution.GRAALVM_CE11 &&
-                                                                                                                                     pkg.getDistribution() != Distribution.LIBERICA_NATIVE &&
-                                                                                                                                     pkg.getDistribution() != Distribution.MANDREL) : distributions.contains(pkg.getDistribution()))
-                                                                        .filter(pkg -> Constants.SCOPE_LOOKUP.get(pkg.getDistribution()).stream().anyMatch(scopes.stream().collect(toSet())::contains))
-                                                                        .filter(pkg -> architectures.isEmpty()                    ? pkg.getArchitecture()        != null          : architectures.contains(pkg.getArchitecture()))
-                                                                        .filter(pkg -> archiveTypes.isEmpty()                     ? pkg.getArchiveType()         != null          : archiveTypes.contains(pkg.getArchiveType()))
-                                                                        .filter(pkg -> operatingSystems.isEmpty()                 ? pkg.getOperatingSystem()     != null          : operatingSystems.contains(pkg.getOperatingSystem()))
-                                                                        .filter(pkg -> libCTypes.isEmpty()                        ? pkg.getLibCType()            != null          : libCTypes.contains(pkg.getLibCType()))
-                                                                        .filter(pkg -> termsOfSupport.isEmpty()                   ? pkg.getTermOfSupport()       != null          : termsOfSupport.contains(pkg.getTermOfSupport()))
-                                                                        .filter(pkg -> PackageType.NONE   == packageType          ? pkg.getPackageType()         != packageType   : pkg.getPackageType()         == packageType)
-                                                                        .filter(pkg -> releaseStatus.isEmpty()                    ? pkg.getReleaseStatus()       != null          : releaseStatus.contains(pkg.getReleaseStatus()))
-                                                                        .filter(pkg -> Bitness.NONE       == bitness              ? pkg.getBitness()             != bitness       : pkg.getBitness()             == bitness)
-                                                                        .filter(pkg -> null               == javafxBundled        ? pkg.isJavaFXBundled()        != null          : pkg.isJavaFXBundled()        == javafxBundled)
-                                                                        .filter(pkg -> null               == directlyDownloadable ? pkg.isDirectlyDownloadable() != null          : pkg.isDirectlyDownloadable() == directlyDownloadable)
-                                                                        .max(Comparator.comparing(pkg -> pkg.getJavaVersion().getVersionNumber()));
-                        if (pkgWithMaxVersionNumber.isPresent()) {
-                            maxNumber = pkgWithMaxVersionNumber.get().getJavaVersion().getVersionNumber();
-                        } else {
-                            maxNumber = versionNumber;
-                        }
-                    } else {
-                        int featureVersion = versionNumber.getFeature().getAsInt();
-                        Optional<Pkg> pkgWithMaxVersionNumber = pkgCache.stream()
-                                                                        .filter(pkg -> distributions.isEmpty()                    ? pkg.getDistribution()        != null          : distributions.contains(pkg.getDistribution()))
-                                                                        .filter(pkg -> Constants.SCOPE_LOOKUP.get(pkg.getDistribution()).stream().anyMatch(scopes.stream().collect(toSet())::contains))
-                                                                        .filter(pkg -> architectures.isEmpty()                    ? pkg.getArchitecture()        != null          : architectures.contains(pkg.getArchitecture()))
-                                                                        .filter(pkg -> archiveTypes.isEmpty()                     ? pkg.getArchiveType()         != null          : archiveTypes.contains(pkg.getArchiveType()))
-                                                                        .filter(pkg -> operatingSystems.isEmpty()                 ? pkg.getOperatingSystem()     != null          : operatingSystems.contains(pkg.getOperatingSystem()))
-                                                                        .filter(pkg -> libCTypes.isEmpty()                        ? pkg.getLibCType()            != null          : libCTypes.contains(pkg.getLibCType()))
-                                                                        .filter(pkg -> termsOfSupport.isEmpty()                   ? pkg.getTermOfSupport()       != null          : termsOfSupport.contains(pkg.getTermOfSupport()))
-                                                                        .filter(pkg -> PackageType.NONE   == packageType          ? pkg.getPackageType()         != packageType   : pkg.getPackageType()         == packageType)
-                                                                        .filter(pkg -> releaseStatus.isEmpty()                    ? pkg.getReleaseStatus()       != null          : releaseStatus.contains(pkg.getReleaseStatus()))
-                                                                        .filter(pkg -> Bitness.NONE       == bitness              ? pkg.getBitness()             != bitness       : pkg.getBitness()             == bitness)
-                                                                        .filter(pkg -> null               == javafxBundled        ? pkg.isJavaFXBundled()        != null          : pkg.isJavaFXBundled()        == javafxBundled)
-                                                                        .filter(pkg -> null               == directlyDownloadable ? pkg.isDirectlyDownloadable() != null          : pkg.isDirectlyDownloadable() == directlyDownloadable)
-                                                                        .filter(pkg -> featureVersion     == pkg.getJavaVersion().getVersionNumber().getFeature().getAsInt())
-                                                                        .max(Comparator.comparing(pkg -> pkg.getJavaVersion().getVersionNumber()));
-                        if (pkgWithMaxVersionNumber.isPresent()) {
-                            maxNumber = pkgWithMaxVersionNumber.get().getJavaVersion().getVersionNumber();
-                        } else {
-                            maxNumber = versionNumber;
-                        }
-                    }
-                    pkgsFound = pkgCache.stream()
-                                        .filter(pkg -> distributions.isEmpty()                    ? pkg.getDistribution()        != null          : distributions.contains(pkg.getDistribution()))
-                                        .filter(pkg -> Constants.SCOPE_LOOKUP.get(pkg.getDistribution()).stream().anyMatch(scopes.stream().collect(toSet())::contains))
-                                        .filter(pkg -> architectures.isEmpty()                    ? pkg.getArchitecture()        != null          : architectures.contains(pkg.getArchitecture()))
-                                        .filter(pkg -> archiveTypes.isEmpty()                     ? pkg.getArchiveType()         != null          : archiveTypes.contains(pkg.getArchiveType()))
-                                        .filter(pkg -> operatingSystems.isEmpty()                 ? pkg.getOperatingSystem()     != null          : operatingSystems.contains(pkg.getOperatingSystem()))
-                                        .filter(pkg -> libCTypes.isEmpty()                        ? pkg.getLibCType()            != null          : libCTypes.contains(pkg.getLibCType()))
-                                        .filter(pkg -> termsOfSupport.isEmpty()                   ? pkg.getTermOfSupport()       != null          : termsOfSupport.contains(pkg.getTermOfSupport()))
-                                        .filter(pkg -> PackageType.NONE   == packageType          ? pkg.getPackageType()         != packageType   : pkg.getPackageType()         == packageType)
-                                        .filter(pkg -> releaseStatus.isEmpty()                    ? pkg.getReleaseStatus()       != null          : releaseStatus.contains(pkg.getReleaseStatus()))
-                                        .filter(pkg -> Bitness.NONE       == bitness              ? pkg.getBitness()             != bitness       : pkg.getBitness()             == bitness)
-                                        .filter(pkg -> null               == javafxBundled        ? pkg.isJavaFXBundled()        != null          : pkg.isJavaFXBundled()        == javafxBundled)
-                                        .filter(pkg -> null               == directlyDownloadable ? pkg.isDirectlyDownloadable() != null          : pkg.isDirectlyDownloadable() == directlyDownloadable)
-                                        .filter(pkg -> pkg.getJavaVersion().getVersionNumber().compareTo(maxNumber) == 0)
-                                        .sorted(Comparator.comparing(Pkg::getDistributionName).reversed().thenComparing(Comparator.comparing((Pkg pkg1) -> pkg1.getJavaVersion().getVersionNumber()).reversed()))
-                                        .collect(Collectors.toList());
-                    break;
-                case PER_DISTRIBUTION:
-                    List<Distribution>               distributionsToCheck      = distributions.isEmpty() ? Distribution.getAsList().stream().filter(distribution -> Constants.SCOPE_LOOKUP.get(distribution).stream().anyMatch(scopes.stream().collect(toSet())::contains)).collect(Collectors.toList()) : distributions.stream().filter(distribution -> Constants.SCOPE_LOOKUP.get(distribution).stream().anyMatch(scopes.stream().collect(toSet())::contains)).collect(Collectors.toList());
-                    List<Pkg>                        pkgsTmp                   = new ArrayList<>();
-                    Map<Distribution, VersionNumber> maxVersionPerDistribution = new ConcurrentHashMap<>();
-                    distributionsToCheck.forEach(distro -> {
-                        Optional<Pkg> pkgFound = pkgCache.stream()
-                                                         .filter(pkg -> pkg.getDistribution().equals(distro))
-                                                         .filter(pkg -> architectures.isEmpty()                    ? pkg.getArchitecture()        != null          : architectures.contains(pkg.getArchitecture()))
-                                                         .filter(pkg -> archiveTypes.isEmpty()                     ? pkg.getArchiveType()         != null          : archiveTypes.contains(pkg.getArchiveType()))
-                                                         .filter(pkg -> operatingSystems.isEmpty()                 ? pkg.getOperatingSystem()     != null          : operatingSystems.contains(pkg.getOperatingSystem()))
-                                                         .filter(pkg -> libCTypes.isEmpty()                        ? pkg.getLibCType()            != null          : libCTypes.contains(pkg.getLibCType()))
-                                                         .filter(pkg -> termsOfSupport.isEmpty()                   ? pkg.getTermOfSupport()       != null          : termsOfSupport.contains(pkg.getTermOfSupport()))
-                                                         .filter(pkg -> PackageType.NONE   == packageType          ? pkg.getPackageType()         != packageType   : pkg.getPackageType()         == packageType)
-                                                         .filter(pkg -> releaseStatus.isEmpty()                    ? pkg.getReleaseStatus()       != null          : releaseStatus.contains(pkg.getReleaseStatus()))
-                                                         .filter(pkg -> Bitness.NONE       == bitness              ? pkg.getBitness()             != bitness       : pkg.getBitness()             == bitness)
-                                                         .filter(pkg -> null               == javafxBundled        ? pkg.isJavaFXBundled()        != null          : pkg.isJavaFXBundled()        == javafxBundled)
-                                                         .filter(pkg -> null               == directlyDownloadable ? pkg.isDirectlyDownloadable() != null          : pkg.isDirectlyDownloadable() == directlyDownloadable)
-                                                         .max(Comparator.comparing(pkg -> pkg.getJavaVersion().getVersionNumber()));
-                        if (pkgFound.isPresent()) { maxVersionPerDistribution.put(distro, pkgFound.get().getJavaVersion().getVersionNumber()); }
-                    });
-
-                    distributionsToCheck.forEach(distro -> pkgsTmp.addAll(pkgCache.stream()
-                                                                                  .filter(pkg -> pkg.getDistribution().equals(distro))
-                                                                                  .filter(pkg -> Constants.SCOPE_LOOKUP.get(pkg.getDistribution()).stream().anyMatch(scopes.stream().collect(toSet())::contains))
-                                                                                  .filter(pkg -> architectures.isEmpty()                    ? pkg.getArchitecture()        != null          : architectures.contains(pkg.getArchitecture()))
-                                                                                  .filter(pkg -> archiveTypes.isEmpty()                     ? pkg.getArchiveType()         != null          : archiveTypes.contains(pkg.getArchiveType()))
-                                                                                  .filter(pkg -> operatingSystems.isEmpty()                 ? pkg.getOperatingSystem()     != null          : operatingSystems.contains(pkg.getOperatingSystem()))
-                                                                                  .filter(pkg -> libCTypes.isEmpty()                        ? pkg.getLibCType()            != null          : libCTypes.contains(pkg.getLibCType()))
-                                                                                  .filter(pkg -> termsOfSupport.isEmpty()                   ? pkg.getTermOfSupport()       != null          : termsOfSupport.contains(pkg.getTermOfSupport()))
-                                                                                  .filter(pkg -> PackageType.NONE   == packageType          ? pkg.getPackageType()         != packageType   : pkg.getPackageType()         == packageType)
-                                                                                  .filter(pkg -> releaseStatus.isEmpty()                    ? pkg.getReleaseStatus()       != null          : releaseStatus.contains(pkg.getReleaseStatus()))
-                                                                                  .filter(pkg -> Bitness.NONE       == bitness              ? pkg.getBitness()             != bitness       : pkg.getBitness()             == bitness)
-                                                                                  .filter(pkg -> null               == javafxBundled        ? pkg.isJavaFXBundled()        != null          : pkg.isJavaFXBundled()        == javafxBundled)
-                                                                                  .filter(pkg -> null               == directlyDownloadable ? pkg.isDirectlyDownloadable() != null          : pkg.isDirectlyDownloadable() == directlyDownloadable)
-                                                                                  .filter(pkg -> pkg.getJavaVersion().getVersionNumber().equals(maxVersionPerDistribution.get(distro)))
-                                                                                  .sorted(Comparator.comparing(Pkg::getDistributionName).reversed().thenComparing(Comparator.comparing((Pkg pkg1) -> pkg1.getJavaVersion().getVersionNumber()).reversed()))
-                                                                                  .collect(Collectors.toList())));
-                    pkgsFound = pkgsTmp;
-                    break;
-                case PER_VERSION:
-                    pkgsFound = pkgCache.stream()
-                                        .filter(pkg -> distributions.isEmpty()                    ? pkg.getDistribution()        != null          : distributions.contains(pkg.getDistribution()))
-                                        .filter(pkg -> Constants.SCOPE_LOOKUP.get(pkg.getDistribution()).stream().anyMatch(scopes.stream().collect(toSet())::contains))
-                                        .filter(pkg -> architectures.isEmpty()                    ? pkg.getArchitecture()        != null          : architectures.contains(pkg.getArchitecture()))
-                                        .filter(pkg -> archiveTypes.isEmpty()                     ? pkg.getArchiveType()         != null          : archiveTypes.contains(pkg.getArchiveType()))
-                                        .filter(pkg -> operatingSystems.isEmpty()                 ? pkg.getOperatingSystem()     != null          : operatingSystems.contains(pkg.getOperatingSystem()))
-                                        .filter(pkg -> libCTypes.isEmpty()                        ? pkg.getLibCType()            != null          : libCTypes.contains(pkg.getLibCType()))
-                                        .filter(pkg -> termsOfSupport.isEmpty()                   ? pkg.getTermOfSupport()       != null          : termsOfSupport.contains(pkg.getTermOfSupport()))
-                                        .filter(pkg -> PackageType.NONE   == packageType          ? pkg.getPackageType()         != packageType   : pkg.getPackageType()         == packageType)
-                                        .filter(pkg -> releaseStatus.isEmpty()                    ? pkg.getReleaseStatus()       != null          : releaseStatus.contains(pkg.getReleaseStatus()))
-                                        .filter(pkg -> Bitness.NONE       == bitness              ? pkg.getBitness()             != bitness       : pkg.getBitness()             == bitness)
-                                        .filter(pkg -> null               == javafxBundled        ? pkg.isJavaFXBundled()        != null          : pkg.isJavaFXBundled()        == javafxBundled)
-                                        .filter(pkg -> null               == directlyDownloadable ? pkg.isDirectlyDownloadable() != null          : pkg.isDirectlyDownloadable() == directlyDownloadable)
-                                        .filter(pkg -> pkg.getJavaVersion().getVersionNumber().getFeature().getAsInt() == versionNumber.getFeature().getAsInt())
-                                        .filter(pkg -> pkg.isLatestBuildAvailable())
-                                        .sorted(Comparator.comparing(Pkg::getDistributionName).reversed().thenComparing(Comparator.comparing((Pkg pkg1) -> pkg1.getJavaVersion().getVersionNumber()).reversed()))
-                                        .collect(Collectors.toList());
-                    break;
-                case NONE:
-                case NOT_FOUND:
-                default:
-                    pkgsFound = pkgCache.stream()
-                                        .filter(pkg -> distributions.isEmpty()                    ? pkg.getDistribution()        != null          : distributions.contains(pkg.getDistribution()))
-                                        .filter(pkg -> Constants.SCOPE_LOOKUP.get(pkg.getDistribution()).stream().anyMatch(scopes.stream().collect(toSet())::contains))
-                                        .filter(pkg -> null != versionNumber ? pkg.getJavaVersion().getVersionNumber().compareTo(versionNumber) == 0 : null != pkg.getJavaVersion().getVersionNumber())
-                                        .filter(pkg -> architectures.isEmpty()                    ? pkg.getArchitecture()        != null          : architectures.contains(pkg.getArchitecture()))
-                                        .filter(pkg -> archiveTypes.isEmpty()                     ? pkg.getArchiveType()         != null          : archiveTypes.contains(pkg.getArchiveType()))
-                                        .filter(pkg -> operatingSystems.isEmpty()                 ? pkg.getOperatingSystem()     != null          : operatingSystems.contains(pkg.getOperatingSystem()))
-                                        .filter(pkg -> libCTypes.isEmpty()                        ? pkg.getLibCType()            != null          : libCTypes.contains(pkg.getLibCType()))
-                                        .filter(pkg -> termsOfSupport.isEmpty()                   ? pkg.getTermOfSupport()       != null          : termsOfSupport.contains(pkg.getTermOfSupport()))
-                                        .filter(pkg -> PackageType.NONE   == packageType          ? pkg.getPackageType()         != packageType   : pkg.getPackageType()         == packageType)
-                                        .filter(pkg -> releaseStatus.isEmpty()                    ? pkg.getReleaseStatus()       != null          : releaseStatus.contains(pkg.getReleaseStatus()))
-                                        .filter(pkg -> Bitness.NONE       == bitness              ? pkg.getBitness()             != bitness       : pkg.getBitness()             == bitness)
-                                        .filter(pkg -> null               == javafxBundled        ? pkg.isJavaFXBundled()        != null          : pkg.isJavaFXBundled()        == javafxBundled)
-                                        .filter(pkg -> null               == directlyDownloadable ? pkg.isDirectlyDownloadable() != null          : pkg.isDirectlyDownloadable() == directlyDownloadable)
-                                        .sorted(Comparator.comparing(Pkg::getDistributionName).reversed().thenComparing(Comparator.comparing((Pkg pkg1) -> pkg1.getJavaVersion().getVersionNumber()).reversed()))
-                                        .collect(Collectors.toList());
-                    if (null != versionNumber) {
-                        int featureVersion = versionNumber.getFeature().getAsInt();
-                        int interimVersion = versionNumber.getInterim().getAsInt();
-                        int updateVersion  = versionNumber.getUpdate().getAsInt();
-                        int patchVersion   = versionNumber.getPatch().getAsInt();
-                        if (0 != patchVersion) {
-                            // e.g. 11.N.N.3
-                            pkgsFound = pkgsFound.stream()
-                                                 .filter(pkg -> pkg.getJavaVersion().getVersionNumber().getFeature().getAsInt() == featureVersion)
-                                                 .filter(pkg -> pkg.getJavaVersion().getVersionNumber().getInterim().getAsInt() == interimVersion)
-                                                 .filter(pkg -> pkg.getJavaVersion().getVersionNumber().getUpdate().getAsInt()  == updateVersion)
-                                                 .filter(pkg -> pkg.getJavaVersion().getVersionNumber().getPatch().getAsInt()   == patchVersion)
-                                                 .collect(Collectors.toList());
-                        } else if (0 != updateVersion) {
-                            // e.g. 11.N.2.N
-                            pkgsFound = pkgsFound.stream()
-                                                 .filter(pkg -> pkg.getJavaVersion().getVersionNumber().getFeature().getAsInt() == featureVersion)
-                                                 .filter(pkg -> pkg.getJavaVersion().getVersionNumber().getInterim().getAsInt() == interimVersion)
-                                                 .filter(pkg -> pkg.getJavaVersion().getVersionNumber().getUpdate().getAsInt()  == updateVersion)
-                                                 .collect(Collectors.toList());
-                        } else if (0 != interimVersion) {
-                            // e.g. 11.1.N.N
-                            pkgsFound = pkgsFound.stream()
-                                                 .filter(pkg -> pkg.getJavaVersion().getVersionNumber().getFeature().getAsInt() == featureVersion)
-                                                 .filter(pkg -> pkg.getJavaVersion().getVersionNumber().getInterim().getAsInt() == interimVersion)
-                                                 .collect(Collectors.toList());
-                        } else {
-                            // e.g. 11.N.N.N
-                            pkgsFound = pkgsFound.stream()
-                                                 .filter(pkg -> pkg.getJavaVersion().getVersionNumber().getFeature().getAsInt() == featureVersion)
-                                                 .collect(Collectors.toList());
-                        }
-                    }
-                    break;
-            }
-        } else {
-            VersionNumber  minVersionNumber;
-            VersionNumber  maxVersionNumber;
-            Predicate<Pkg> greaterCheck;
-            Predicate<Pkg> smallerCheck;
-            Queue<MajorVersion> majorVersions = majorVersionCache.isEmpty() ? getAllMajorVersions(true) : majorVersionCache;
-            switch (comparison) {
-                case EQUAL:
-                    minVersionNumber = versionNumber;
-                    maxVersionNumber = versionNumber;
-                    greaterCheck     = pkg -> pkg.getJavaVersion().getVersionNumber().compareTo(minVersionNumber) >= 0;
-                    smallerCheck     = pkg -> pkg.getJavaVersion().getVersionNumber().compareTo(maxVersionNumber) <= 0;
-                    break;
-                case LESS_THAN:
-                    minVersionNumber = new VersionNumber(6);
-                    maxVersionNumber = versionNumber;
-                    greaterCheck     = pkg -> pkg.getJavaVersion().getVersionNumber().compareTo(minVersionNumber) >= 0;
-                    smallerCheck     = pkg -> pkg.getJavaVersion().getVersionNumber().compareTo(maxVersionNumber) < 0;
-                    break;
-                case LESS_THAN_OR_EQUAL:
-                    minVersionNumber = new VersionNumber(6);
-                    maxVersionNumber = versionNumber;
-                    greaterCheck     = pkg -> pkg.getJavaVersion().getVersionNumber().compareTo(minVersionNumber) >= 0;
-                    smallerCheck     = pkg -> pkg.getJavaVersion().getVersionNumber().compareTo(maxVersionNumber) <= 0;
-                    break;
-                case GREATER_THAN:
-                    minVersionNumber = versionNumber;
-                    maxVersionNumber = new VersionNumber(majorVersions.peek().getAsInt());
-                    greaterCheck     = pkg -> pkg.getJavaVersion().getVersionNumber().compareTo(minVersionNumber) > 0;
-                    smallerCheck     = pkg -> pkg.getJavaVersion().getVersionNumber().compareTo(maxVersionNumber) <= 0;
-                    break;
-                case GREATER_THAN_OR_EQUAL:
-                    minVersionNumber = versionNumber;
-                    maxVersionNumber = new VersionNumber(majorVersions.peek().getAsInt());
-                    greaterCheck     = pkg -> pkg.getJavaVersion().getVersionNumber().compareTo(minVersionNumber) >= 0;
-                    smallerCheck     = pkg -> pkg.getJavaVersion().getVersionNumber().compareTo(maxVersionNumber) <= 0;
-                    break;
-                default:
-                    minVersionNumber = new VersionNumber(6);
-                    maxVersionNumber = new VersionNumber(majorVersions.peek().getAsInt());
-                    greaterCheck     = pkg -> pkg.getJavaVersion().getVersionNumber().compareTo(minVersionNumber) >= 0;
-                    smallerCheck     = pkg -> pkg.getJavaVersion().getVersionNumber().compareTo(maxVersionNumber) <= 0;
-                    break;
-            }
-
-            pkgsFound = pkgCache.stream()
-                                .filter(pkg -> distributions.isEmpty()                  ? pkg.getDistribution()        != null          : distributions.contains(pkg.getDistribution()))
-                                .filter(pkg -> Constants.SCOPE_LOOKUP.get(pkg.getDistribution()).stream().anyMatch(scopes.stream().collect(toSet())::contains))
-                                .filter(pkg -> architectures.isEmpty()                  ? pkg.getArchitecture()        != null          : architectures.contains(pkg.getArchitecture()))
-                                .filter(pkg -> archiveTypes.isEmpty()                   ? pkg.getArchiveType()         != null          : archiveTypes.contains(pkg.getArchiveType()))
-                                .filter(pkg -> operatingSystems.isEmpty()               ? pkg.getOperatingSystem()     != null          : operatingSystems.contains(pkg.getOperatingSystem()))
-                                .filter(pkg -> libCTypes.isEmpty()                      ? pkg.getLibCType()            != null          : libCTypes.contains(pkg.getLibCType()))
-                                .filter(pkg -> termsOfSupport.isEmpty()                 ? pkg.getTermOfSupport()       != null          : termsOfSupport.contains(pkg.getTermOfSupport()))
-                                .filter(pkg -> PackageType.NONE == packageType          ? pkg.getPackageType()         != packageType   : pkg.getPackageType()         == packageType)
-                                .filter(pkg -> releaseStatus.isEmpty()                  ? pkg.getReleaseStatus()       != null          : releaseStatus.contains(pkg.getReleaseStatus()))
-                                .filter(pkg -> Bitness.NONE     == bitness              ? pkg.getBitness()             != bitness       : pkg.getBitness()             == bitness)
-                                .filter(pkg -> null             == javafxBundled        ? pkg.isJavaFXBundled()        != null          : pkg.isJavaFXBundled()        == javafxBundled)
-                                .filter(pkg -> null             == directlyDownloadable ? pkg.isDirectlyDownloadable() != null          : pkg.isDirectlyDownloadable() == directlyDownloadable)
-                                .filter(greaterCheck)
-                                .filter(smallerCheck)
-                                .sorted(Comparator.comparing(Pkg::getDistributionName).reversed().thenComparing(Comparator.comparing((Pkg pkg1) -> pkg1.getJavaVersion().getVersionNumber()).reversed()))
-                                .collect(Collectors.toList());
-        }
-        return pkgsFound;
-    }
-
 
 
     // ******************** Event Handling ************************************

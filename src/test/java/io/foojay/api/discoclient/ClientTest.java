@@ -58,7 +58,6 @@ import java.util.concurrent.Future;
 
 public class ClientTest {
 
-    /*
     @Test
     public void cancelRequestTest() {
         DiscoClient discoClient = new DiscoClient();
@@ -84,15 +83,12 @@ public class ClientTest {
         List<Pkg> packagesFound = discoClient.getPkgs(Distribution.ZULU, new VersionNumber(11, 0, 9, 1), Latest.NONE, OperatingSystem.WINDOWS, LibCType.NONE,
                                                       Architecture.X64, Bitness.BIT_64, ArchiveType.ZIP, PackageType.JDK, false, true, ReleaseStatus.GA, TermOfSupport.LTS, Scope.PUBLIC);
         assert packagesFound.size() == 1;
-
-        packagesFound = discoClient.getPkgs(Distribution.ZULU, VersionNumber.fromText("14-ea.36"), Latest.NONE, OperatingSystem.WINDOWS, LibCType.NONE,
-                                            Architecture.X64, Bitness.BIT_64, ArchiveType.ZIP, PackageType.JDK, false, true, ReleaseStatus.GA, TermOfSupport.LTS, Scope.PUBLIC);
     }
 
     @Test
     public void downloadPkgTest() {
         DiscoClient discoClient = new DiscoClient();
-        List<Pkg> packagesFound = discoClient.getPkgs(Distribution.ZULU, new VersionNumber(11, 0, 9, 1), Latest.EXPLICIT, OperatingSystem.WINDOWS, LibCType.C_STD_LIB,
+        List<Pkg> packagesFound = discoClient.getPkgs(Distribution.ZULU, new VersionNumber(11, 0, 9, 1), null, OperatingSystem.WINDOWS, LibCType.C_STD_LIB,
                                                       Architecture.X64, Bitness.BIT_64, ArchiveType.ZIP, PackageType.JRE, false, true, ReleaseStatus.GA, TermOfSupport.LTS, Scope.PUBLIC);
         assert packagesFound.size() > 0;
 
@@ -102,14 +98,14 @@ public class ClientTest {
         assert "https://cdn.azul.com/zulu/bin/zulu11.43.55-ca-jre11.0.9.1-win_x64.zip".equals(pkgInfo.getDirectDownloadUri());
 
         Future<?> future = discoClient.downloadPkg(pkgInfo, "./" + pkgInfo.getFileName());
+
         try {
             assert null == future.get();
             Path path = Paths.get("./" + pkgInfo.getFileName());
             assert Files.exists(path);
             if (Files.exists(path)) { new File("./" + pkgInfo.getFileName()).delete(); }
-
         } catch (InterruptedException | ExecutionException e) {
-
+            System.out.println(e);
         }
     }
 
@@ -151,52 +147,7 @@ public class ClientTest {
     public void getVersionsPerDistributionTest() {
         DiscoClient discoClient = new DiscoClient();
         Map<Distribution, List<VersionNumber>> versionsPerDistribution = discoClient.getVersionsPerDistribution();
-        assert versionsPerDistribution.keySet().size() == 15;
-    }
-
-    @Test
-    public void testCache() {
-        DiscoClient discoClient = new DiscoClient();
-        long       start   = System.currentTimeMillis();
-        Queue<Pkg> allPkgs = discoClient.getAllPackages();
-        assert (System.currentTimeMillis() - start) > 1000;
-        long numberOfPackages = allPkgs.size();
-        while (!discoClient.cacheReady.get()) { }
-
-        start = System.currentTimeMillis();
-        Queue<Pkg> allPkgsFromCache = discoClient.getAllPackages();
-        assert (System.currentTimeMillis() - start) < 1000;
-        assert allPkgsFromCache.size() == numberOfPackages;
-
-        start = System.currentTimeMillis();
-        List<Pkg> allPkgsAsyncFromCache = new LinkedList<>();
-        try {
-            allPkgsAsyncFromCache.addAll(discoClient.getAllPackagesAsync().get());
-        } catch (InterruptedException | ExecutionException e) {
-            e.printStackTrace();
-        }
-        assert (System.currentTimeMillis() - start) < 1000;
-        assert allPkgsAsyncFromCache.size() == numberOfPackages;
-    }
-
-    @Test
-    public void testCacheAccess() {
-        DiscoClient discoClient = new DiscoClient();
-
-        SemVer        semVer        = SemVer.fromText("11.0.10-ea").getSemVer1();
-        ReleaseStatus releaseStatus = semVer.getReleaseStatus();
-        try {
-            assert discoClient.getPkgsAsync(Distribution.NONE, semVer.getVersionNumber(), Latest.NONE, OperatingSystem.MACOS, LibCType.NONE, Architecture.NONE, Bitness.NONE, ArchiveType.NONE, PackageType.JDK, null, true, releaseStatus, TermOfSupport.NONE, Scope.PUBLIC).get().size() >= 34;
-        } catch (ExecutionException | InterruptedException e) {
-            e.printStackTrace();
-        }
-
-        while (!discoClient.cacheReady.get()) { }
-        try {
-            assert discoClient.getPkgsAsync(Distribution.NONE, semVer.getVersionNumber(), Latest.NONE, OperatingSystem.MACOS, LibCType.NONE, Architecture.NONE, Bitness.NONE, ArchiveType.NONE, PackageType.JDK, null, true, releaseStatus, TermOfSupport.NONE, Scope.PUBLIC).get().size() >= 34;
-        } catch (ExecutionException | InterruptedException e) {
-            e.printStackTrace();
-        }
+        assert versionsPerDistribution.keySet().size() == 18;
     }
 
     @Test
@@ -205,5 +156,4 @@ public class ClientTest {
         assert Distribution.LIBERICA.equals(Distribution.fromText("liberica"));
         assert Distribution.LIBERICA.equals(Distribution.fromText("LIBERICA"));
     }
-    */
 }
