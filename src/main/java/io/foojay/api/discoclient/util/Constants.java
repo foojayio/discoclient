@@ -40,10 +40,10 @@ public class Constants {
 
     public static final Pattern POSITIVE_INTEGER_PATTERN  = Pattern.compile("\\d+");
 
-    public static final String  PACKAGES_PATH             = "/disco/v1.0/packages";
-    public static final String  EPHEMERAL_IDS_PATH        = "/disco/v1.0/ephemeral_ids";
-    public static final String  MAJOR_VERSIONS_PATH       = "/disco/v1.0/major_versions";
-    public static final String  DISTRIBUTIONS_PATH        = "/disco/v1.0/distributions";
+    public static final String  PACKAGES_PATH             = "/disco/v2.0/packages";
+    public static final String  EPHEMERAL_IDS_PATH        = "/disco/v2.0/ephemeral_ids";
+    public static final String  MAJOR_VERSIONS_PATH       = "/disco/v2.0/major_versions";
+    public static final String  DISTRIBUTIONS_PATH        = "/disco/v2.0/distributions";
 
     public static final String  API_DISTRIBUTION          = "distro";
     public static final String  API_VERSION               = "version";
@@ -60,6 +60,7 @@ public class Constants {
     public static final String  API_DIRECTLY_DOWNLOADABLE = "directly_downloadable";
     public static final String  API_LATEST                = "latest";
     public static final String  API_DISCOVERY_SCOPE_ID    = "discovery_scope_id";
+    public static final String  API_FEATURE               = "feature";
 
     public static final String  SQUARE_BRACKET_OPEN       = "[";
     public static final String  SQUARE_BRACKET_CLOSE      = "]";
@@ -75,21 +76,23 @@ public class Constants {
     public static final ConcurrentHashMap<Distribution, List<Scope>> SCOPE_LOOKUP = new ConcurrentHashMap<>() {{
         put(Distribution.NONE, List.of(Scope.PUBLIC));
         put(Distribution.NOT_FOUND, List.of(Scope.PUBLIC));
-        put(Distribution.ADOPTIUM, List.of(Scope.PUBLIC, Scope.BUILD_OF_OPEN_JDK, Scope.DIRECTLY_DOWNLOADABLE));
         put(Distribution.AOJ, List.of(Scope.PUBLIC, Scope.BUILD_OF_OPEN_JDK, Scope.DIRECTLY_DOWNLOADABLE));
         put(Distribution.AOJ_OPENJ9, List.of(Scope.PUBLIC, Scope.DIRECTLY_DOWNLOADABLE));
         put(Distribution.CORRETTO, List.of(Scope.PUBLIC, Scope.BUILD_OF_OPEN_JDK, Scope.DIRECTLY_DOWNLOADABLE));
         put(Distribution.DRAGONWELL, List.of(Scope.PUBLIC, Scope.BUILD_OF_OPEN_JDK, Scope.DIRECTLY_DOWNLOADABLE));
         put(Distribution.GRAALVM_CE8, List.of(Scope.PUBLIC, Scope.DIRECTLY_DOWNLOADABLE));
         put(Distribution.GRAALVM_CE11, List.of(Scope.PUBLIC, Scope.DIRECTLY_DOWNLOADABLE));
+        put(Distribution.GRAALVM_CE16, List.of(Scope.PUBLIC, Scope.DIRECTLY_DOWNLOADABLE));
         put(Distribution.LIBERICA, List.of(Scope.PUBLIC, Scope.BUILD_OF_OPEN_JDK, Scope.DIRECTLY_DOWNLOADABLE));
         put(Distribution.LIBERICA_NATIVE, List.of(Scope.PUBLIC, Scope.DIRECTLY_DOWNLOADABLE));
         put(Distribution.MANDREL, List.of(Scope.PUBLIC, Scope.DIRECTLY_DOWNLOADABLE));
         put(Distribution.MICROSOFT, List.of(Scope.PUBLIC, Scope.BUILD_OF_OPEN_JDK, Scope.DIRECTLY_DOWNLOADABLE));
         put(Distribution.OJDK_BUILD, List.of(Scope.PUBLIC, Scope.BUILD_OF_OPEN_JDK, Scope.DIRECTLY_DOWNLOADABLE));
+        put(Distribution.OPEN_LOGIC, List.of(Scope.PUBLIC, Scope.BUILD_OF_OPEN_JDK, Scope.DIRECTLY_DOWNLOADABLE));
         put(Distribution.ORACLE, List.of(Scope.PUBLIC, Scope.BUILD_OF_OPEN_JDK, Scope.NOT_DIRECTLY_DOWNLOADABLE));
         put(Distribution.ORACLE_OPEN_JDK, List.of(Scope.PUBLIC, Scope.BUILD_OF_OPEN_JDK, Scope.DIRECTLY_DOWNLOADABLE));
         put(Distribution.RED_HAT, List.of(Scope.PUBLIC, Scope.BUILD_OF_OPEN_JDK, Scope.NOT_DIRECTLY_DOWNLOADABLE));
+        put(Distribution.TEMURIN, List.of(Scope.PUBLIC, Scope.BUILD_OF_OPEN_JDK, Scope.DIRECTLY_DOWNLOADABLE));
         put(Distribution.TRAVA, List.of(Scope.PUBLIC, Scope.BUILD_OF_OPEN_JDK, Scope.DIRECTLY_DOWNLOADABLE));
         put(Distribution.SAP_MACHINE, List.of(Scope.PUBLIC, Scope.BUILD_OF_OPEN_JDK, Scope.DIRECTLY_DOWNLOADABLE));
         put(Distribution.ZULU, List.of(Scope.PUBLIC, Scope.BUILD_OF_OPEN_JDK, Scope.DIRECTLY_DOWNLOADABLE));

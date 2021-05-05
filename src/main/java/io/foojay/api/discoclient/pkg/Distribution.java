@@ -27,23 +27,25 @@ import java.util.stream.Collectors;
 
 
 public enum Distribution implements ApiFeature {
-    ADOPTIUM("Adoptium", "adoptium"),
     AOJ("AOJ", "aoj"),
     AOJ_OPENJ9("AOJ OpenJ9", "aoj_openj9"),
     CORRETTO("Corretto", "corretto"),
     DRAGONWELL("Dragonwell", "dragonwell"),
     GRAALVM_CE8("Graal VM CE 8", "graalvm_ce8"),
     GRAALVM_CE11("Graal VM CE 11", "graalvm_ce11"),
+    GRAALVM_CE16("Graal VM CE 16", "graalvm_ce16"),
     LIBERICA("Liberica", "liberica"),
     LIBERICA_NATIVE("Liberica Native", "liberica_native"),
     MANDREL("Mandrel", "mandrel"),
     MICROSOFT("Microsoft", "microsoft"),
     OJDK_BUILD("OJDKBuild", "ojdk_build"),
+    OPEN_LOGIC("OpenLogic", "openlogic"),
     ORACLE("Oracle", "oracle"),
     ORACLE_OPEN_JDK("Oracle OpenJDK", "oracle_openjdk"),
     RED_HAT("Red Hat", "redhat"),
     SAP_MACHINE("SAP Machine", "sapmachine"),
     TRAVA("Trava", "trava"),
+    TEMURIN("Temurin", "temurin"),
     ZULU("Zulu", "zulu"),
     NONE("-", ""),
     NOT_FOUND("", "");
@@ -105,6 +107,12 @@ public enum Distribution implements ApiFeature {
             case "GraalVMCE11":
             case "GraalVM_CE11":
                 return GRAALVM_CE11;
+            case "graalvm_ce16":
+            case "graalvmce16":
+            case "GraalVM CE 16":
+            case "GraalVMCE16":
+            case "GraalVM_CE16":
+                return GRAALVM_CE16;
             case "liberica":
             case "LIBERICA":
             case "Liberica":
@@ -131,6 +139,12 @@ public enum Distribution implements ApiFeature {
             case "ojdkbuild":
             case "OJDKBuild":
                 return OJDK_BUILD;
+            case "openlogic":
+            case "OPENLOGIC":
+            case "OpenLogic":
+            case "open_logic":
+            case "OPEN_LOGIC":
+                return OPEN_LOGIC;
             case "oracle_open_jdk":
             case "ORACLE_OPEN_JDK":
             case "oracle_openjdk":
@@ -201,9 +215,11 @@ public enum Distribution implements ApiFeature {
         return Arrays.stream(values())
                      .filter(distribution -> Distribution.NONE != distribution)
                      .filter(distribution -> Distribution.NOT_FOUND != distribution)
+                     .filter(distribution -> Distribution.GRAALVM_CE16 != distribution)
                      .filter(distribution -> Distribution.GRAALVM_CE11 != distribution)
                      .filter(distribution -> Distribution.GRAALVM_CE8 != distribution)
                      .filter(distribution -> Distribution.MANDREL != distribution)
+                     .filter(distribution -> Distribution.LIBERICA_NATIVE != distribution)
                      .collect(Collectors.toList());
     }
 
@@ -211,9 +227,11 @@ public enum Distribution implements ApiFeature {
         return Arrays.stream(values())
                      .filter(distribution -> Distribution.NONE == distribution)
                      .filter(distribution -> Distribution.NOT_FOUND == distribution)
+                     .filter(distribution -> Distribution.GRAALVM_CE16 == distribution)
                      .filter(distribution -> Distribution.GRAALVM_CE11 == distribution)
                      .filter(distribution -> Distribution.GRAALVM_CE8 == distribution)
                      .filter(distribution -> Distribution.MANDREL == distribution)
+                     .filter(distribution -> Distribution.LIBERICA_NATIVE == distribution)
                      .collect(Collectors.toList());
     }
 }

@@ -34,6 +34,7 @@ import io.foojay.api.discoclient.pkg.Architecture;
 import io.foojay.api.discoclient.pkg.ArchiveType;
 import io.foojay.api.discoclient.pkg.Bitness;
 import io.foojay.api.discoclient.pkg.Distribution;
+import io.foojay.api.discoclient.pkg.Feature;
 import io.foojay.api.discoclient.pkg.Latest;
 import io.foojay.api.discoclient.pkg.LibCType;
 import io.foojay.api.discoclient.pkg.MajorVersion;
@@ -68,6 +69,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Queue;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -103,8 +105,9 @@ public class DiscoClient {
         String      bodyText = Helper.get(query);
         Gson        gson     = new Gson();
         JsonElement element  = gson.fromJson(bodyText, JsonElement.class);
-        if (element instanceof JsonArray) {
-            JsonArray jsonArray = element.getAsJsonArray();
+        if (element instanceof JsonObject) {
+            JsonObject jsonObject = element.getAsJsonObject();
+            JsonArray jsonArray = jsonObject.getAsJsonArray("result");
             for (int i = 0; i < jsonArray.size(); i++) {
                 JsonObject bundleJsonObj = jsonArray.get(i).getAsJsonObject();
                 pkgsFound.add(new Pkg(bundleJsonObj.toString()));
@@ -127,8 +130,9 @@ public class DiscoClient {
             Queue<Pkg>  pkgsFound = new ConcurrentLinkedQueue<>();
             Gson        gson      = new Gson();
             JsonElement element   = gson.fromJson(response, JsonElement.class);
-            if (element instanceof JsonArray) {
-                JsonArray jsonArray = element.getAsJsonArray();
+            if (element instanceof JsonObject) {
+                JsonObject jsonObject = element.getAsJsonObject();
+                JsonArray jsonArray = jsonObject.getAsJsonArray("result");
                 for (int i = 0; i < jsonArray.size(); i++) {
                     JsonObject bundleJsonObj = jsonArray.get(i).getAsJsonObject();
                     pkgsFound.add(new Pkg(bundleJsonObj.toString()));
@@ -139,20 +143,22 @@ public class DiscoClient {
         return future;
     }
 
-
     public List<Pkg> getPkgs(final Distribution distribution, final VersionNumber versionNumber, final Latest latest, final OperatingSystem operatingSystem,
                              final LibCType libcType, final Architecture architecture, final Bitness bitness, final ArchiveType archiveType, final PackageType packageType,
                              final Boolean javafxBundled, final Boolean directlyDownloadable, final ReleaseStatus releaseStatus, final TermOfSupport termOfSupport, final Scope scope) {
+        return getPkgs(distribution, versionNumber, latest, operatingSystem, libcType, architecture, bitness, archiveType, packageType, javafxBundled, directlyDownloadable, releaseStatus, termOfSupport, List.of(), scope);
+    }
+    public List<Pkg> getPkgs(final Distribution distribution, final VersionNumber versionNumber, final Latest latest, final OperatingSystem operatingSystem,
+                             final LibCType libcType, final Architecture architecture, final Bitness bitness, final ArchiveType archiveType, final PackageType packageType,
+                             final Boolean javafxBundled, final Boolean directlyDownloadable, final ReleaseStatus releaseStatus, final TermOfSupport termOfSupport, final List<String> ftrs, final Scope scope) {
 
         StringBuilder queryBuilder = new StringBuilder().append(PropertyManager.INSTANCE.getString(Constants.PROPERTY_KEY_DISCO_URL))
                                                         .append(Constants.PACKAGES_PATH);
         final int initialLength = queryBuilder.length();
 
-        Distribution distributionCache = Distribution.NONE;
         if (null != distribution && Distribution.NONE != distribution && Distribution.NOT_FOUND != distribution) {
             queryBuilder.append(queryBuilder.length() == initialLength ? "?" : "&");
             queryBuilder.append(Constants.API_DISTRIBUTION).append("=").append(distribution.getApiString());
-            distributionCache = distribution;
         }
 
         if (null != versionNumber) {
@@ -160,60 +166,44 @@ public class DiscoClient {
             queryBuilder.append(Constants.API_VERSION).append("=").append(versionNumber.toString());
         }
 
-        Latest latestCache = Latest.NONE;
         if (null != latest && Latest.NONE != latest && Latest.NOT_FOUND != latest) {
             queryBuilder.append(queryBuilder.length() == initialLength ? "?" : "&");
             queryBuilder.append(Constants.API_LATEST).append("=").append(latest.getApiString());
-            latestCache = latest;
         }
 
-        OperatingSystem operatingSystemCache = OperatingSystem.NONE;
         if (null != operatingSystem && OperatingSystem.NONE != operatingSystem && OperatingSystem.NOT_FOUND != operatingSystem) {
             queryBuilder.append(queryBuilder.length() == initialLength ? "?" : "&");
             queryBuilder.append(Constants.API_OPERATING_SYSTEM).append("=").append(operatingSystem.getApiString());
-            operatingSystemCache = operatingSystem;
         }
 
-        LibCType libcTypeCache = LibCType.NONE;
         if (null != libcType && LibCType.NONE != libcType && LibCType.NOT_FOUND != libcType) {
             queryBuilder.append(queryBuilder.length() == initialLength ? "?" : "&");
             queryBuilder.append(Constants.API_LIBC_TYPE).append("=").append(libcType.getApiString());
-            libcTypeCache = libcType;
         }
 
-        Architecture architectureCache = Architecture.NONE;
         if (null != architecture && Architecture.NONE != architecture && Architecture.NOT_FOUND != architecture) {
             queryBuilder.append(queryBuilder.length() == initialLength ? "?" : "&");
             queryBuilder.append(Constants.API_ARCHITECTURE).append("=").append(architecture.getApiString());
-            architectureCache = architecture;
         }
 
-        Bitness bitnessCache = Bitness.NONE;
         if (null != bitness && Bitness.NONE != bitness && Bitness.NOT_FOUND != bitness) {
             queryBuilder.append(queryBuilder.length() == initialLength ? "?" : "&");
             queryBuilder.append(Constants.API_BITNESS).append("=").append(bitness.getApiString());
-            bitnessCache = bitness;
         }
 
-        ArchiveType archiveTypeCache = ArchiveType.NONE;
         if (null != archiveType && ArchiveType.NONE != archiveType && ArchiveType.NOT_FOUND != archiveType) {
             queryBuilder.append(queryBuilder.length() == initialLength ? "?" : "&");
             queryBuilder.append(Constants.API_ARCHIVE_TYPE).append("=").append(archiveType.getApiString());
-            archiveTypeCache = archiveType;
         }
 
-        PackageType packageTypeCache = PackageType.NONE;
         if (null != packageType && PackageType.NONE != packageType && PackageType.NOT_FOUND != packageType) {
             queryBuilder.append(queryBuilder.length() == initialLength ? "?" : "&");
             queryBuilder.append(Constants.API_PACKAGE_TYPE).append("=").append(packageType.getApiString());
-            packageTypeCache = packageType;
         }
 
-        Scope scopeCache = Scope.PUBLIC;
         if (null != scope && Scope.NONE != scope && Scope.NOT_FOUND != scope) {
             queryBuilder.append(queryBuilder.length() == initialLength ? "?" : "&");
             queryBuilder.append(Constants.API_DISCOVERY_SCOPE_ID).append("=").append(scope.getApiString());
-            scopeCache = scope;
         }
 
         if (null != javafxBundled) {
@@ -226,18 +216,39 @@ public class DiscoClient {
             queryBuilder.append(Constants.API_DIRECTLY_DOWNLOADABLE).append("=").append(directlyDownloadable);
         }
 
-        ReleaseStatus releaseStatusCache = ReleaseStatus.NONE;
         if (null != releaseStatus && ReleaseStatus.NONE != releaseStatus && ReleaseStatus.NOT_FOUND != releaseStatus) {
             queryBuilder.append(queryBuilder.length() == initialLength ? "?" : "&");
             queryBuilder.append(Constants.API_RELEASE_STATUS).append("=").append(releaseStatus.getApiString());
-            releaseStatusCache = releaseStatus;
         }
 
-        TermOfSupport termOfSupportCache = TermOfSupport.NONE;
         if (null != termOfSupport && TermOfSupport.NONE != termOfSupport && TermOfSupport.NOT_FOUND != termOfSupport) {
             queryBuilder.append(queryBuilder.length() == initialLength ? "?" : "&");
             queryBuilder.append(Constants.API_SUPPORT_TERM).append("=").append(termOfSupport.getApiString());
-            termOfSupportCache = termOfSupport;
+        }
+
+        if (null != ftrs && !ftrs.isEmpty()) {
+            List<Feature> features;
+            if (ftrs.isEmpty()) {
+                features = new ArrayList<>();
+            } else {
+                Set<Feature> featuresFound = new HashSet<>();
+                for (String featureString : ftrs) {
+                    Feature feat = Feature.fromText(featureString);
+                    if (Feature.NOT_FOUND == feat || Feature.NONE == feat) {
+                        continue;
+                    }
+                    featuresFound.add(feat);
+                }
+                if (featuresFound.isEmpty()) {
+                    features = List.of();
+                } else {
+                    features = new ArrayList<>(featuresFound);
+                }
+            }
+            features.forEach(feature -> {
+                queryBuilder.append(queryBuilder.length() == initialLength ? "?" : "&");
+                queryBuilder.append(Constants.API_FEATURE).append("=").append(feature.getApiString());
+            });
         }
 
         String query = queryBuilder.toString();
@@ -249,8 +260,9 @@ public class DiscoClient {
         List<Pkg>   pkgsFound = new ArrayList<>();
         Gson        gson      = new Gson();
         JsonElement element   = gson.fromJson(bodyText, JsonElement.class);
-        if (element instanceof JsonArray) {
-            JsonArray jsonArray = element.getAsJsonArray();
+        if (element instanceof JsonObject) {
+            JsonObject jsonObject = element.getAsJsonObject();
+            JsonArray jsonArray = jsonObject.getAsJsonArray("result");
             for (int i = 0; i < jsonArray.size(); i++) {
                 JsonObject pkgJsonObj = jsonArray.get(i).getAsJsonObject();
                 pkgsFound.add(new Pkg(pkgJsonObj.toString()));
@@ -271,11 +283,9 @@ public class DiscoClient {
                                                         .append(Constants.PACKAGES_PATH);
         final int initialLength = queryBuilder.length();
 
-        Distribution distributionCache = Distribution.NONE;
         if (null != distribution && Distribution.NONE != distribution && Distribution.NOT_FOUND != distribution) {
             queryBuilder.append(queryBuilder.length() == initialLength ? "?" : "&");
             queryBuilder.append(Constants.API_DISTRIBUTION).append("=").append(distribution.getApiString());
-            distributionCache = distribution;
         }
 
         if (null != versionNumber) {
@@ -283,60 +293,44 @@ public class DiscoClient {
             queryBuilder.append(Constants.API_VERSION).append("=").append(versionNumber.toString(OutputFormat.REDUCED, true, true));
         }
 
-        Latest latestCache = Latest.NONE;
         if (null != latest && Latest.NONE != latest && Latest.NOT_FOUND != latest) {
             queryBuilder.append(queryBuilder.length() == initialLength ? "?" : "&");
             queryBuilder.append(Constants.API_LATEST).append("=").append(latest.getApiString());
-            latestCache = latest;
         }
 
-        OperatingSystem operatingSystemCache = OperatingSystem.NONE;
         if (null != operatingSystem && OperatingSystem.NONE != operatingSystem && OperatingSystem.NOT_FOUND != operatingSystem) {
             queryBuilder.append(queryBuilder.length() == initialLength ? "?" : "&");
             queryBuilder.append(Constants.API_OPERATING_SYSTEM).append("=").append(operatingSystem.getApiString());
-            operatingSystemCache = operatingSystem;
         }
 
-        LibCType libcTypeCache = LibCType.NONE;
         if (null != libCType && LibCType.NONE != libCType && LibCType.NOT_FOUND != libCType) {
             queryBuilder.append(queryBuilder.length() == initialLength ? "?" : "&");
             queryBuilder.append(Constants.API_LIBC_TYPE).append("=").append(libCType.getApiString());
-            libcTypeCache = libCType;
         }
 
-        Architecture architectureCache = Architecture.NONE;
         if (null != architecture && Architecture.NONE != architecture && Architecture.NOT_FOUND != architecture) {
             queryBuilder.append(queryBuilder.length() == initialLength ? "?" : "&");
             queryBuilder.append(Constants.API_ARCHITECTURE).append("=").append(architecture.getApiString());
-            architectureCache = architecture;
         }
 
-        Bitness bitnessCache = Bitness.NONE;
         if (null != bitness && Bitness.NONE != bitness && Bitness.NOT_FOUND != bitness) {
             queryBuilder.append(queryBuilder.length() == initialLength ? "?" : "&");
             queryBuilder.append(Constants.API_BITNESS).append("=").append(bitness.getApiString());
-            bitnessCache = bitness;
         }
 
-        ArchiveType archiveTypeCache = ArchiveType.NONE;
         if (null != archiveType && ArchiveType.NONE != archiveType && ArchiveType.NOT_FOUND != archiveType) {
             queryBuilder.append(queryBuilder.length() == initialLength ? "?" : "&");
             queryBuilder.append(Constants.API_ARCHIVE_TYPE).append("=").append(archiveType.getApiString());
-            archiveTypeCache = archiveType;
         }
 
-        PackageType packageTypeCache = PackageType.NONE;
         if (null != packageType && PackageType.NONE != packageType && PackageType.NOT_FOUND != packageType) {
             queryBuilder.append(queryBuilder.length() == initialLength ? "?" : "&");
             queryBuilder.append(Constants.API_PACKAGE_TYPE).append("=").append(packageType.getApiString());
-            packageTypeCache = packageType;
         }
 
-        Scope scopeCache = Scope.PUBLIC;
         if (null != scope && Scope.NONE != scope && Scope.NOT_FOUND != scope) {
             queryBuilder.append(queryBuilder.length() == initialLength ? "?" : "&");
             queryBuilder.append(Constants.API_DISCOVERY_SCOPE_ID).append("=").append(scope.getApiString());
-            scopeCache = scope;
         }
 
         if (null != javafxBundled) {
@@ -349,18 +343,14 @@ public class DiscoClient {
             queryBuilder.append(Constants.API_DIRECTLY_DOWNLOADABLE).append("=").append(directlyDownloadable);
         }
 
-        ReleaseStatus releaseStatusCache = ReleaseStatus.NONE;
         if (null != releaseStatus && ReleaseStatus.NONE != releaseStatus && ReleaseStatus.NOT_FOUND != releaseStatus) {
             queryBuilder.append(queryBuilder.length() == initialLength ? "?" : "&");
             queryBuilder.append(Constants.API_RELEASE_STATUS).append("=").append(releaseStatus.getApiString());
-            releaseStatusCache = releaseStatus;
         }
 
-        TermOfSupport termOfSupportCache = TermOfSupport.NONE;
         if (null != termOfSupport && TermOfSupport.NONE != termOfSupport && TermOfSupport.NOT_FOUND != termOfSupport) {
             queryBuilder.append(queryBuilder.length() == initialLength ? "?" : "&");
             queryBuilder.append(Constants.API_SUPPORT_TERM).append("=").append(termOfSupport.getApiString());
-            termOfSupportCache = termOfSupport;
         }
 
         String query = queryBuilder.toString();
@@ -371,8 +361,9 @@ public class DiscoClient {
             List<Pkg>   pkgsFound = new ArrayList<>();
             Gson        gson      = new Gson();
             JsonElement element   = gson.fromJson(bodyText, JsonElement.class);
-            if (element instanceof JsonArray) {
-                JsonArray jsonArray = element.getAsJsonArray();
+            if (element instanceof JsonObject) {
+                JsonObject jsonObject = element.getAsJsonObject();
+                JsonArray jsonArray = jsonObject.getAsJsonArray("result");
                 for (int i = 0; i < jsonArray.size(); i++) {
                     JsonObject pkgJsonObj = jsonArray.get(i).getAsJsonObject();
                     pkgsFound.add(new Pkg(pkgJsonObj.toString()));
@@ -414,9 +405,15 @@ public class DiscoClient {
         Gson        gson     = new Gson();
         JsonElement element  = gson.fromJson(bodyText, JsonElement.class);
         if (element instanceof JsonObject) {
-            JsonObject    json         = element.getAsJsonObject();
-            MajorVersion  majorVersion = new MajorVersion(json.toString());
-            return majorVersion;
+            JsonObject jsonObject = element.getAsJsonObject();
+            JsonArray  jsonArray  = jsonObject.getAsJsonArray("result");
+            if (jsonArray.size() > 0) {
+                JsonObject   json         = jsonArray.get(0).getAsJsonObject();
+                MajorVersion majorVersion = new MajorVersion(json.toString());
+                return majorVersion;
+            } else {
+                return null;
+            }
         } else {
             return null;
         }
@@ -437,9 +434,15 @@ public class DiscoClient {
             Gson        gson     = new Gson();
             JsonElement element  = gson.fromJson(bodyText, JsonElement.class);
             if (element instanceof JsonObject) {
-                JsonObject    json         = element.getAsJsonObject();
-                MajorVersion  majorVersion = new MajorVersion(json.toString());
-                return majorVersion;
+                JsonObject    jsonObject   = element.getAsJsonObject();
+                JsonArray     jsonArray    = jsonObject.getAsJsonArray("result");
+                if (jsonArray.size() > 0) {
+                    JsonObject    json         = jsonArray.get(0).getAsJsonObject();
+                    MajorVersion  majorVersion = new MajorVersion(json.toString());
+                    return majorVersion;
+                } else {
+                    return null;
+                }
             } else {
                 return null;
             }
@@ -448,11 +451,13 @@ public class DiscoClient {
 
 
     public final Queue<MajorVersion> getAllMajorVersions() { return getAllMajorVersions(false); }
-    public final Queue<MajorVersion> getAllMajorVersions(final boolean include_ea) {
+    public final Queue<MajorVersion> getAllMajorVersions(final boolean include_ea) { return getAllMajorVersions(include_ea, true); }
+    public final Queue<MajorVersion> getAllMajorVersions(final boolean include_ea, final boolean include_build) {
         StringBuilder queryBuilder = new StringBuilder().append(PropertyManager.INSTANCE.getString(Constants.PROPERTY_KEY_DISCO_URL))
                                                         .append(Constants.MAJOR_VERSIONS_PATH)
                                                         .append("?ea=")
-                                                        .append(include_ea);
+                                                        .append(include_ea)
+                                                        .append(include_build ? "" : "&include_build=false");
 
         String              query              = queryBuilder.toString();
         String              bodyText           = Helper.get(query);
@@ -460,8 +465,9 @@ public class DiscoClient {
 
         Gson        gson     = new Gson();
         JsonElement element  = gson.fromJson(bodyText, JsonElement.class);
-        if (element instanceof JsonArray) {
-            JsonArray jsonArray = element.getAsJsonArray();
+        if (element instanceof JsonObject) {
+            JsonObject jsonObject = element.getAsJsonObject();
+            JsonArray  jsonArray  = jsonObject.getAsJsonArray("result");
             for (int i = 0; i < jsonArray.size(); i++) {
                 JsonObject majorVersionJsonObj = jsonArray.get(i).getAsJsonObject();
                 majorVersionsFound.add(new MajorVersion(majorVersionJsonObj.toString()));
@@ -469,7 +475,7 @@ public class DiscoClient {
         }
         return majorVersionsFound;
     }
-    public final List<MajorVersion> getAllMajorVersions(final Optional<Boolean> maintained, final Optional<Boolean> includingEA, final Optional<Boolean> includingGA) {
+    public final List<MajorVersion> getAllMajorVersions(final Optional<Boolean> maintained, final Optional<Boolean> include_ea, final Optional<Boolean> include_ga, final Optional<Boolean> include_build) {
         StringBuilder queryBuilder = new StringBuilder().append(PropertyManager.INSTANCE.getString(Constants.PROPERTY_KEY_DISCO_URL))
                                                         .append(Constants.MAJOR_VERSIONS_PATH);
         int initialLength = queryBuilder.length();
@@ -477,13 +483,17 @@ public class DiscoClient {
             queryBuilder.append(queryBuilder.length() == initialLength ? "?" : "&");
             queryBuilder.append("maintained=").append(maintained.get());
         }
-        if (null != includingEA && includingEA.isPresent()) {
+        if (null != include_ea && include_ea.isPresent()) {
             queryBuilder.append(queryBuilder.length() == initialLength ? "?" : "&");
-            queryBuilder.append("ea=").append(includingEA.get());
+            queryBuilder.append("ea=").append(include_ea.get());
         }
-        if (null != includingGA && includingGA.isPresent()) {
+        if (null != include_ga && include_ga.isPresent()) {
             queryBuilder.append(queryBuilder.length() == initialLength ? "?" : "&");
-            queryBuilder.append("ga=").append(includingGA.get());
+            queryBuilder.append("ga=").append(include_ga.get());
+        }
+        if (null != include_build && include_build.isPresent() && !include_build.get()) {
+            queryBuilder.append(queryBuilder.length() == initialLength ? "?" : "&");
+            queryBuilder.append("include_build=false");
         }
 
         String             query              = queryBuilder.toString();
@@ -492,8 +502,9 @@ public class DiscoClient {
 
         Gson        gson     = new Gson();
         JsonElement element  = gson.fromJson(bodyText, JsonElement.class);
-        if (element instanceof JsonArray) {
-            JsonArray jsonArray = element.getAsJsonArray();
+        if (element instanceof JsonObject) {
+            JsonObject jsonObject = element.getAsJsonObject();
+            JsonArray  jsonArray  = jsonObject.getAsJsonArray("result");
             for (int i = 0; i < jsonArray.size(); i++) {
                 JsonObject majorVersionJsonObj = jsonArray.get(i).getAsJsonObject();
                 majorVersionsFound.add(new MajorVersion(majorVersionJsonObj.toString()));
@@ -504,18 +515,20 @@ public class DiscoClient {
 
 
     public final CompletableFuture<List<MajorVersion>> getAllMajorVersionsAsync() { return getAllMajorVersionsAsync(false); }
-    public final CompletableFuture<List<MajorVersion>> getAllMajorVersionsAsync(final boolean include_ea) {
+    public final CompletableFuture<List<MajorVersion>> getAllMajorVersionsAsync(final boolean include_ea) { return getAllMajorVersionsAsync(include_ea, true); }
+    public final CompletableFuture<List<MajorVersion>> getAllMajorVersionsAsync(final boolean include_ea, final boolean include_build) {
         StringBuilder queryBuilder = new StringBuilder().append(PropertyManager.INSTANCE.getString(Constants.PROPERTY_KEY_DISCO_URL))
                                                         .append(Constants.MAJOR_VERSIONS_PATH)
-                                                        .append("?ea=")
-                                                        .append(include_ea);
+                                                        .append("?ea=").append(include_ea)
+                                                        .append(include_build ? "" : "&include_build=false");
         String query = queryBuilder.toString();
         return Helper.getAsync(query).thenApply(bodyText -> {
             List<MajorVersion> majorVersionsFound = new CopyOnWriteArrayList<>();
             Gson        gson     = new Gson();
             JsonElement element  = gson.fromJson(bodyText, JsonElement.class);
-            if (element instanceof JsonArray) {
-                JsonArray jsonArray = element.getAsJsonArray();
+            if (element instanceof JsonObject) {
+                JsonObject jsonObject = element.getAsJsonObject();
+                JsonArray  jsonArray  = jsonObject.getAsJsonArray("result");
                 for (int i = 0; i < jsonArray.size(); i++) {
                     JsonObject majorVersionJsonObj = jsonArray.get(i).getAsJsonObject();
                     majorVersionsFound.add(new MajorVersion(majorVersionJsonObj.toString()));
@@ -524,7 +537,7 @@ public class DiscoClient {
             return majorVersionsFound;
         });
     }
-    public final CompletableFuture<List<MajorVersion>> getAllMajorVersionsAsync(final Optional<Boolean> maintained, final Optional<Boolean> includingEA, final Optional<Boolean> includingGA) {
+    public final CompletableFuture<List<MajorVersion>> getAllMajorVersionsAsync(final Optional<Boolean> maintained, final Optional<Boolean> include_ea, final Optional<Boolean> include_ga, final Optional<Boolean> include_build) {
         StringBuilder queryBuilder = new StringBuilder().append(PropertyManager.INSTANCE.getString(Constants.PROPERTY_KEY_DISCO_URL))
                                                         .append(Constants.MAJOR_VERSIONS_PATH);
         int initialLength = queryBuilder.length();
@@ -532,13 +545,17 @@ public class DiscoClient {
             queryBuilder.append(queryBuilder.length() == initialLength ? "?" : "&");
             queryBuilder.append("maintained=").append(maintained.get());
         }
-        if (null != includingEA && includingEA.isPresent()) {
+        if (null != include_ea && include_ea.isPresent()) {
             queryBuilder.append(queryBuilder.length() == initialLength ? "?" : "&");
-            queryBuilder.append("ea=").append(includingEA.get());
+            queryBuilder.append("ea=").append(include_ea.get());
         }
-        if (null != includingGA && includingGA.isPresent()) {
+        if (null != include_ga && include_ga.isPresent()) {
             queryBuilder.append(queryBuilder.length() == initialLength ? "?" : "&");
-            queryBuilder.append("ga=").append(includingGA.get());
+            queryBuilder.append("ga=").append(include_ga.get());
+        }
+        if (null != include_build && include_build.isPresent() && !include_build.get()) {
+            queryBuilder.append(queryBuilder.length() == initialLength ? "?" : "&");
+            queryBuilder.append("include_build=false");
         }
 
         String query = queryBuilder.toString();
@@ -546,8 +563,9 @@ public class DiscoClient {
             List<MajorVersion> majorVersionsFound = new ArrayList<>();
             Gson        gson     = new Gson();
             JsonElement element  = gson.fromJson(bodyText, JsonElement.class);
-            if (element instanceof JsonArray) {
-                JsonArray jsonArray = element.getAsJsonArray();
+            if (element instanceof JsonObject) {
+                JsonObject jsonObject = element.getAsJsonObject();
+                JsonArray  jsonArray  = jsonObject.getAsJsonArray("result");
                 for (int i = 0; i < jsonArray.size(); i++) {
                     JsonObject majorVersionJsonObj = jsonArray.get(i).getAsJsonObject();
                     majorVersionsFound.add(new MajorVersion(majorVersionJsonObj.toString()));
@@ -558,19 +576,21 @@ public class DiscoClient {
     }
 
 
-    public final MajorVersion getMajorVersion(final int featureVersion, final boolean include_ea) {
+    public final MajorVersion getMajorVersion(final int featureVersion, final boolean include_ea) { return getMajorVersion(featureVersion, include_ea, true); }
+    public final MajorVersion getMajorVersion(final int featureVersion, final boolean include_ea, final boolean include_build) {
         StringBuilder queryBuilder = new StringBuilder().append(PropertyManager.INSTANCE.getString(Constants.PROPERTY_KEY_DISCO_URL))
                                                         .append(Constants.MAJOR_VERSIONS_PATH)
-                                                        .append("?include_ea=")
-                                                        .append(include_ea);
+                                                        .append("?include_ea=").append(include_ea)
+                                                        .append(include_build ? "": "&include_build=false");
 
         String query    = queryBuilder.toString();
         String bodyText = Helper.get(query);
 
         Gson        gson     = new Gson();
         JsonElement element  = gson.fromJson(bodyText, JsonElement.class);
-        if (element instanceof JsonArray) {
-            JsonArray jsonArray = element.getAsJsonArray();
+        if (element instanceof JsonObject) {
+            JsonObject jsonObject = element.getAsJsonObject();
+            JsonArray  jsonArray  = jsonObject.getAsJsonArray("result");
             for (int i = 0; i < jsonArray.size(); i++) {
                 JsonObject   json         = jsonArray.get(i).getAsJsonObject();
                 MajorVersion majorVersion = new MajorVersion(json.toString());
@@ -583,18 +603,20 @@ public class DiscoClient {
             return null;
         }
     }
-    public final CompletableFuture<MajorVersion> getMajorVersionAsync(final int featureVersion, final boolean include_ea) {
+    public final CompletableFuture<MajorVersion> getMajorVersionAsync(final int featureVersion, final boolean include_ea) { return getMajorVersionAsync(featureVersion, include_ea, true); }
+    public final CompletableFuture<MajorVersion> getMajorVersionAsync(final int featureVersion, final boolean include_ea, final boolean include_build) {
         StringBuilder queryBuilder = new StringBuilder().append(PropertyManager.INSTANCE.getString(Constants.PROPERTY_KEY_DISCO_URL))
                                                         .append(Constants.MAJOR_VERSIONS_PATH)
-                                                        .append("?include_ea=")
-                                                        .append(include_ea);
+                                                        .append("?include_ea=").append(include_ea)
+                                                        .append(include_build ? "" : "&include_build=false");
 
         String query = queryBuilder.toString();
         return Helper.getAsync(query).thenApply(bodyText -> {
             Gson        gson     = new Gson();
             JsonElement element  = gson.fromJson(bodyText, JsonElement.class);
-            if (element instanceof JsonArray) {
-                JsonArray jsonArray = element.getAsJsonArray();
+            if (element instanceof JsonObject) {
+                JsonObject jsonObject = element.getAsJsonObject();
+                JsonArray  jsonArray  = jsonObject.getAsJsonArray("result");
                 for (int i = 0; i < jsonArray.size(); i++) {
                     JsonObject   json         = jsonArray.get(i).getAsJsonObject();
                     MajorVersion majorVersion = new MajorVersion(json.toString());
@@ -653,8 +675,9 @@ public class DiscoClient {
 
         Gson        gson     = new Gson();
         JsonElement element  = gson.fromJson(bodyText, JsonElement.class);
-        if (element instanceof JsonArray) {
-            JsonArray jsonArray = element.getAsJsonArray();
+        if (element instanceof JsonObject) {
+            JsonObject jsonObject = element.getAsJsonObject();
+            JsonArray  jsonArray  = jsonObject.getAsJsonArray("result");
             for (int i = 0; i < jsonArray.size(); i++) {
                 JsonObject majorVersionJsonObj = jsonArray.get(i).getAsJsonObject();
                 majorVersionsFound.add(new MajorVersion(majorVersionJsonObj.toString()));
@@ -666,11 +689,14 @@ public class DiscoClient {
 
     public final CompletableFuture<List<MajorVersion>> getMaintainedMajorVersionsAsync() { return getMaintainedMajorVersionsAsync(false); }
     public final CompletableFuture<List<MajorVersion>> getMaintainedMajorVersionsAsync(final boolean include_ea) {
+        return getMaintainedMajorVersionsAsync(include_ea, true);
+    }
+    public final CompletableFuture<List<MajorVersion>> getMaintainedMajorVersionsAsync(final boolean include_ea, final boolean include_build) {
         StringBuilder queryBuilder = new StringBuilder().append(PropertyManager.INSTANCE.getString(Constants.PROPERTY_KEY_DISCO_URL))
                                                         .append(Constants.MAJOR_VERSIONS_PATH)
                                                         .append("?maintained=true&ga=true")
                                                         .append(include_ea ? "&ea=true" : "")
-                                                        .append(include_ea);
+                                                        .append(include_build ? "" : "&include_build=false");
 
         String query = queryBuilder.toString();
         return Helper.getAsync(query).thenApply(bodyText -> {
@@ -678,8 +704,9 @@ public class DiscoClient {
 
             Gson        gson     = new Gson();
             JsonElement element  = gson.fromJson(bodyText, JsonElement.class);
-            if (element instanceof JsonArray) {
-                JsonArray jsonArray = element.getAsJsonArray();
+            if (element instanceof JsonObject) {
+                JsonObject jsonObject = element.getAsJsonObject();
+                JsonArray  jsonArray  = jsonObject.getAsJsonArray("result");
                 for (int i = 0; i < jsonArray.size(); i++) {
                     JsonObject majorVersionJsonObj = jsonArray.get(i).getAsJsonObject();
                     majorVersionsFound.add(new MajorVersion(majorVersionJsonObj.toString()));
@@ -691,9 +718,13 @@ public class DiscoClient {
 
 
     public final List<MajorVersion> getUsefulMajorVersions() {
+        return getUsefulMajorVersions(true);
+    }
+    public final List<MajorVersion> getUsefulMajorVersions(final boolean include_build) {
         StringBuilder queryBuilder = new StringBuilder().append(PropertyManager.INSTANCE.getString(Constants.PROPERTY_KEY_DISCO_URL))
                                                         .append(Constants.MAJOR_VERSIONS_PATH)
-                                                        .append("/useful");
+                                                        .append("/useful")
+                                                        .append(include_build ? "" : "&include_build=false");
 
         String             query              = queryBuilder.toString();
         String             bodyText           = Helper.get(query);
@@ -701,8 +732,9 @@ public class DiscoClient {
 
         Gson        gson     = new Gson();
         JsonElement element  = gson.fromJson(bodyText, JsonElement.class);
-        if (element instanceof JsonArray) {
-            JsonArray jsonArray = element.getAsJsonArray();
+        if (element instanceof JsonObject) {
+            JsonObject jsonObject = element.getAsJsonObject();
+            JsonArray  jsonArray  = jsonObject.getAsJsonArray("result");
             for (int i = 0; i < jsonArray.size(); i++) {
                 JsonObject majorVersionJsonObj = jsonArray.get(i).getAsJsonObject();
                 majorVersionsFound.add(new MajorVersion(majorVersionJsonObj.toString()));
@@ -713,9 +745,13 @@ public class DiscoClient {
 
 
     public final CompletableFuture<List<MajorVersion>> getUsefulMajorVersionsAsync() {
+        return getUsefulMajorVersionsAsync(true);
+    }
+    public final CompletableFuture<List<MajorVersion>> getUsefulMajorVersionsAsync(final boolean include_build) {
         StringBuilder queryBuilder = new StringBuilder().append(PropertyManager.INSTANCE.getString(Constants.PROPERTY_KEY_DISCO_URL))
                                                         .append(Constants.MAJOR_VERSIONS_PATH)
-                                                        .append("/useful");
+                                                        .append("/useful")
+                                                        .append(include_build ? "" : "include_build=false");
 
         String query = queryBuilder.toString();
         return Helper.getAsync(query).thenApply(bodyText -> {
@@ -723,8 +759,9 @@ public class DiscoClient {
 
             Gson        gson     = new Gson();
             JsonElement element  = gson.fromJson(bodyText, JsonElement.class);
-            if (element instanceof JsonArray) {
-                JsonArray jsonArray = element.getAsJsonArray();
+            if (element instanceof JsonObject) {
+                JsonObject jsonObject = element.getAsJsonObject();
+                JsonArray  jsonArray  = jsonObject.getAsJsonArray("result");
                 for (int i = 0; i < jsonArray.size(); i++) {
                     JsonObject majorVersionJsonObj = jsonArray.get(i).getAsJsonObject();
                     majorVersionsFound.add(new MajorVersion(majorVersionJsonObj.toString()));
@@ -735,49 +772,54 @@ public class DiscoClient {
     }
 
 
-    public final MajorVersion getLatestLts(final boolean including_ea) {
-        Queue<MajorVersion> majorVersions = getAllMajorVersions(including_ea);
+    public final MajorVersion getLatestLts(final boolean include_ea) { return getLatestLts(include_ea, true); }
+    public final MajorVersion getLatestLts(final boolean include_ea, final boolean include_build) {
+        Queue<MajorVersion> majorVersions = getAllMajorVersions(include_ea, include_build);
         return majorVersions.stream()
                             .filter(majorVersion -> TermOfSupport.LTS == majorVersion.getTermOfSupport())
-                            .filter(majorVersion -> including_ea ? majorVersion.getVersions().size() > 0 : majorVersion.getVersions().size() > 1)
+                            .filter(majorVersion -> include_ea ? majorVersion.getVersions().size() > 0 : majorVersion.getVersions().size() > 1)
                             .findFirst().get();
     }
-    public final CompletableFuture<MajorVersion> getLatestLtsAsync(final boolean including_ea) {
-        return getAllMajorVersionsAsync(including_ea).thenApply(majorVersions -> majorVersions.stream()
+    public final CompletableFuture<MajorVersion> getLatestLtsAsync(final boolean include_ea) { return getLatestLtsAsync(include_ea, true); }
+    public final CompletableFuture<MajorVersion> getLatestLtsAsync(final boolean include_ea, final boolean include_build) {
+        return getAllMajorVersionsAsync(include_ea, include_build).thenApply(majorVersions -> majorVersions.stream()
                                                                                               .filter(majorVersion -> TermOfSupport.LTS == majorVersion.getTermOfSupport())
-                                                                                              .filter(majorVersion -> including_ea ? majorVersion.getVersions().size() > 0 : majorVersion.getVersions().size() > 1)
+                                                                                              .filter(majorVersion -> include_ea ? majorVersion.getVersions().size() > 0 : majorVersion.getVersions().size() > 1)
                                                                                               .findFirst().get());
 
     }
 
-
-    public final MajorVersion getLatestMts(final boolean including_ea) {
-        Queue<MajorVersion> majorVersions = getAllMajorVersions(including_ea);
+    public final MajorVersion getLatestMts(final boolean include_ea) { return getLatestMts(include_ea, true); }
+    public final MajorVersion getLatestMts(final boolean include_ea, final boolean include_build) {
+        Queue<MajorVersion> majorVersions = getAllMajorVersions(include_ea, include_build);
         return majorVersions.stream()
                             .filter(majorVersion -> TermOfSupport.MTS == majorVersion.getTermOfSupport())
-                            .filter(majorVersion -> including_ea ? majorVersion.getVersions().size() > 0 : majorVersion.getVersions().size() > 1)
+                            .filter(majorVersion -> include_ea ? majorVersion.getVersions().size() > 0 : majorVersion.getVersions().size() > 1)
                             .findFirst().get();
     }
-    public final CompletableFuture<MajorVersion> getLatestMtsAsync(final boolean including_ea) {
-        return getAllMajorVersionsAsync(including_ea).thenApply(majorVersions -> majorVersions.stream()
-                                                                                              .filter(majorVersion -> TermOfSupport.MTS == majorVersion.getTermOfSupport())
-                                                                                              .filter(majorVersion -> including_ea ? majorVersion.getVersions().size() > 0 : majorVersion.getVersions().size() > 1)
-                                                                                              .findFirst().get());
+    public final CompletableFuture<MajorVersion> getLatestMtsAsync(final boolean include_ea) { return getLatestLtsAsync(include_ea, true); }
+    public final CompletableFuture<MajorVersion> getLatestMtsAsync(final boolean include_ea, final boolean include_build) {
+        return getAllMajorVersionsAsync(include_ea, include_build).thenApply(majorVersions -> majorVersions.stream()
+                                                                                                           .filter(majorVersion -> TermOfSupport.MTS == majorVersion.getTermOfSupport())
+                                                                                                           .filter(majorVersion -> include_ea ? majorVersion.getVersions().size() > 0 : majorVersion.getVersions().size() > 1)
+                                                                                                           .findFirst().get());
     }
 
 
-    public final MajorVersion getLatestSts(final boolean including_ea) {
-        Queue<MajorVersion> majorVersions = getAllMajorVersions(including_ea);
+    public final MajorVersion getLatestSts(final boolean include_ea) { return getLatestSts(include_ea, true); }
+    public final MajorVersion getLatestSts(final boolean include_ea, final boolean include_build) {
+        Queue<MajorVersion> majorVersions = getAllMajorVersions(include_ea, include_build);
         return majorVersions.stream()
                             .filter(majorVersion -> TermOfSupport.LTS != majorVersion.getTermOfSupport())
-                            .filter(majorVersion -> including_ea ? majorVersion.getVersions().size() > 0 : majorVersion.getVersions().size() > 1)
+                            .filter(majorVersion -> include_ea ? majorVersion.getVersions().size() > 0 : majorVersion.getVersions().size() > 1)
                             .findFirst().get();
     }
-    public final CompletableFuture<MajorVersion> getLatestStsAsync(final boolean including_ea) {
-        return getAllMajorVersionsAsync(including_ea).thenApply(majorVersions -> majorVersions.stream()
-                                                                                              .filter(majorVersion -> TermOfSupport.LTS != majorVersion.getTermOfSupport())
-                                                                                              .filter(majorVersion -> including_ea ? majorVersion.getVersions().size() > 0 : majorVersion.getVersions().size() > 1)
-                                                                                              .findFirst().get());
+    public final CompletableFuture<MajorVersion> getLatestStsAsync(final boolean include_ea) { return getLatestStsAsync(include_ea, true); }
+    public final CompletableFuture<MajorVersion> getLatestStsAsync(final boolean include_ea, final boolean include_build) {
+        return getAllMajorVersionsAsync(include_ea, include_build).thenApply(majorVersions -> majorVersions.stream()
+                                                                                                           .filter(majorVersion -> TermOfSupport.LTS != majorVersion.getTermOfSupport())
+                                                                                                           .filter(majorVersion -> include_ea ? majorVersion.getVersions().size() > 0 : majorVersion.getVersions().size() > 1)
+                                                                                                           .findFirst().get());
     }
 
 
@@ -789,12 +831,8 @@ public class DiscoClient {
         }
         return getDistributionsThatSupportVersion(semver);
     }
-    public final List<Distribution> getDistributionsThatSupportVersion(final SemVer semVer) {
-        return getDistributionsForSemVer(semVer);
-    }
-    public final CompletableFuture<List<Distribution>> getDistributionsThatSupportSemVerAsync(final SemVer semVer) {
-        return getDistributionsForSemVerAsync(semVer);
-    }
+    public final List<Distribution> getDistributionsThatSupportVersion(final SemVer semVer) { return getDistributionsForSemVer(semVer); }
+    public final CompletableFuture<List<Distribution>> getDistributionsThatSupportSemVerAsync(final SemVer semVer) { return getDistributionsForSemVerAsync(semVer); }
 
 
     public final CompletableFuture<List<Distribution>> getDistributionsThatSupportVersionAsync(final String version) {
@@ -873,8 +911,9 @@ public class DiscoClient {
 
         Gson        gson     = new Gson();
         JsonElement element  = gson.fromJson(bodyText, JsonElement.class);
-        if (element instanceof JsonArray) {
-            JsonArray jsonArray = element.getAsJsonArray();
+        if (element instanceof JsonObject) {
+            JsonObject jsonObject = element.getAsJsonObject();
+            JsonArray  jsonArray  = jsonObject.getAsJsonArray("result");
             for (int i = 0; i < jsonArray.size(); i++) {
                 JsonObject distributionJsonObj = jsonArray.get(i).getAsJsonObject();
                 final String api_parameter = distributionJsonObj.get("api_parameter").getAsString();
@@ -891,8 +930,9 @@ public class DiscoClient {
             List<Distribution> distributionsFound = new LinkedList<>();
             Gson               gson               = new Gson();
             JsonElement        element            = gson.fromJson(bodyText, JsonElement.class);
-            if (element instanceof JsonArray) {
-                JsonArray jsonArray = element.getAsJsonArray();
+            if (element instanceof JsonObject) {
+                JsonObject jsonObject = element.getAsJsonObject();
+                JsonArray  jsonArray  = jsonObject.getAsJsonArray("result");
                 for (int i = 0; i < jsonArray.size(); i++) {
                     JsonObject distributionJsonObj = jsonArray.get(i).getAsJsonObject();
                     final String api_parameter = distributionJsonObj.get("api_parameter").getAsString();
@@ -909,15 +949,15 @@ public class DiscoClient {
                                                         .append(Constants.DISTRIBUTIONS_PATH)
                                                         .append("/versions/")
                                                         .append(semVer.toString());
-
         String             query              = queryBuilder.toString();
         String             bodyText           = Helper.get(query);
         List<Distribution> distributionsFound = new LinkedList<>();
 
         Gson        gson     = new Gson();
         JsonElement element  = gson.fromJson(bodyText, JsonElement.class);
-        if (element instanceof JsonArray) {
-            JsonArray jsonArray = element.getAsJsonArray();
+        if (element instanceof JsonObject) {
+            JsonObject jsonObject = element.getAsJsonObject();
+            JsonArray  jsonArray  = jsonObject.getAsJsonArray("result");
             for (int i = 0; i < jsonArray.size(); i++) {
                 JsonObject distributionJsonObj = jsonArray.get(i).getAsJsonObject();
                 final String api_parameter = distributionJsonObj.get("api_parameter").getAsString();
@@ -937,8 +977,9 @@ public class DiscoClient {
             List<Distribution> distributionsFound = new LinkedList<>();
             Gson               gson               = new Gson();
             JsonElement        element            = gson.fromJson(bodyText, JsonElement.class);
-            if (element instanceof JsonArray) {
-                JsonArray jsonArray = element.getAsJsonArray();
+            if (element instanceof JsonObject) {
+                JsonObject jsonObject = element.getAsJsonObject();
+                JsonArray  jsonArray  = jsonObject.getAsJsonArray("result");
                 for (int i = 0; i < jsonArray.size(); i++) {
                     JsonObject distributionJsonObj = jsonArray.get(i).getAsJsonObject();
                     final String api_parameter = distributionJsonObj.get("api_parameter").getAsString();
@@ -962,8 +1003,9 @@ public class DiscoClient {
 
         Gson        gson     = new Gson();
         JsonElement element  = gson.fromJson(bodyText, JsonElement.class);
-        if (element instanceof JsonArray) {
-            JsonArray jsonArray = element.getAsJsonArray();
+        if (element instanceof JsonObject) {
+            JsonObject jsonObject = element.getAsJsonObject();
+            JsonArray  jsonArray  = jsonObject.getAsJsonArray("result");
             for (int i = 0; i < jsonArray.size(); i++) {
                 JsonObject distributionJsonObj = jsonArray.get(i).getAsJsonObject();
                 final String api_parameter = distributionJsonObj.get("api_parameter").getAsString();
@@ -983,8 +1025,9 @@ public class DiscoClient {
             List<Distribution> distributionsFound = new LinkedList<>();
             Gson               gson               = new Gson();
             JsonElement        element            = gson.fromJson(bodyText, JsonElement.class);
-            if (element instanceof JsonArray) {
-                JsonArray jsonArray = element.getAsJsonArray();
+            if (element instanceof JsonObject) {
+                JsonObject jsonObject = element.getAsJsonObject();
+                JsonArray  jsonArray  = jsonObject.getAsJsonArray("result");
                 for (int i = 0; i < jsonArray.size(); i++) {
                     JsonObject distributionJsonObj = jsonArray.get(i).getAsJsonObject();
                     final String api_parameter = distributionJsonObj.get("api_parameter").getAsString();
@@ -1005,8 +1048,9 @@ public class DiscoClient {
         Map<Distribution, List<VersionNumber>> distributionsFound = new LinkedHashMap<>();
         Gson        gson     = new Gson();
         JsonElement element  = gson.fromJson(bodyText, JsonElement.class);
-        if (element instanceof JsonArray) {
-            JsonArray jsonArray = element.getAsJsonArray();
+        if (element instanceof JsonObject) {
+            JsonObject jsonObject = element.getAsJsonObject();
+            JsonArray  jsonArray  = jsonObject.getAsJsonArray("result");
             for (int i = 0; i < jsonArray.size(); i++) {
                 final JsonObject          distributionJsonObj = jsonArray.get(i).getAsJsonObject();
                 final String              api_parameter       = distributionJsonObj.get("api_parameter").getAsString();
@@ -1031,8 +1075,9 @@ public class DiscoClient {
             Map<Distribution, List<VersionNumber>> distributionsFound = new LinkedHashMap<>();
             Gson        gson     = new Gson();
             JsonElement element  = gson.fromJson(bodyText, JsonElement.class);
-            if (element instanceof JsonArray) {
-                JsonArray jsonArray = element.getAsJsonArray();
+            if (element instanceof JsonObject) {
+                JsonObject jsonObject = element.getAsJsonObject();
+                JsonArray  jsonArray  = jsonObject.getAsJsonArray("result");
                 for (int i = 0; i < jsonArray.size(); i++) {
                     final JsonObject          distributionJsonObj = jsonArray.get(i).getAsJsonObject();
                     final String              api_parameter       = distributionJsonObj.get("api_parameter").getAsString();
@@ -1081,13 +1126,18 @@ public class DiscoClient {
         Gson        packageInfoGson    = new Gson();
         JsonElement packageInfoElement = packageInfoGson.fromJson(packageInfoBody, JsonElement.class);
         if (packageInfoElement instanceof JsonObject) {
-            final JsonObject packageInfoJson   = packageInfoElement.getAsJsonObject();
-            final String     filename          = packageInfoJson.get(PkgInfo.FIELD_FILENAME).getAsString();
-            final String     directDownloadUri = packageInfoJson.get(PkgInfo.FIELD_DIRECT_DOWNLOAD_URI).getAsString();
-            final String     downloadSiteUri   = packageInfoJson.get(PkgInfo.FIELD_DOWNLOAD_SITE_URI).getAsString();
-            return new PkgInfo(filename, javaVersion, directDownloadUri, downloadSiteUri);
+            JsonObject jsonObject = packageInfoElement.getAsJsonObject();
+            JsonArray  jsonArray  = jsonObject.getAsJsonArray("result");
+            if (jsonArray.size() > 0) {
+                final JsonObject packageInfoJson   = jsonArray.get(0).getAsJsonObject();
+                final String     filename          = packageInfoJson.get(PkgInfo.FIELD_FILENAME).getAsString();
+                final String     directDownloadUri = packageInfoJson.get(PkgInfo.FIELD_DIRECT_DOWNLOAD_URI).getAsString();
+                final String     downloadSiteUri   = packageInfoJson.get(PkgInfo.FIELD_DOWNLOAD_SITE_URI).getAsString();
+                return new PkgInfo(filename, javaVersion, directDownloadUri, downloadSiteUri);
+            } else {
+                return null;
+            }
         }
-
         return null;
     }
     public CompletableFuture<PkgInfo> getPkgInfoAsync(final String ephemeralId, final SemVer javaVersion) {
@@ -1100,11 +1150,17 @@ public class DiscoClient {
             Gson        packageInfoGson    = new Gson();
             JsonElement packageInfoElement = packageInfoGson.fromJson(packageInfoBody, JsonElement.class);
             if (packageInfoElement instanceof JsonObject) {
-                final JsonObject packageInfoJson   = packageInfoElement.getAsJsonObject();
-                final String     filename          = packageInfoJson.get(PkgInfo.FIELD_FILENAME).getAsString();
-                final String     directDownloadUri = packageInfoJson.get(PkgInfo.FIELD_DIRECT_DOWNLOAD_URI).getAsString();
-                final String     downloadSiteUri   = packageInfoJson.get(PkgInfo.FIELD_DOWNLOAD_SITE_URI).getAsString();
-                return new PkgInfo(filename, javaVersion, directDownloadUri, downloadSiteUri);
+                JsonObject jsonObject = packageInfoElement.getAsJsonObject();
+                JsonArray  jsonArray  = jsonObject.getAsJsonArray("result");
+                if (jsonArray.size() > 0) {
+                    final JsonObject packageInfoJson   = jsonArray.get(0).getAsJsonObject();
+                    final String     filename          = packageInfoJson.get(PkgInfo.FIELD_FILENAME).getAsString();
+                    final String     directDownloadUri = packageInfoJson.get(PkgInfo.FIELD_DIRECT_DOWNLOAD_URI).getAsString();
+                    final String     downloadSiteUri   = packageInfoJson.get(PkgInfo.FIELD_DOWNLOAD_SITE_URI).getAsString();
+                    return new PkgInfo(filename, javaVersion, directDownloadUri, downloadSiteUri);
+                } else {
+                    return null;
+                }
             }
             return null;
         });

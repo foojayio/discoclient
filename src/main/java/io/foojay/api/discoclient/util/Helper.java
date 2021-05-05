@@ -46,6 +46,7 @@ public class Helper {
     private static final Logger             LOGGER                 = LoggerFactory.getLogger(Helper.class);
     public  static final Pattern            NUMBER_IN_TEXT_PATTERN = Pattern.compile("(.*)?([0-9]+)(.*)?");
     private static       BodyHandlerWrapper handlerWrapper         = null;
+    private static       HttpClient         client;
 
 
     public static boolean isPositiveInteger(final String text) {
@@ -173,16 +174,24 @@ public class Helper {
 
 
     // ******************** REST calls ****************************************
+    public static HttpClient createHttpClient() {
+        return HttpClient.newBuilder()
+                         .connectTimeout(Duration.ofSeconds(20))
+                         .followRedirects(Redirect.NORMAL)
+                         .version(java.net.http.HttpClient.Version.HTTP_2)
+                         .build();
+    }
+
     public static final String get(final String uri) {
-        HttpClient  client  = HttpClient.newBuilder().followRedirects(Redirect.NEVER).version(java.net.http.HttpClient.Version.HTTP_2).build();
+        if (null == client) { client = createHttpClient(); }
         HttpRequest request = HttpRequest.newBuilder()
                                          .uri(URI.create(uri))
-                                         //.timeout(Duration.ofSeconds(10))
+                                         .setHeader("User-Agent", "DiscoClient")
+                                         .timeout(Duration.ofSeconds(30))
                                          .build();
 
         BodyHandler<String> handler = HttpResponse.BodyHandlers.ofString();
         handlerWrapper = new BodyHandlerWrapper(handler);
-
 
         try {
             HttpResponse<String> response  = client.send(request, handler);
@@ -201,10 +210,11 @@ public class Helper {
     }
 
     public static final CompletableFuture<String> getAsync(final String uri) {
-        HttpClient  client  = HttpClient.newBuilder().followRedirects(Redirect.NEVER).version(java.net.http.HttpClient.Version.HTTP_2).build();
+        if (null == client) { client = createHttpClient(); }
         HttpRequest request = HttpRequest.newBuilder()
                                          .uri(URI.create(uri))
-                                         //.timeout(Duration.ofSeconds(10))
+                                         .setHeader("User-Agent", "DiscoClient")
+                                         .timeout(Duration.ofSeconds(30))
                                          .build();
 
         BodyHandler<String> handler = HttpResponse.BodyHandlers.ofString();

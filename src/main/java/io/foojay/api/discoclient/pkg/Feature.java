@@ -21,62 +21,53 @@
 
 package io.foojay.api.discoclient.pkg;
 
-public enum Latest {
-    OVERALL("overall", "overall"),
-    PER_DISTRIBUTION("per distribution", "per_distro"),
-    PER_VERSION("per version", "per_version"),
-    AVAILABLE("available", "available"),
+import java.util.Arrays;
+import java.util.List;
+
+
+public enum Feature implements ApiFeature {
+    LOOM("Loom", "loom"),
+    PANAMA("Panama", "panama"),
     NONE("-", ""),
-    NOT_FOUND("", "");;
+    NOT_FOUND("", "");
 
     private final String uiString;
     private final String apiString;
 
-    Latest(final String uiString, final String apiString) {
+
+    Feature(final String uiString, final String apiString) {
         this.uiString  = uiString;
         this.apiString = apiString;
     }
 
 
-    public String getUiString() {
-        return uiString;
-    }
+    @Override public String getUiString() { return uiString; }
 
-    public String getApiString() { return apiString; }
+    @Override public String getApiString() { return apiString; }
 
-    public static Latest fromText(final String text) {
+    @Override public Feature getDefault() { return Feature.NONE; }
+
+    @Override public Feature getNotFound() { return Feature.NOT_FOUND; }
+
+    @Override public Feature[] getAll() { return values(); }
+
+    public static Feature fromText(final String text) {
+        if (null == text) { return NOT_FOUND; }
         switch (text) {
-            case "per_distro":
-            case "per-distro":
-            case "per-distribution":
-            case "per_distribution":
-            case "perdistro":
-            case "PER_DISTRO":
-            case "PER-DISTRO":
-            case "PER_DISTRIBUTION":
-            case "PER-DISTRIBUTION":
-            case "PERDISTRO":
-                return PER_DISTRIBUTION;
-            case "overall":
-            case "OVERALL":
-            case "in_general":
-            case "in-general":
-            case "IN_GENERAL":
-            case "IN-GENERAL":
-                return OVERALL;
-            case "per_version":
-            case "per-version":
-            case "perversion":
-            case "PER_VERSION":
-            case "PER-VERSION":
-            case "PERVERSION":
-                return PER_VERSION;
-            case "available":
-            case "AVAILABLE":
-            case "Available":
-                return AVAILABLE;
+            case "loom":
+            case "LOOM":
+            case "Loom":
+                return LOOM;
+            case "panama":
+            case "PANAMA":
+            case "Panama":
+                return PANAMA;
             default:
                 return NOT_FOUND;
         }
     }
+
+    public static List<Feature> getAsList() { return Arrays.asList(values()); }
+
+    @Override public String toString() { return new StringBuilder("\"").append(apiString).append("\"").toString(); }
 }

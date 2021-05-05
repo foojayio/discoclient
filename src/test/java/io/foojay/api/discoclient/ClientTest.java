@@ -147,7 +147,7 @@ public class ClientTest {
     public void getVersionsPerDistributionTest() {
         DiscoClient discoClient = new DiscoClient();
         Map<Distribution, List<VersionNumber>> versionsPerDistribution = discoClient.getVersionsPerDistribution();
-        assert versionsPerDistribution.keySet().size() == 18;
+        assert versionsPerDistribution.keySet().size() == 19;
     }
 
     @Test
