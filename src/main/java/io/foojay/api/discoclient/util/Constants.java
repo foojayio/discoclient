@@ -68,14 +68,18 @@ public class Constants {
         SCOPE_LOOKUP.put(Distribution.DRAGONWELL, Arrays.asList(Scope.PUBLIC, Scope.BUILD_OF_OPEN_JDK, Scope.DIRECTLY_DOWNLOADABLE));
         SCOPE_LOOKUP.put(Distribution.GRAALVM_CE8, Arrays.asList(Scope.PUBLIC, Scope.DIRECTLY_DOWNLOADABLE));
         SCOPE_LOOKUP.put(Distribution.GRAALVM_CE11, Arrays.asList(Scope.PUBLIC, Scope.DIRECTLY_DOWNLOADABLE));
+        SCOPE_LOOKUP.put(Distribution.GRAALVM_CE16, Arrays.asList(Scope.PUBLIC, Scope.DIRECTLY_DOWNLOADABLE));
         SCOPE_LOOKUP.put(Distribution.LIBERICA, Arrays.asList(Scope.PUBLIC, Scope.BUILD_OF_OPEN_JDK, Scope.DIRECTLY_DOWNLOADABLE));
         SCOPE_LOOKUP.put(Distribution.LIBERICA_NATIVE, Arrays.asList(Scope.PUBLIC, Scope.DIRECTLY_DOWNLOADABLE));
         SCOPE_LOOKUP.put(Distribution.MANDREL, Arrays.asList(Scope.PUBLIC, Scope.DIRECTLY_DOWNLOADABLE));
+        SCOPE_LOOKUP.put(Distribution.MICROSOFT, Arrays.asList(Scope.PUBLIC, Scope.BUILD_OF_OPEN_JDK, Scope.DIRECTLY_DOWNLOADABLE));
         SCOPE_LOOKUP.put(Distribution.OJDK_BUILD, Arrays.asList(Scope.PUBLIC, Scope.BUILD_OF_OPEN_JDK, Scope.DIRECTLY_DOWNLOADABLE));
+        SCOPE_LOOKUP.put(Distribution.OPEN_LOGIC, Arrays.asList(Scope.PUBLIC, Scope.BUILD_OF_OPEN_JDK, Scope.DIRECTLY_DOWNLOADABLE));
         SCOPE_LOOKUP.put(Distribution.ORACLE, Arrays.asList(Scope.PUBLIC, Scope.BUILD_OF_OPEN_JDK, Scope.NOT_DIRECTLY_DOWNLOADABLE));
         SCOPE_LOOKUP.put(Distribution.ORACLE_OPEN_JDK, Arrays.asList(Scope.PUBLIC, Scope.BUILD_OF_OPEN_JDK, Scope.DIRECTLY_DOWNLOADABLE));
         SCOPE_LOOKUP.put(Distribution.RED_HAT, Arrays.asList(Scope.PUBLIC, Scope.BUILD_OF_OPEN_JDK, Scope.NOT_DIRECTLY_DOWNLOADABLE));
         SCOPE_LOOKUP.put(Distribution.SAP_MACHINE, Arrays.asList(Scope.PUBLIC, Scope.BUILD_OF_OPEN_JDK, Scope.DIRECTLY_DOWNLOADABLE));
+        SCOPE_LOOKUP.put(Distribution.TEMURIN, Arrays.asList(Scope.PUBLIC, Scope.BUILD_OF_OPEN_JDK, Scope.DIRECTLY_DOWNLOADABLE));
         SCOPE_LOOKUP.put(Distribution.TRAVA, Arrays.asList(Scope.PUBLIC, Scope.BUILD_OF_OPEN_JDK, Scope.DIRECTLY_DOWNLOADABLE));
         SCOPE_LOOKUP.put(Distribution.ZULU, Arrays.asList(Scope.PUBLIC, Scope.BUILD_OF_OPEN_JDK, Scope.DIRECTLY_DOWNLOADABLE));
     }
