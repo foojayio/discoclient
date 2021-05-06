@@ -160,9 +160,9 @@ public class ClientTest {
 
     @Test
     public void getVersionsPerDistributionTest() {
-        DiscoClient                      discoClient             = new DiscoClient();
+        DiscoClient                            discoClient             = new DiscoClient();
         Map<Distribution, List<VersionNumber>> versionsPerDistribution = discoClient.getVersionsPerDistribution();
-        assert versionsPerDistribution.keySet().size() == 19;
+        assert versionsPerDistribution.keySet().size() == 20;
     }
 
     @Test
