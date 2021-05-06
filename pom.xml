@@ -27,7 +27,7 @@
 
     <groupId>io.foojay.api</groupId>
     <artifactId>discoclient</artifactId>
-    <version>1.0</version>
+    <version>1.0.1</version>
 
 <name>Discovery Client</name>
 <url>https://github.com/foojay2020/discoclient</url>
