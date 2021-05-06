@@ -68,10 +68,10 @@ public enum Scope implements ApiFeature {
             case "no_direct_download":
             case "NO_DIRECT_DOWNLOAD":
                 return NOT_DIRECTLY_DOWNLOADABLE;
-            case "build_of_openjdk":
-            case "BUILD_OF_OPENJDK":
             case "build_of_open_jdk":
             case "BUILD_OF_OPEN_JDK":
+            case "build_of_openjdk":
+            case "BUILD_OF_OPENJDK":
                 return BUILD_OF_OPEN_JDK;
             default:
                 return NOT_FOUND;

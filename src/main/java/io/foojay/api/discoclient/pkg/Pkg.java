@@ -23,6 +23,7 @@ package io.foojay.api.discoclient.pkg;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
+import io.foojay.api.discoclient.DiscoClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,7 +31,6 @@ import java.util.Objects;
 import java.util.OptionalInt;
 
 import static io.foojay.api.discoclient.util.Constants.COLON;
-import static io.foojay.api.discoclient.util.Constants.COMMA;
 import static io.foojay.api.discoclient.util.Constants.COMMA_NEW_LINE;
 import static io.foojay.api.discoclient.util.Constants.CURLY_BRACKET_CLOSE;
 import static io.foojay.api.discoclient.util.Constants.CURLY_BRACKET_OPEN;
@@ -88,22 +88,22 @@ public class Pkg {
         final JsonObject json = gson.fromJson(packageJson, JsonObject.class);
 
         this.id                   = json.has(FIELD_ID)                     ? json.get(FIELD_ID).getAsString() : "";
-        this.distribution         = json.has(FIELD_DISTRIBUTION)           ? Distribution.fromText(json.get(FIELD_DISTRIBUTION).getAsString())          : Distribution.NOT_FOUND;
-        this.majorVersion         = json.has(FIELD_MAJOR_VERSION)          ? new MajorVersion(json.get(FIELD_MAJOR_VERSION).getAsInt())                 : new MajorVersion(1);
-        this.javaVersion          = json.has(FIELD_JAVA_VERSION)           ? SemVer.fromText(json.get(FIELD_JAVA_VERSION).getAsString()).getSemVer1()   : new SemVer(new VersionNumber());
-        this.distributionVersion  = json.has(FIELD_DISTRIBUTION)           ? VersionNumber.fromText(json.get(FIELD_DISTRIBUTION_VERSION).getAsString()) : new VersionNumber();
-        this.latestBuildAvailable = json.has(FIELD_LATEST_BUILD_AVAILABLE) ? json.get(FIELD_LATEST_BUILD_AVAILABLE).getAsBoolean()                      : Boolean.FALSE;
-        this.architecture         = json.has(FIELD_ARCHITECTURE)           ? Architecture.fromText(json.get(FIELD_ARCHITECTURE).getAsString())          : Architecture.NOT_FOUND;
-        this.operatingSystem      = json.has(FIELD_OPERATING_SYSTEM)       ? OperatingSystem.fromText(json.get(FIELD_OPERATING_SYSTEM).getAsString())   : OperatingSystem.NOT_FOUND;
-        this.libcType             = json.has(FIELD_LIB_C_TYPE)             ? LibCType.fromText(json.get(FIELD_LIB_C_TYPE).getAsString())                : LibCType.NOT_FOUND;
-        this.packageType          = json.has(FIELD_PACKAGE_TYPE)           ? PackageType.fromText(json.get(FIELD_PACKAGE_TYPE).getAsString())           : PackageType.NOT_FOUND;
-        this.releaseStatus        = json.has(FIELD_RELEASE_STATUS)         ? ReleaseStatus.fromText(json.get(FIELD_RELEASE_STATUS).getAsString())       : ReleaseStatus.NOT_FOUND;
-        this.archiveType          = json.has(FIELD_ARCHIVE_TYPE)           ? ArchiveType.fromText(json.get(FIELD_ARCHIVE_TYPE).getAsString())           : ArchiveType.NOT_FOUND;
-        this.termOfSupport        = json.has(FIELD_TERM_OF_SUPPORT)        ? TermOfSupport.fromText(json.get(FIELD_TERM_OF_SUPPORT).getAsString())      : TermOfSupport.NOT_FOUND;
-        this.javafxBundled        = json.has(FIELD_JAVAFX_BUNDLED)         ? json.get(FIELD_JAVAFX_BUNDLED).getAsBoolean()                              : Boolean.FALSE;
-        this.directlyDownloadable = json.has(FIELD_DIRECTLY_DOWNLOADABLE)  ? json.get(FIELD_DIRECTLY_DOWNLOADABLE).getAsBoolean()                       : Boolean.FALSE;
-        this.fileName             = json.has(FIELD_FILENAME)               ? json.get(FIELD_FILENAME).getAsString()                                     : "";
-        this.ephemeralId          = json.has(FIELD_EPHEMERAL_ID)           ? json.get(FIELD_EPHEMERAL_ID).getAsString()                                 : "";
+        this.distribution         = json.has(FIELD_DISTRIBUTION)           ? DiscoClient.getDistributionFromText(json.get(FIELD_DISTRIBUTION).getAsString()) : null;
+        this.majorVersion         = json.has(FIELD_MAJOR_VERSION)          ? new MajorVersion(json.get(FIELD_MAJOR_VERSION).getAsInt())                      : new MajorVersion(1);
+        this.javaVersion          = json.has(FIELD_JAVA_VERSION)           ? SemVer.fromText(json.get(FIELD_JAVA_VERSION).getAsString()).getSemVer1()        : new SemVer(new VersionNumber());
+        this.distributionVersion  = json.has(FIELD_DISTRIBUTION)           ? VersionNumber.fromText(json.get(FIELD_DISTRIBUTION_VERSION).getAsString())      : new VersionNumber();
+        this.latestBuildAvailable = json.has(FIELD_LATEST_BUILD_AVAILABLE) ? json.get(FIELD_LATEST_BUILD_AVAILABLE).getAsBoolean()                           : Boolean.FALSE;
+        this.architecture         = json.has(FIELD_ARCHITECTURE)           ? Architecture.fromText(json.get(FIELD_ARCHITECTURE).getAsString())               : Architecture.NOT_FOUND;
+        this.operatingSystem      = json.has(FIELD_OPERATING_SYSTEM)       ? OperatingSystem.fromText(json.get(FIELD_OPERATING_SYSTEM).getAsString())        : OperatingSystem.NOT_FOUND;
+        this.libcType             = json.has(FIELD_LIB_C_TYPE)             ? LibCType.fromText(json.get(FIELD_LIB_C_TYPE).getAsString())                     : LibCType.NOT_FOUND;
+        this.packageType          = json.has(FIELD_PACKAGE_TYPE)           ? PackageType.fromText(json.get(FIELD_PACKAGE_TYPE).getAsString())                : PackageType.NOT_FOUND;
+        this.releaseStatus        = json.has(FIELD_RELEASE_STATUS)         ? ReleaseStatus.fromText(json.get(FIELD_RELEASE_STATUS).getAsString())            : ReleaseStatus.NOT_FOUND;
+        this.archiveType          = json.has(FIELD_ARCHIVE_TYPE)           ? ArchiveType.fromText(json.get(FIELD_ARCHIVE_TYPE).getAsString())                : ArchiveType.NOT_FOUND;
+        this.termOfSupport        = json.has(FIELD_TERM_OF_SUPPORT)        ? TermOfSupport.fromText(json.get(FIELD_TERM_OF_SUPPORT).getAsString())           : TermOfSupport.NOT_FOUND;
+        this.javafxBundled        = json.has(FIELD_JAVAFX_BUNDLED)         ? json.get(FIELD_JAVAFX_BUNDLED).getAsBoolean()                                   : Boolean.FALSE;
+        this.directlyDownloadable = json.has(FIELD_DIRECTLY_DOWNLOADABLE)  ? json.get(FIELD_DIRECTLY_DOWNLOADABLE).getAsBoolean()                            : Boolean.FALSE;
+        this.fileName             = json.has(FIELD_FILENAME)               ? json.get(FIELD_FILENAME).getAsString()                                          : "";
+        this.ephemeralId          = json.has(FIELD_EPHEMERAL_ID)           ? json.get(FIELD_EPHEMERAL_ID).getAsString()                                      : "";
     }
 
 
@@ -111,7 +111,7 @@ public class Pkg {
 
     public Distribution getDistribution() { return distribution; }
 
-    public String getDistributionName() { return this.distribution.name(); }
+    public String getDistributionName() { return this.distribution.getName(); }
 
     public MajorVersion getMajorVersion() { return majorVersion; }
 
@@ -169,7 +169,7 @@ public class Pkg {
     @Override public String toString() {
         return new StringBuilder().append(CURLY_BRACKET_OPEN).append(NEW_LINE)
                                   .append(INDENTED_QUOTES).append(FIELD_ID).append(QUOTES).append(COLON).append(getId()).append(COMMA_NEW_LINE)
-                                  .append(INDENTED_QUOTES).append(FIELD_DISTRIBUTION).append(QUOTES).append(COLON).append(QUOTES).append(distribution.name()).append(QUOTES).append(COMMA_NEW_LINE)
+                                  .append(INDENTED_QUOTES).append(FIELD_DISTRIBUTION).append(QUOTES).append(COLON).append(QUOTES).append(distribution.getName()).append(QUOTES).append(COMMA_NEW_LINE)
                                   .append(INDENTED_QUOTES).append(FIELD_JAVA_VERSION).append(QUOTES).append(COLON).append(QUOTES).append(javaVersion.toString()).append(QUOTES).append(COMMA_NEW_LINE)
                                   .append(INDENTED_QUOTES).append(FIELD_DISTRIBUTION_VERSION).append(QUOTES).append(COLON).append(QUOTES).append(distributionVersion).append(QUOTES).append(COMMA_NEW_LINE)
                                   .append(INDENTED_QUOTES).append(FIELD_LATEST_BUILD_AVAILABLE).append(QUOTES).append(COLON).append(latestBuildAvailable).append(COMMA_NEW_LINE)

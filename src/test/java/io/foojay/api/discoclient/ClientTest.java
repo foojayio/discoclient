@@ -26,18 +26,17 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import io.foojay.api.discoclient.pkg.Architecture;
-import io.foojay.api.discoclient.pkg.Bitness;
-import io.foojay.api.discoclient.pkg.LibCType;
-import io.foojay.api.discoclient.pkg.Pkg;
-import io.foojay.api.discoclient.pkg.PackageType;
-import io.foojay.api.discoclient.pkg.Distribution;
 import io.foojay.api.discoclient.pkg.ArchiveType;
+import io.foojay.api.discoclient.pkg.Bitness;
+import io.foojay.api.discoclient.pkg.Distribution;
 import io.foojay.api.discoclient.pkg.Latest;
-import io.foojay.api.discoclient.pkg.OperatingSystem;
+import io.foojay.api.discoclient.pkg.LibCType;
 import io.foojay.api.discoclient.pkg.MajorVersion;
+import io.foojay.api.discoclient.pkg.OperatingSystem;
+import io.foojay.api.discoclient.pkg.PackageType;
+import io.foojay.api.discoclient.pkg.Pkg;
 import io.foojay.api.discoclient.pkg.ReleaseStatus;
 import io.foojay.api.discoclient.pkg.Scope;
-import io.foojay.api.discoclient.pkg.SemVer;
 import io.foojay.api.discoclient.pkg.TermOfSupport;
 import io.foojay.api.discoclient.pkg.VersionNumber;
 import io.foojay.api.discoclient.util.Helper;
@@ -48,10 +47,10 @@ import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.LinkedList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
-import java.util.Queue;
+import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
@@ -59,13 +58,29 @@ import java.util.concurrent.Future;
 public class ClientTest {
 
     @Test
+    public void loadDistributionsTest() {
+        DiscoClient discoClient = new DiscoClient();
+        while(!discoClient.isInitialzed()) {
+            try { Thread.sleep(10); } catch (InterruptedException e) {}
+        }
+        Map<String, Distribution> distributions = discoClient.getDistros();
+        assert distributions.size() == 20;
+
+        Optional<Distribution> optionalDistro  = distributions.values().stream().filter(d -> d.getFromText("zulu") != null).findFirst();
+        assert optionalDistro.isPresent();
+        if (optionalDistro.isPresent()) {
+            assert optionalDistro.get().getName().equals("ZULU");
+        }
+    }
+
+    @Test
     public void cancelRequestTest() {
         DiscoClient discoClient = new DiscoClient();
-        List<Pkg> pkgs = discoClient.getPkgs(Distribution.NONE, new VersionNumber(11), Latest.OVERALL, OperatingSystem.NONE, LibCType.NONE,
+        List<Pkg> pkgs = discoClient.getPkgs(null, new VersionNumber(11), Latest.OVERALL, OperatingSystem.NONE, LibCType.NONE,
                                              Architecture.NONE, Bitness.NONE, ArchiveType.NONE, PackageType.NONE, false, true, ReleaseStatus.NONE, TermOfSupport.NONE, Scope.PUBLIC);
         System.out.println(pkgs.size() + " pkgs found");
 
-        discoClient.getPkgsAsync(Distribution.NONE, new VersionNumber(11), Latest.OVERALL, OperatingSystem.NONE, LibCType.NONE,
+        discoClient.getPkgsAsync(null, new VersionNumber(11), Latest.OVERALL, OperatingSystem.NONE, LibCType.NONE,
                                  Architecture.NONE, Bitness.NONE, ArchiveType.NONE, PackageType.NONE, false, true, ReleaseStatus.NONE, TermOfSupport.NONE, Scope.PUBLIC).thenAccept(e -> System.out.println(e.size() + " pkgs found async"));
 
         try {
@@ -80,7 +95,7 @@ public class ClientTest {
     @Test
     public void getPkgsAndTest() {
         DiscoClient discoClient = new DiscoClient();
-        List<Pkg> packagesFound = discoClient.getPkgs(Distribution.ZULU, new VersionNumber(11, 0, 9, 1), Latest.NONE, OperatingSystem.WINDOWS, LibCType.NONE,
+        List<Pkg> packagesFound = discoClient.getPkgs(DiscoClient.getDistributionFromText("zulu"), new VersionNumber(11, 0, 9, 1), Latest.NONE, OperatingSystem.WINDOWS, LibCType.NONE,
                                                       Architecture.X64, Bitness.BIT_64, ArchiveType.ZIP, PackageType.JDK, false, true, ReleaseStatus.GA, TermOfSupport.LTS, Scope.PUBLIC);
         assert packagesFound.size() == 1;
     }
@@ -88,7 +103,7 @@ public class ClientTest {
     @Test
     public void downloadPkgTest() {
         DiscoClient discoClient = new DiscoClient();
-        List<Pkg> packagesFound = discoClient.getPkgs(Distribution.ZULU, new VersionNumber(11, 0, 9, 1), null, OperatingSystem.WINDOWS, LibCType.C_STD_LIB,
+        List<Pkg> packagesFound = discoClient.getPkgs(DiscoClient.getDistributionFromText("zulu"), new VersionNumber(11, 0, 9, 1), null, OperatingSystem.WINDOWS, LibCType.C_STD_LIB,
                                                       Architecture.X64, Bitness.BIT_64, ArchiveType.ZIP, PackageType.JRE, false, true, ReleaseStatus.GA, TermOfSupport.LTS, Scope.PUBLIC);
         assert packagesFound.size() > 0;
 
@@ -112,7 +127,7 @@ public class ClientTest {
     @Test
     public void getPkgsAsJsonTest() {
         DiscoClient discoClient = new DiscoClient();
-        String packagesFoundJson = discoClient.getPkgsAsJson(Distribution.ZULU, new VersionNumber(11, 0, 9, 1), Latest.NONE, OperatingSystem.WINDOWS, LibCType.NONE,
+        String packagesFoundJson = discoClient.getPkgsAsJson(DiscoClient.getDistributionFromText("zulu"), new VersionNumber(11, 0, 9, 1), Latest.NONE, OperatingSystem.WINDOWS, LibCType.NONE,
                                                              Architecture.X64, Bitness.BIT_64, ArchiveType.ZIP, PackageType.JDK, false, true, ReleaseStatus.GA, TermOfSupport.LTS, Scope.PUBLIC);
         Gson        gson    = new Gson();
         JsonElement element = gson.fromJson(packagesFoundJson, JsonElement.class);
@@ -137,23 +152,23 @@ public class ClientTest {
 
     @Test
     public void getDistributionForVersionTest() {
-        DiscoClient discoClient = new DiscoClient();
+        DiscoClient  discoClient        = new DiscoClient();
         List<Distribution> distributionsFound = discoClient.getDistributionsThatSupportVersion("13.0.5.1");
         assert distributionsFound.size() == 1;
-        assert distributionsFound.get(0).equals(Distribution.ZULU);
+        assert distributionsFound.get(0).getName().equals(DiscoClient.getDistributionFromText("zulu").getName());
     }
 
     @Test
     public void getVersionsPerDistributionTest() {
-        DiscoClient discoClient = new DiscoClient();
+        DiscoClient                      discoClient             = new DiscoClient();
         Map<Distribution, List<VersionNumber>> versionsPerDistribution = discoClient.getVersionsPerDistribution();
         assert versionsPerDistribution.keySet().size() == 19;
     }
 
     @Test
     public void testDistributionFromText() {
-        assert Distribution.LIBERICA.equals(Distribution.fromText("Liberica"));
-        assert Distribution.LIBERICA.equals(Distribution.fromText("liberica"));
-        assert Distribution.LIBERICA.equals(Distribution.fromText("LIBERICA"));
+        assert DiscoClient.getDistributionFromText("Liberica").getName().equals("LIBERICA");
+        assert DiscoClient.getDistributionFromText("liberica").getName().equals("LIBERICA");
+        assert DiscoClient.getDistributionFromText("LIBERICA").getName().equals("LIBERICA");
     }
 }

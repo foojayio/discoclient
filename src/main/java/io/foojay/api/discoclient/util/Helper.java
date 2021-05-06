@@ -21,32 +21,44 @@
 
 package io.foojay.api.discoclient.util;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import io.foojay.api.discoclient.DiscoClient;
+import io.foojay.api.discoclient.pkg.Distribution;
 import io.foojay.api.discoclient.pkg.HashAlgorithm;
 import io.foojay.api.discoclient.pkg.TermOfSupport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.StringReader;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpClient.Redirect;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandler;
+import java.net.http.HttpResponse.BodyHandlers;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.Duration;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 
 public class Helper {
-    private static final Logger             LOGGER                 = LoggerFactory.getLogger(Helper.class);
-    public  static final Pattern            NUMBER_IN_TEXT_PATTERN = Pattern.compile("(.*)?([0-9]+)(.*)?");
-    private static       BodyHandlerWrapper handlerWrapper         = null;
-    private static       HttpClient         client;
+    private static final Logger             LOGGER         = LoggerFactory.getLogger(Helper.class);
+    private static       BodyHandlerWrapper handlerWrapper = null;
+    private static       HttpClient         httpClient;
 
 
     public static boolean isPositiveInteger(final String text) {
@@ -172,6 +184,51 @@ public class Helper {
         return builder.toString();
     }
 
+    public static String readFromInputStream(final InputStream inputStream) throws IOException {
+        StringBuilder resultStringBuilder = new StringBuilder();
+        try (BufferedReader br = new BufferedReader(new InputStreamReader(inputStream))) {
+            String line;
+            while ((line = br.readLine()) != null) {
+                resultStringBuilder.append(line).append("\n");
+            }
+        }
+        return resultStringBuilder.toString();
+    }
+
+    public static CompletableFuture<Map<String,Distribution>> preloadDistributions() {
+        return CompletableFuture.supplyAsync(() -> {
+            final Map<String,Distribution> distributions = new ConcurrentHashMap();
+            try {
+                final InputStream inputStream = DiscoClient.class.getResourceAsStream(Constants.DISTRIBUTION_JSON);
+                if (null == inputStream) {
+                    LOGGER.error("{} not found in resources.", Constants.DISTRIBUTION_JSON);
+                    return distributions;
+                }
+                String jsonText = Helper.readFromInputStream(inputStream);
+                LOGGER.debug("Successfully read {} from resources.", Constants.DISTRIBUTION_JSON);
+
+                distributions.putAll(getDistributionsFromJsonText(jsonText));
+                return distributions;
+            } catch (IOException e) {
+                LOGGER.error("Error loading distributions from json file. {}", e.getMessage());
+                return distributions;
+            }
+        });
+    }
+
+    public static Map<String,Distribution> getDistributionsFromJsonText(final String jsonText) {
+        final Map<String,Distribution> distributions = new ConcurrentHashMap();
+        final Gson       gson       = new Gson();
+        final JsonObject jsonObject = gson.fromJson(jsonText, JsonObject.class);
+        final JsonArray  jsonArray  = jsonObject.get("distributions").getAsJsonArray();
+        for (int i = 0; i < jsonArray.size(); i++) {
+            final JsonObject   pkgJsonObj   = jsonArray.get(i).getAsJsonObject();
+            final Distribution distribution = new Distribution(pkgJsonObj.toString());
+            distributions.put(distribution.getApiString(), distribution);
+        }
+        return distributions;
+    }
+
 
     // ******************** REST calls ****************************************
     public static HttpClient createHttpClient() {
@@ -182,46 +239,40 @@ public class Helper {
                          .build();
     }
 
-    public static final String get(final String uri) {
-        if (null == client) { client = createHttpClient(); }
+    public static final HttpResponse<String> get(final String uri) {
+        if (null == httpClient) { httpClient = createHttpClient(); }
+
         HttpRequest request = HttpRequest.newBuilder()
+                                         .GET()
                                          .uri(URI.create(uri))
                                          .setHeader("User-Agent", "DiscoClient")
-                                         .timeout(Duration.ofSeconds(30))
+                                         .timeout(Duration.ofSeconds(60))
                                          .build();
-
-        BodyHandler<String> handler = HttpResponse.BodyHandlers.ofString();
-        handlerWrapper = new BodyHandlerWrapper(handler);
-
         try {
-            HttpResponse<String> response  = client.send(request, handler);
+            HttpResponse<String> response = httpClient.send(request, BodyHandlers.ofString());
             if (response.statusCode() == 200) {
-                return response.body();
+                return response;
             } else {
                 // Problem with url request
                 LOGGER.debug("Error executing get request {}", uri);
-                LOGGER.debug("Response ({}) {} ", response.statusCode(), response.body());
-                return "";
+                LOGGER.debug("Response (Status Code {}) {} ", response.statusCode(), response.body());
+                return response;
             }
-        } catch (InterruptedException | IOException e) {
+        } catch (CompletionException | InterruptedException | IOException e) {
             LOGGER.error("Error executing get request {} : {}", uri, e.getMessage());
-            return "";
+            return null;
         }
     }
 
-    public static final CompletableFuture<String> getAsync(final String uri) {
-        if (null == client) { client = createHttpClient(); }
-        HttpRequest request = HttpRequest.newBuilder()
-                                         .uri(URI.create(uri))
-                                         .setHeader("User-Agent", "DiscoClient")
-                                         .timeout(Duration.ofSeconds(30))
-                                         .build();
-
-        BodyHandler<String> handler = HttpResponse.BodyHandlers.ofString();
-        handlerWrapper = new BodyHandlerWrapper(handler);
-
-        return client.sendAsync(request, handler)
-                     .thenApply(HttpResponse::body);
+    public static final CompletableFuture<HttpResponse<String>> getAsync(final String uri) {
+        if (null == httpClient) { httpClient = createHttpClient(); }
+        final HttpRequest request = HttpRequest.newBuilder()
+                                               .GET()
+                                               .uri(URI.create(uri))
+                                               .setHeader("User-Agent", "DiscoClient")
+                                               .timeout(Duration.ofSeconds(60))
+                                               .build();
+        return httpClient.sendAsync(request, BodyHandlers.ofString());
     }
 
     public static final void cancelRequest() {
