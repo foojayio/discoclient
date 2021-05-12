@@ -33,14 +33,18 @@ public enum Distribution implements ApiFeature {
     DRAGONWELL("Dragonwell", "dragonwell"),
     GRAALVM_CE8("Graal VM CE 8", "graalvm_ce8"),
     GRAALVM_CE11("Graal VM CE 11", "graalvm_ce11"),
+    GRAALVM_CE16("Graal VM CE 16", "graalvm_ce16"),
     LIBERICA("Liberica", "liberica"),
     LIBERICA_NATIVE("Liberica Native", "liberica_native"),
     MANDREL("Mandrel", "mandrel"),
+    MICROSOFT("Microsoft Build of OpenJDK", "microsoft"),
     OJDK_BUILD("OJDKBuild", "ojdk_build"),
+    OPEN_LOGIC("OpenLogic", "openlogic"),
     ORACLE("Oracle", "oracle"),
     ORACLE_OPEN_JDK("Oracle OpenJDK", "oracle_openjdk"),
     RED_HAT("Red Hat", "redhat"),
     SAP_MACHINE("SAP Machine", "sapmachine"),
+    TEMURIN("Temurin", "temurin"),
     TRAVA("Trava", "trava"),
     ZULU("Zulu", "zulu"),
     NONE("-", ""),
@@ -67,14 +71,14 @@ public enum Distribution implements ApiFeature {
     @Override public Distribution[] getAll() { return values(); }
 
     public static Distribution fromText(final String text) {
+        if (null == text) { return NOT_FOUND; }
         switch (text) {
+            case "zulu":
+            case "ZULU":
+            case "Zulu":
+                return ZULU;
             case "aoj":
             case "AOJ":
-            case "adopt":
-            case "ADOPT":
-            case "adoptopenjdk":
-            case "Adopt":
-            case "AdoptOpenJDK":
                 return AOJ;
             case "aoj_openj9":
             case "AOJ_OpenJ9":
@@ -82,12 +86,6 @@ public enum Distribution implements ApiFeature {
             case "AOJ OpenJ9":
             case "AOJ OPENJ9":
             case "aoj openj9":
-            case "adopt_openj9":
-            case "ADOPT_OPENJ9":
-            case "Adopt OpenJ9":
-            case "adoptopenjdk_openj9":
-            case "Adopt_OpenJ9":
-            case "AdoptOpenJDK_OpenJ9":
                 return AOJ_OPENJ9;
             case "corretto":
             case "CORRETTO":
@@ -109,6 +107,12 @@ public enum Distribution implements ApiFeature {
             case "GraalVMCE11":
             case "GraalVM_CE11":
                 return GRAALVM_CE11;
+            case "graalvm_ce16":
+            case "graalvmce16":
+            case "GraalVM CE 16":
+            case "GraalVMCE16":
+            case "GraalVM_CE16":
+                return GRAALVM_CE16;
             case "liberica":
             case "LIBERICA":
             case "Liberica":
@@ -125,11 +129,31 @@ public enum Distribution implements ApiFeature {
             case "MANDREL":
             case "Mandrel":
                 return MANDREL;
+            case "microsoft":
+            case "Microsoft":
+            case "MICROSOFT":
+            case "Microsoft Build of OpenJDK":
+                return MICROSOFT;
             case "ojdk_build":
             case "OJDK_BUILD":
+            case "OJDK Build":
+            case "ojdk build":
             case "ojdkbuild":
             case "OJDKBuild":
                 return OJDK_BUILD;
+            case "openlogic":
+            case "OPENLOGIC":
+            case "OpenLogic":
+            case "open_logic":
+            case "OPEN_LOGIC":
+            case "Open Logic":
+            case "OPEN LOGIC":
+            case "open logic":
+                return OPEN_LOGIC;
+            case "oracle":
+            case "Oracle":
+            case "ORACLE":
+                return ORACLE;
             case "oracle_open_jdk":
             case "ORACLE_OPEN_JDK":
             case "oracle_openjdk":
@@ -151,10 +175,6 @@ public enum Distribution implements ApiFeature {
             case "oracle-open-jdk":
             case "ORACLE-OPEN-JDK":
                 return ORACLE_OPEN_JDK;
-            case "oracle":
-            case "Oracle":
-            case "ORACLE":
-                return ORACLE;
             case "RedHat":
             case "redhat":
             case "REDHAT":
@@ -177,14 +197,18 @@ public enum Distribution implements ApiFeature {
             case "SAP-Machine":
             case "SAP-MACHINE":
                 return SAP_MACHINE;
+            case "temurin":
+            case "Temurin":
+            case "TEMURIN":
+                return TEMURIN;
             case "trava":
             case "TRAVA":
             case "Trava":
+            case "trava_openjdk":
+            case "TRAVA_OPENJDK":
+            case "trava openjdk":
+            case "TRAVA OPENJDK":
                 return TRAVA;
-            case "zulu":
-            case "ZULU":
-            case "Zulu":
-                return ZULU;
             default:
                 return NOT_FOUND;
         }

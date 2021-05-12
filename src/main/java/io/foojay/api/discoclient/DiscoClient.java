@@ -25,7 +25,6 @@ import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import io.foojay.api.discoclient.event.CacheEvt;
 import io.foojay.api.discoclient.event.DCEvt;
 import io.foojay.api.discoclient.event.DownloadEvt;
 import io.foojay.api.discoclient.event.Evt;
@@ -46,7 +45,6 @@ import io.foojay.api.discoclient.pkg.Scope;
 import io.foojay.api.discoclient.pkg.SemVer;
 import io.foojay.api.discoclient.pkg.TermOfSupport;
 import io.foojay.api.discoclient.pkg.VersionNumber;
-import io.foojay.api.discoclient.util.Comparison;
 import io.foojay.api.discoclient.util.Constants;
 import io.foojay.api.discoclient.util.Helper;
 import io.foojay.api.discoclient.util.OutputFormat;
@@ -63,8 +61,6 @@ import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
@@ -81,49 +77,28 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
-
-import static java.util.stream.Collectors.toSet;
 
 
 public class DiscoClient {
     private static final Logger                         LOGGER            = LoggerFactory.getLogger(DiscoClient.class);
-    public         final AtomicBoolean                  cacheReady        = new AtomicBoolean(false);
-    private        final Queue<Pkg>                     pkgCache          = new ConcurrentLinkedQueue<>(); // Collections.synchronizedList(new LinkedList<>());
     private        final Queue<MajorVersion>            majorVersionCache = new ConcurrentLinkedQueue<>(); // Collections.synchronizedList(new LinkedList<>());
     private        final Map<String, List<EvtObserver>> observers         = new ConcurrentHashMap<>();
     private        final ScheduledExecutorService       service           = Executors.newScheduledThreadPool(2);
-    private        final Runnable                       updateCache       = () -> {
-        cacheReady.set(false);
-        fireEvt(new CacheEvt(DiscoClient.this, CacheEvt.CACHE_UPDATING));
-        pkgCache.clear();
-        getAllPackagesAsync().thenAccept(r -> {
-            List<Pkg>    tmpList = new LinkedList<>(r);
-            HashSet<Pkg> unique  = new HashSet<>(tmpList);
-            pkgCache.addAll(unique);
-            cacheReady.set(true);
-            fireEvt(new CacheEvt(DiscoClient.this, CacheEvt.CACHE_READY));
-        });
-    };
 
 
     public DiscoClient() {
         getAllMajorVersionsAsync(true).thenAccept(r -> majorVersionCache.addAll(r));
-        service.scheduleAtFixedRate(updateCache, 1, 3600, TimeUnit.SECONDS);
         Runtime.getRuntime().addShutdownHook(new Thread(() -> service.shutdownNow()));
     }
 
 
     public Queue<Pkg> getAllPackages() {
-        if (cacheReady.get()) { return pkgCache; }
-
         StringBuilder queryBuilder = new StringBuilder().append(getDiscoApiUrl())
                                                         .append(Constants.PACKAGES_PATH)
-                                                        .append("?release_status=ea")
-                                                        .append("&release_status=ga");
+                                                        .append("/all");
+                                                        //.append("?release_status=ea")
+                                                        //.append("&release_status=ga");
 
         String query = queryBuilder.toString();
         if (query.isEmpty()) { return new ConcurrentLinkedQueue<>(); }
@@ -134,8 +109,9 @@ public class DiscoClient {
         String      bodyText = Helper.get(query);
         Gson        gson     = new Gson();
         JsonElement element  = gson.fromJson(bodyText, JsonElement.class);
-        if (element instanceof JsonArray) {
-            JsonArray jsonArray = element.getAsJsonArray();
+        if (element instanceof JsonObject) {
+            JsonObject jsonObject = element.getAsJsonObject();
+            JsonArray jsonArray = jsonObject.getAsJsonArray("result");
             for (int i = 0; i < jsonArray.size(); i++) {
                 JsonObject bundleJsonObj = jsonArray.get(i).getAsJsonObject();
                 pkgsFound.add(new Pkg(bundleJsonObj.toString()));
@@ -149,24 +125,20 @@ public class DiscoClient {
         return pkgs;
     }
     public CompletableFuture<Queue<Pkg>> getAllPackagesAsync() {
-        if (cacheReady.get()) {
-            CompletableFuture<Queue<Pkg>> future = new CompletableFuture<>();
-            future.complete(pkgCache);
-            return future;
-        }
         StringBuilder queryBuilder = new StringBuilder().append(getDiscoApiUrl())
                                                         .append(Constants.PACKAGES_PATH)
-                                                        .append("?release_status=ea")
-                                                        .append("&release_status=ga");
+                                                        .append("/all");
+                                                        //.append("?release_status=ea")
+                                                        //.append("&release_status=ga");
         String query = queryBuilder.toString();
 
-        CompletableFuture<Queue<Pkg>> future = Helper.getAsync(query).thenApply(response -> {
-            if (cacheReady.get()) { return pkgCache; }
+        CompletableFuture<Queue<Pkg>> future = Helper.getAsync(query).thenApply(bodyText -> {
             Queue<Pkg>  pkgsFound = new ConcurrentLinkedQueue<>();
             Gson        gson      = new Gson();
-            JsonElement element   = gson.fromJson(response, JsonElement.class);
-            if (element instanceof JsonArray) {
-                JsonArray jsonArray = element.getAsJsonArray();
+            JsonElement element  = gson.fromJson(bodyText, JsonElement.class);
+            if (element instanceof JsonObject) {
+                JsonObject jsonObject = element.getAsJsonObject();
+                JsonArray jsonArray = jsonObject.getAsJsonArray("result");
                 for (int i = 0; i < jsonArray.size(); i++) {
                     JsonObject bundleJsonObj = jsonArray.get(i).getAsJsonObject();
                     pkgsFound.add(new Pkg(bundleJsonObj.toString()));
@@ -281,32 +253,15 @@ public class DiscoClient {
         String query = queryBuilder.toString();
         if (query.isEmpty()) { return new ArrayList<>(); }
 
-        if (cacheReady.get()) {
-            return getPkgsFromCache(versionNumber,
-                                    Comparison.EQUAL,
-                                    Distribution.NONE    == distributionCache    ? new ArrayList<>() : Arrays.asList(distributionCache),
-                                    Architecture.NONE    == architectureCache    ? new ArrayList<>() : Arrays.asList(architectureCache),
-                                    ArchiveType.NONE     == archiveTypeCache     ? new ArrayList<>() : Arrays.asList(archiveTypeCache),
-                                    packageTypeCache,
-                                    OperatingSystem.NONE == operatingSystemCache ? new ArrayList<>() : Arrays.asList(operatingSystemCache),
-                                    LibCType.NONE        == libcTypeCache        ? new ArrayList<>() : Arrays.asList(libcTypeCache),
-                                    ReleaseStatus.NONE   == releaseStatusCache   ? new ArrayList<>() : Arrays.asList(releaseStatusCache),
-                                    TermOfSupport.NONE   == termOfSupportCache   ? new ArrayList<>() : Arrays.asList(termOfSupportCache),
-                                    bitnessCache,
-                                    javafxBundled,
-                                    directlyDownloadable,
-                                    latestCache,
-                                    Scope.NONE           == scopeCache           ? new ArrayList<>() : Arrays.asList(scopeCache));
-        }
-
         List<Pkg>   pkgs     = new LinkedList<>();
         String      bodyText = Helper.get(query);
 
         List<Pkg>   pkgsFound = new ArrayList<>();
         Gson        gson      = new Gson();
         JsonElement element   = gson.fromJson(bodyText, JsonElement.class);
-        if (element instanceof JsonArray) {
-            JsonArray jsonArray = element.getAsJsonArray();
+        if (element instanceof JsonObject) {
+            JsonObject jsonObject = element.getAsJsonObject();
+            JsonArray jsonArray = jsonObject.getAsJsonArray("result");
             for (int i = 0; i < jsonArray.size(); i++) {
                 JsonObject pkgJsonObj = jsonArray.get(i).getAsJsonObject();
                 pkgsFound.add(new Pkg(pkgJsonObj.toString()));
@@ -422,32 +377,14 @@ public class DiscoClient {
         String query = queryBuilder.toString();
         if (query.isEmpty()) { return new CompletableFuture<>(); }
 
-        if (cacheReady.get()) {
-            CompletableFuture<List<Pkg>> future = new CompletableFuture<>();
-            future.complete(getPkgsFromCache(versionNumber,
-                                             Comparison.EQUAL,
-                                             Distribution.NONE    == distributionCache    ? new ArrayList<>() : Arrays.asList(distributionCache),
-                                             Architecture.NONE    == architectureCache    ? new ArrayList<>() : Arrays.asList(architectureCache),
-                                             ArchiveType.NONE     == archiveTypeCache     ? new ArrayList<>() : Arrays.asList(archiveTypeCache),
-                                             packageTypeCache,
-                                             OperatingSystem.NONE == operatingSystemCache ? new ArrayList<>() : Arrays.asList(operatingSystemCache),
-                                             LibCType.NONE        == libcTypeCache        ? new ArrayList<>() : Arrays.asList(libcTypeCache),
-                                             ReleaseStatus.NONE   == releaseStatusCache   ? new ArrayList<>() : Arrays.asList(releaseStatusCache),
-                                             TermOfSupport.NONE   == termOfSupportCache   ? new ArrayList<>() : Arrays.asList(termOfSupportCache),
-                                             bitnessCache,
-                                             javafxBundled,
-                                             directlyDownloadable,
-                                             latestCache,
-                                             Scope.NONE           == scopeCache           ? new ArrayList<>() : Arrays.asList(scopeCache)));
-            return future;
-        }
         return Helper.getAsync(query).thenApply(bodyText -> {
             List<Pkg>   pkgs      = new LinkedList<>();
             List<Pkg>   pkgsFound = new ArrayList<>();
             Gson        gson      = new Gson();
             JsonElement element   = gson.fromJson(bodyText, JsonElement.class);
-            if (element instanceof JsonArray) {
-                JsonArray jsonArray = element.getAsJsonArray();
+            if (element instanceof JsonObject) {
+                JsonObject jsonObject = element.getAsJsonObject();
+                JsonArray jsonArray = jsonObject.getAsJsonArray("result");
                 for (int i = 0; i < jsonArray.size(); i++) {
                     JsonObject pkgJsonObj = jsonArray.get(i).getAsJsonObject();
                     pkgsFound.add(new Pkg(pkgJsonObj.toString()));
@@ -489,9 +426,15 @@ public class DiscoClient {
         Gson        gson     = new Gson();
         JsonElement element  = gson.fromJson(bodyText, JsonElement.class);
         if (element instanceof JsonObject) {
-            JsonObject    json         = element.getAsJsonObject();
-            MajorVersion  majorVersion = new MajorVersion(json.toString());
-            return majorVersion;
+            JsonObject jsonObject = element.getAsJsonObject();
+            JsonArray  jsonArray  = jsonObject.getAsJsonArray("result");
+            if (jsonArray.size() > 0) {
+                JsonObject   json         = jsonArray.get(0).getAsJsonObject();
+                MajorVersion majorVersion = new MajorVersion(json.toString());
+                return majorVersion;
+            } else {
+                return null;
+            }
         } else {
             return null;
         }
@@ -512,9 +455,15 @@ public class DiscoClient {
             Gson        gson     = new Gson();
             JsonElement element  = gson.fromJson(bodyText, JsonElement.class);
             if (element instanceof JsonObject) {
-                JsonObject    json         = element.getAsJsonObject();
-                MajorVersion  majorVersion = new MajorVersion(json.toString());
-                return majorVersion;
+                JsonObject    jsonObject   = element.getAsJsonObject();
+                JsonArray     jsonArray    = jsonObject.getAsJsonArray("result");
+                if (jsonArray.size() > 0) {
+                    JsonObject    json         = jsonArray.get(0).getAsJsonObject();
+                    MajorVersion  majorVersion = new MajorVersion(json.toString());
+                    return majorVersion;
+                } else {
+                    return null;
+                }
             } else {
                 return null;
             }
@@ -535,8 +484,9 @@ public class DiscoClient {
 
         Gson        gson     = new Gson();
         JsonElement element  = gson.fromJson(bodyText, JsonElement.class);
-        if (element instanceof JsonArray) {
-            JsonArray jsonArray = element.getAsJsonArray();
+        if (element instanceof JsonObject) {
+            JsonObject jsonObject = element.getAsJsonObject();
+            JsonArray  jsonArray  = jsonObject.getAsJsonArray("result");
             for (int i = 0; i < jsonArray.size(); i++) {
                 JsonObject majorVersionJsonObj = jsonArray.get(i).getAsJsonObject();
                 majorVersionsFound.add(new MajorVersion(majorVersionJsonObj.toString()));
@@ -567,8 +517,9 @@ public class DiscoClient {
 
         Gson        gson     = new Gson();
         JsonElement element  = gson.fromJson(bodyText, JsonElement.class);
-        if (element instanceof JsonArray) {
-            JsonArray jsonArray = element.getAsJsonArray();
+        if (element instanceof JsonObject) {
+            JsonObject jsonObject = element.getAsJsonObject();
+            JsonArray  jsonArray  = jsonObject.getAsJsonArray("result");
             for (int i = 0; i < jsonArray.size(); i++) {
                 JsonObject majorVersionJsonObj = jsonArray.get(i).getAsJsonObject();
                 majorVersionsFound.add(new MajorVersion(majorVersionJsonObj.toString()));
@@ -589,8 +540,9 @@ public class DiscoClient {
             List<MajorVersion> majorVersionsFound = new CopyOnWriteArrayList<>();
             Gson        gson     = new Gson();
             JsonElement element  = gson.fromJson(bodyText, JsonElement.class);
-            if (element instanceof JsonArray) {
-                JsonArray jsonArray = element.getAsJsonArray();
+            if (element instanceof JsonObject) {
+                JsonObject jsonObject = element.getAsJsonObject();
+                JsonArray  jsonArray  = jsonObject.getAsJsonArray("result");
                 for (int i = 0; i < jsonArray.size(); i++) {
                     JsonObject majorVersionJsonObj = jsonArray.get(i).getAsJsonObject();
                     majorVersionsFound.add(new MajorVersion(majorVersionJsonObj.toString()));
@@ -621,8 +573,9 @@ public class DiscoClient {
             List<MajorVersion> majorVersionsFound = new ArrayList<>();
             Gson        gson     = new Gson();
             JsonElement element  = gson.fromJson(bodyText, JsonElement.class);
-            if (element instanceof JsonArray) {
-                JsonArray jsonArray = element.getAsJsonArray();
+            if (element instanceof JsonObject) {
+                JsonObject jsonObject = element.getAsJsonObject();
+                JsonArray  jsonArray  = jsonObject.getAsJsonArray("result");
                 for (int i = 0; i < jsonArray.size(); i++) {
                     JsonObject majorVersionJsonObj = jsonArray.get(i).getAsJsonObject();
                     majorVersionsFound.add(new MajorVersion(majorVersionJsonObj.toString()));
@@ -644,8 +597,9 @@ public class DiscoClient {
 
         Gson        gson     = new Gson();
         JsonElement element  = gson.fromJson(bodyText, JsonElement.class);
-        if (element instanceof JsonArray) {
-            JsonArray jsonArray = element.getAsJsonArray();
+        if (element instanceof JsonObject) {
+            JsonObject jsonObject = element.getAsJsonObject();
+            JsonArray  jsonArray  = jsonObject.getAsJsonArray("result");
             for (int i = 0; i < jsonArray.size(); i++) {
                 JsonObject   json         = jsonArray.get(i).getAsJsonObject();
                 MajorVersion majorVersion = new MajorVersion(json.toString());
@@ -668,8 +622,9 @@ public class DiscoClient {
         return Helper.getAsync(query).thenApply(bodyText -> {
             Gson        gson     = new Gson();
             JsonElement element  = gson.fromJson(bodyText, JsonElement.class);
-            if (element instanceof JsonArray) {
-                JsonArray jsonArray = element.getAsJsonArray();
+            if (element instanceof JsonObject) {
+                JsonObject jsonObject = element.getAsJsonObject();
+                JsonArray  jsonArray  = jsonObject.getAsJsonArray("result");
                 for (int i = 0; i < jsonArray.size(); i++) {
                     JsonObject   json         = jsonArray.get(i).getAsJsonObject();
                     MajorVersion majorVersion = new MajorVersion(json.toString());
@@ -728,8 +683,9 @@ public class DiscoClient {
 
         Gson        gson     = new Gson();
         JsonElement element  = gson.fromJson(bodyText, JsonElement.class);
-        if (element instanceof JsonArray) {
-            JsonArray jsonArray = element.getAsJsonArray();
+        if (element instanceof JsonObject) {
+            JsonObject jsonObject = element.getAsJsonObject();
+            JsonArray  jsonArray  = jsonObject.getAsJsonArray("result");
             for (int i = 0; i < jsonArray.size(); i++) {
                 JsonObject majorVersionJsonObj = jsonArray.get(i).getAsJsonObject();
                 majorVersionsFound.add(new MajorVersion(majorVersionJsonObj.toString()));
@@ -753,8 +709,9 @@ public class DiscoClient {
 
             Gson        gson     = new Gson();
             JsonElement element  = gson.fromJson(bodyText, JsonElement.class);
-            if (element instanceof JsonArray) {
-                JsonArray jsonArray = element.getAsJsonArray();
+            if (element instanceof JsonObject) {
+                JsonObject jsonObject = element.getAsJsonObject();
+                JsonArray  jsonArray  = jsonObject.getAsJsonArray("result");
                 for (int i = 0; i < jsonArray.size(); i++) {
                     JsonObject majorVersionJsonObj = jsonArray.get(i).getAsJsonObject();
                     majorVersionsFound.add(new MajorVersion(majorVersionJsonObj.toString()));
@@ -776,8 +733,9 @@ public class DiscoClient {
 
         Gson        gson     = new Gson();
         JsonElement element  = gson.fromJson(bodyText, JsonElement.class);
-        if (element instanceof JsonArray) {
-            JsonArray jsonArray = element.getAsJsonArray();
+        if (element instanceof JsonObject) {
+            JsonObject jsonObject = element.getAsJsonObject();
+            JsonArray  jsonArray  = jsonObject.getAsJsonArray("result");
             for (int i = 0; i < jsonArray.size(); i++) {
                 JsonObject majorVersionJsonObj = jsonArray.get(i).getAsJsonObject();
                 majorVersionsFound.add(new MajorVersion(majorVersionJsonObj.toString()));
@@ -798,8 +756,9 @@ public class DiscoClient {
 
             Gson        gson     = new Gson();
             JsonElement element  = gson.fromJson(bodyText, JsonElement.class);
-            if (element instanceof JsonArray) {
-                JsonArray jsonArray = element.getAsJsonArray();
+            if (element instanceof JsonObject) {
+                JsonObject jsonObject = element.getAsJsonObject();
+                JsonArray  jsonArray  = jsonObject.getAsJsonArray("result");
                 for (int i = 0; i < jsonArray.size(); i++) {
                     JsonObject majorVersionJsonObj = jsonArray.get(i).getAsJsonObject();
                     majorVersionsFound.add(new MajorVersion(majorVersionJsonObj.toString()));
@@ -948,12 +907,15 @@ public class DiscoClient {
 
         Gson        gson     = new Gson();
         JsonElement element  = gson.fromJson(bodyText, JsonElement.class);
-        if (element instanceof JsonArray) {
-            JsonArray jsonArray = element.getAsJsonArray();
+        if (element instanceof JsonObject) {
+            JsonObject jsonObject = element.getAsJsonObject();
+            JsonArray  jsonArray  = jsonObject.getAsJsonArray("result");
             for (int i = 0; i < jsonArray.size(); i++) {
                 JsonObject distributionJsonObj = jsonArray.get(i).getAsJsonObject();
                 final String api_parameter = distributionJsonObj.get("api_parameter").getAsString();
-                distributionsFound.add(Distribution.fromText(api_parameter));
+                Distribution distribution = Distribution.fromText(api_parameter);
+                if (null == distribution || Distribution.NONE == distribution || Distribution.NOT_FOUND == distribution) { continue; }
+                distributionsFound.add(distribution);
             }
         }
         return distributionsFound;
@@ -965,13 +927,16 @@ public class DiscoClient {
         return Helper.getAsync(query).thenApply(bodyText -> {
             List<Distribution> distributionsFound = new LinkedList<>();
             Gson               gson               = new Gson();
-            JsonElement        element            = gson.fromJson(bodyText, JsonElement.class);
-            if (element instanceof JsonArray) {
-                JsonArray jsonArray = element.getAsJsonArray();
+            JsonElement element  = gson.fromJson(bodyText, JsonElement.class);
+            if (element instanceof JsonObject) {
+                JsonObject jsonObject = element.getAsJsonObject();
+                JsonArray  jsonArray  = jsonObject.getAsJsonArray("result");
                 for (int i = 0; i < jsonArray.size(); i++) {
                     JsonObject distributionJsonObj = jsonArray.get(i).getAsJsonObject();
                     final String api_parameter = distributionJsonObj.get("api_parameter").getAsString();
-                    distributionsFound.add(Distribution.fromText(api_parameter));
+                    Distribution distribution = Distribution.fromText(api_parameter);
+                    if (null == distribution || Distribution.NONE == distribution || Distribution.NOT_FOUND == distribution) { continue; }
+                    distributionsFound.add(distribution);
                 }
             }
             return distributionsFound;
@@ -991,12 +956,15 @@ public class DiscoClient {
 
         Gson        gson     = new Gson();
         JsonElement element  = gson.fromJson(bodyText, JsonElement.class);
-        if (element instanceof JsonArray) {
-            JsonArray jsonArray = element.getAsJsonArray();
+        if (element instanceof JsonObject) {
+            JsonObject jsonObject = element.getAsJsonObject();
+            JsonArray  jsonArray  = jsonObject.getAsJsonArray("result");
             for (int i = 0; i < jsonArray.size(); i++) {
                 JsonObject distributionJsonObj = jsonArray.get(i).getAsJsonObject();
                 final String api_parameter = distributionJsonObj.get("api_parameter").getAsString();
-                distributionsFound.add(Distribution.fromText(api_parameter));
+                Distribution distribution = Distribution.fromText(api_parameter);
+                if (null == distribution || Distribution.NONE == distribution || Distribution.NOT_FOUND == distribution) { continue; }
+                distributionsFound.add(distribution);
             }
         }
         return distributionsFound;
@@ -1011,13 +979,16 @@ public class DiscoClient {
         return Helper.getAsync(query).thenApply(bodyText -> {
             List<Distribution> distributionsFound = new LinkedList<>();
             Gson               gson               = new Gson();
-            JsonElement        element            = gson.fromJson(bodyText, JsonElement.class);
-            if (element instanceof JsonArray) {
-                JsonArray jsonArray = element.getAsJsonArray();
+            JsonElement element  = gson.fromJson(bodyText, JsonElement.class);
+            if (element instanceof JsonObject) {
+                JsonObject jsonObject = element.getAsJsonObject();
+                JsonArray  jsonArray  = jsonObject.getAsJsonArray("result");
                 for (int i = 0; i < jsonArray.size(); i++) {
                     JsonObject distributionJsonObj = jsonArray.get(i).getAsJsonObject();
                     final String api_parameter = distributionJsonObj.get("api_parameter").getAsString();
-                    distributionsFound.add(Distribution.fromText(api_parameter));
+                    Distribution distribution = Distribution.fromText(api_parameter);
+                    if (null == distribution || Distribution.NONE == distribution || Distribution.NOT_FOUND == distribution) { continue; }
+                    distributionsFound.add(distribution);
                 }
             }
             return distributionsFound;
@@ -1037,12 +1008,15 @@ public class DiscoClient {
 
         Gson        gson     = new Gson();
         JsonElement element  = gson.fromJson(bodyText, JsonElement.class);
-        if (element instanceof JsonArray) {
-            JsonArray jsonArray = element.getAsJsonArray();
+        if (element instanceof JsonObject) {
+            JsonObject jsonObject = element.getAsJsonObject();
+            JsonArray  jsonArray  = jsonObject.getAsJsonArray("result");
             for (int i = 0; i < jsonArray.size(); i++) {
                 JsonObject distributionJsonObj = jsonArray.get(i).getAsJsonObject();
                 final String api_parameter = distributionJsonObj.get("api_parameter").getAsString();
-                distributionsFound.add(Distribution.fromText(api_parameter));
+                Distribution distribution = Distribution.fromText(api_parameter);
+                if (null == distribution || Distribution.NONE == distribution || Distribution.NOT_FOUND == distribution) { continue; }
+                distributionsFound.add(distribution);
             }
         }
         return distributionsFound;
@@ -1057,13 +1031,16 @@ public class DiscoClient {
         return Helper.getAsync(query).thenApply(bodyText -> {
             List<Distribution> distributionsFound = new LinkedList<>();
             Gson               gson               = new Gson();
-            JsonElement        element            = gson.fromJson(bodyText, JsonElement.class);
-            if (element instanceof JsonArray) {
-                JsonArray jsonArray = element.getAsJsonArray();
+            JsonElement element  = gson.fromJson(bodyText, JsonElement.class);
+            if (element instanceof JsonObject) {
+                JsonObject jsonObject = element.getAsJsonObject();
+                JsonArray  jsonArray  = jsonObject.getAsJsonArray("result");
                 for (int i = 0; i < jsonArray.size(); i++) {
                     JsonObject distributionJsonObj = jsonArray.get(i).getAsJsonObject();
                     final String api_parameter = distributionJsonObj.get("api_parameter").getAsString();
-                    distributionsFound.add(Distribution.fromText(api_parameter));
+                    Distribution distribution = Distribution.fromText(api_parameter);
+                    if (null == distribution || Distribution.NONE == distribution || Distribution.NOT_FOUND == distribution) { continue; }
+                    distributionsFound.add(distribution);
                 }
             }
             return distributionsFound;
@@ -1080,12 +1057,14 @@ public class DiscoClient {
         Map<Distribution, List<VersionNumber>> distributionsFound = new LinkedHashMap<>();
         Gson        gson     = new Gson();
         JsonElement element  = gson.fromJson(bodyText, JsonElement.class);
-        if (element instanceof JsonArray) {
-            JsonArray jsonArray = element.getAsJsonArray();
+        if (element instanceof JsonObject) {
+            JsonObject jsonObject = element.getAsJsonObject();
+            JsonArray  jsonArray  = jsonObject.getAsJsonArray("result");
             for (int i = 0; i < jsonArray.size(); i++) {
-                final JsonObject          distributionJsonObj = jsonArray.get(i).getAsJsonObject();
-                final String              api_parameter       = distributionJsonObj.get("api_parameter").getAsString();
-                final Distribution        distribution        = Distribution.fromText(api_parameter);
+                JsonObject distributionJsonObj = jsonArray.get(i).getAsJsonObject();
+                final String api_parameter = distributionJsonObj.get("api_parameter").getAsString();
+                Distribution distribution = Distribution.fromText(api_parameter);
+                if (null == distribution || Distribution.NONE == distribution || Distribution.NOT_FOUND == distribution) { continue; }
                 final List<VersionNumber> versions            = new LinkedList<>();
                 final JsonArray           versionsArray       = distributionJsonObj.get("versions").getAsJsonArray();
                 for (int j = 0 ; j < versionsArray.size() ; j++) {
@@ -1106,12 +1085,14 @@ public class DiscoClient {
             Map<Distribution, List<VersionNumber>> distributionsFound = new LinkedHashMap<>();
             Gson        gson     = new Gson();
             JsonElement element  = gson.fromJson(bodyText, JsonElement.class);
-            if (element instanceof JsonArray) {
-                JsonArray jsonArray = element.getAsJsonArray();
+            if (element instanceof JsonObject) {
+                JsonObject jsonObject = element.getAsJsonObject();
+                JsonArray  jsonArray  = jsonObject.getAsJsonArray("result");
                 for (int i = 0; i < jsonArray.size(); i++) {
-                    final JsonObject          distributionJsonObj = jsonArray.get(i).getAsJsonObject();
-                    final String              api_parameter       = distributionJsonObj.get("api_parameter").getAsString();
-                    final Distribution        distribution        = Distribution.fromText(api_parameter);
+                    JsonObject distributionJsonObj = jsonArray.get(i).getAsJsonObject();
+                    final String api_parameter = distributionJsonObj.get("api_parameter").getAsString();
+                    Distribution distribution = Distribution.fromText(api_parameter);
+                    if (null == distribution || Distribution.NONE == distribution || Distribution.NOT_FOUND == distribution) { continue; }
                     final List<VersionNumber> versions            = new LinkedList<>();
                     final JsonArray           versionsArray       = distributionJsonObj.get("versions").getAsJsonArray();
                     for (int j = 0 ; j < versionsArray.size() ; j++) {
@@ -1156,13 +1137,18 @@ public class DiscoClient {
         Gson        packageInfoGson    = new Gson();
         JsonElement packageInfoElement = packageInfoGson.fromJson(packageInfoBody, JsonElement.class);
         if (packageInfoElement instanceof JsonObject) {
-            final JsonObject packageInfoJson   = packageInfoElement.getAsJsonObject();
-            final String     filename          = packageInfoJson.get(PkgInfo.FIELD_FILENAME).getAsString();
-            final String     directDownloadUri = packageInfoJson.get(PkgInfo.FIELD_DIRECT_DOWNLOAD_URI).getAsString();
-            final String     downloadSiteUri   = packageInfoJson.get(PkgInfo.FIELD_DOWNLOAD_SITE_URI).getAsString();
-            return new PkgInfo(filename, javaVersion, directDownloadUri, downloadSiteUri);
+            JsonObject jsonObject = packageInfoElement.getAsJsonObject();
+            JsonArray  jsonArray  = jsonObject.getAsJsonArray("result");
+            if (jsonArray.size() > 0) {
+                final JsonObject packageInfoJson   = jsonArray.get(0).getAsJsonObject();
+                final String     filename          = packageInfoJson.get(PkgInfo.FIELD_FILENAME).getAsString();
+                final String     directDownloadUri = packageInfoJson.get(PkgInfo.FIELD_DIRECT_DOWNLOAD_URI).getAsString();
+                final String     downloadSiteUri   = packageInfoJson.get(PkgInfo.FIELD_DOWNLOAD_SITE_URI).getAsString();
+                return new PkgInfo(filename, javaVersion, directDownloadUri, downloadSiteUri);
+            } else {
+                return null;
+            }
         }
-
         return null;
     }
     public CompletableFuture<PkgInfo> getPkgInfoAsync(final String ephemeralId, final SemVer javaVersion) {
@@ -1175,11 +1161,17 @@ public class DiscoClient {
             Gson        packageInfoGson    = new Gson();
             JsonElement packageInfoElement = packageInfoGson.fromJson(packageInfoBody, JsonElement.class);
             if (packageInfoElement instanceof JsonObject) {
-                final JsonObject packageInfoJson   = packageInfoElement.getAsJsonObject();
-                final String     filename          = packageInfoJson.get(PkgInfo.FIELD_FILENAME).getAsString();
-                final String     directDownloadUri = packageInfoJson.get(PkgInfo.FIELD_DIRECT_DOWNLOAD_URI).getAsString();
-                final String     downloadSiteUri   = packageInfoJson.get(PkgInfo.FIELD_DOWNLOAD_SITE_URI).getAsString();
-                return new PkgInfo(filename, javaVersion, directDownloadUri, downloadSiteUri);
+                JsonObject jsonObject = packageInfoElement.getAsJsonObject();
+                JsonArray  jsonArray  = jsonObject.getAsJsonArray("result");
+                if (jsonArray.size() > 0) {
+                    final JsonObject packageInfoJson   = jsonArray.get(0).getAsJsonObject();
+                    final String     filename          = packageInfoJson.get(PkgInfo.FIELD_FILENAME).getAsString();
+                    final String     directDownloadUri = packageInfoJson.get(PkgInfo.FIELD_DIRECT_DOWNLOAD_URI).getAsString();
+                    final String     downloadSiteUri   = packageInfoJson.get(PkgInfo.FIELD_DOWNLOAD_SITE_URI).getAsString();
+                    return new PkgInfo(filename, javaVersion, directDownloadUri, downloadSiteUri);
+                } else {
+                    return null;
+                }
             }
             return null;
         });
@@ -1214,7 +1206,6 @@ public class DiscoClient {
 
 
     public Pkg getPkg(final String pkgId) {
-        if (cacheReady.get()) { return pkgCache.stream().filter(pkg -> pkg.getId().equals(pkgId)).findFirst().orElse(null); }
         StringBuilder queryBuilder = new StringBuilder().append(getDiscoApiUrl())
                                                         .append(Constants.PACKAGES_PATH)
                                                         .append("/")
@@ -1237,11 +1228,6 @@ public class DiscoClient {
                                                         .append("/")
                                                         .append(pkgId);
         String query = queryBuilder.toString();
-        if (cacheReady.get()) {
-            CompletableFuture<Pkg> future = new CompletableFuture<>();
-            future.complete(pkgCache.stream().filter(pkg -> pkg.getId().equals(pkgId)).findFirst().orElse(null));
-            return future;
-        }
         return Helper.getAsync(query).thenApply(bodyText -> {
             Gson        pkgGson    = new Gson();
             JsonElement pkgElement = pkgGson.fromJson(bodyText, JsonElement.class);
@@ -1313,259 +1299,6 @@ public class DiscoClient {
             return Constants.DISCO_API_BASE_URL;
         }
     }
-
-
-    // ******************** Cache *********************************************
-    public List<Pkg> getPkgsFromCache(final VersionNumber versionNumber, final Comparison comparison, final List<Distribution> distributions, final List<Architecture> architectures, final List<ArchiveType> archiveTypes,
-                                      final PackageType packageType, final List<OperatingSystem> operatingSystems, final List<LibCType> libCTypes, final List<ReleaseStatus> releaseStatus, final List<TermOfSupport> termsOfSupport,
-                                      final Bitness bitness, final Boolean javafxBundled, final Boolean directlyDownloadable, final Latest latest, final List<Scope> scopes) {
-        List<Pkg> pkgsFound;
-        if (Comparison.EQUAL == comparison) {
-            switch(latest) {
-                case OVERALL:
-                    final VersionNumber maxNumber;
-                    if (null == versionNumber || !versionNumber.getFeature().isPresent()) {
-                        Optional<Pkg> pkgWithMaxVersionNumber = pkgCache.stream()
-                                                                        .filter(pkg -> distributions.isEmpty()                    ? (pkg.getDistribution() != null &&
-                                                                                                                                     pkg.getDistribution() != Distribution.GRAALVM_CE8 &&
-                                                                                                                                     pkg.getDistribution() != Distribution.GRAALVM_CE11 &&
-                                                                                                                                     pkg.getDistribution() != Distribution.LIBERICA_NATIVE &&
-                                                                                                                                     pkg.getDistribution() != Distribution.MANDREL) : distributions.contains(pkg.getDistribution()))
-                                                                        .filter(pkg -> Constants.SCOPE_LOOKUP.get(pkg.getDistribution()).stream().anyMatch(scopes.stream().collect(toSet())::contains))
-                                                                        .filter(pkg -> architectures.isEmpty()                    ? pkg.getArchitecture()        != null          : architectures.contains(pkg.getArchitecture()))
-                                                                        .filter(pkg -> archiveTypes.isEmpty()                     ? pkg.getArchiveType()         != null          : archiveTypes.contains(pkg.getArchiveType()))
-                                                                        .filter(pkg -> operatingSystems.isEmpty()                 ? pkg.getOperatingSystem()     != null          : operatingSystems.contains(pkg.getOperatingSystem()))
-                                                                        .filter(pkg -> libCTypes.isEmpty()                        ? pkg.getLibCType()            != null          : libCTypes.contains(pkg.getLibCType()))
-                                                                        .filter(pkg -> termsOfSupport.isEmpty()                   ? pkg.getTermOfSupport()       != null          : termsOfSupport.contains(pkg.getTermOfSupport()))
-                                                                        .filter(pkg -> PackageType.NONE   == packageType          ? pkg.getPackageType()         != packageType   : pkg.getPackageType()         == packageType)
-                                                                        .filter(pkg -> releaseStatus.isEmpty()                    ? pkg.getReleaseStatus()       != null          : releaseStatus.contains(pkg.getReleaseStatus()))
-                                                                        .filter(pkg -> Bitness.NONE       == bitness              ? pkg.getBitness()             != bitness       : pkg.getBitness()             == bitness)
-                                                                        .filter(pkg -> null               == javafxBundled        ? pkg.isJavaFXBundled()        != null          : pkg.isJavaFXBundled()        == javafxBundled)
-                                                                        .filter(pkg -> null               == directlyDownloadable ? pkg.isDirectlyDownloadable() != null          : pkg.isDirectlyDownloadable() == directlyDownloadable)
-                                                                        .max(Comparator.comparing(pkg -> pkg.getJavaVersion().getVersionNumber()));
-                        if (pkgWithMaxVersionNumber.isPresent()) {
-                            maxNumber = pkgWithMaxVersionNumber.get().getJavaVersion().getVersionNumber();
-                        } else {
-                            maxNumber = versionNumber;
-                        }
-                    } else {
-                        int featureVersion = versionNumber.getFeature().getAsInt();
-                        Optional<Pkg> pkgWithMaxVersionNumber = pkgCache.stream()
-                                                                        .filter(pkg -> distributions.isEmpty()                    ? pkg.getDistribution()        != null          : distributions.contains(pkg.getDistribution()))
-                                                                        .filter(pkg -> Constants.SCOPE_LOOKUP.get(pkg.getDistribution()).stream().anyMatch(scopes.stream().collect(toSet())::contains))
-                                                                        .filter(pkg -> architectures.isEmpty()                    ? pkg.getArchitecture()        != null          : architectures.contains(pkg.getArchitecture()))
-                                                                        .filter(pkg -> archiveTypes.isEmpty()                     ? pkg.getArchiveType()         != null          : archiveTypes.contains(pkg.getArchiveType()))
-                                                                        .filter(pkg -> operatingSystems.isEmpty()                 ? pkg.getOperatingSystem()     != null          : operatingSystems.contains(pkg.getOperatingSystem()))
-                                                                        .filter(pkg -> libCTypes.isEmpty()                        ? pkg.getLibCType()            != null          : libCTypes.contains(pkg.getLibCType()))
-                                                                        .filter(pkg -> termsOfSupport.isEmpty()                   ? pkg.getTermOfSupport()       != null          : termsOfSupport.contains(pkg.getTermOfSupport()))
-                                                                        .filter(pkg -> PackageType.NONE   == packageType          ? pkg.getPackageType()         != packageType   : pkg.getPackageType()         == packageType)
-                                                                        .filter(pkg -> releaseStatus.isEmpty()                    ? pkg.getReleaseStatus()       != null          : releaseStatus.contains(pkg.getReleaseStatus()))
-                                                                        .filter(pkg -> Bitness.NONE       == bitness              ? pkg.getBitness()             != bitness       : pkg.getBitness()             == bitness)
-                                                                        .filter(pkg -> null               == javafxBundled        ? pkg.isJavaFXBundled()        != null          : pkg.isJavaFXBundled()        == javafxBundled)
-                                                                        .filter(pkg -> null               == directlyDownloadable ? pkg.isDirectlyDownloadable() != null          : pkg.isDirectlyDownloadable() == directlyDownloadable)
-                                                                        .filter(pkg -> featureVersion     == pkg.getJavaVersion().getVersionNumber().getFeature().getAsInt())
-                                                                        .max(Comparator.comparing(pkg -> pkg.getJavaVersion().getVersionNumber()));
-                        if (pkgWithMaxVersionNumber.isPresent()) {
-                            maxNumber = pkgWithMaxVersionNumber.get().getJavaVersion().getVersionNumber();
-                        } else {
-                            maxNumber = versionNumber;
-                        }
-                    }
-                    pkgsFound = pkgCache.stream()
-                                        .filter(pkg -> distributions.isEmpty()                    ? pkg.getDistribution()        != null          : distributions.contains(pkg.getDistribution()))
-                                        .filter(pkg -> Constants.SCOPE_LOOKUP.get(pkg.getDistribution()).stream().anyMatch(scopes.stream().collect(toSet())::contains))
-                                        .filter(pkg -> architectures.isEmpty()                    ? pkg.getArchitecture()        != null          : architectures.contains(pkg.getArchitecture()))
-                                        .filter(pkg -> archiveTypes.isEmpty()                     ? pkg.getArchiveType()         != null          : archiveTypes.contains(pkg.getArchiveType()))
-                                        .filter(pkg -> operatingSystems.isEmpty()                 ? pkg.getOperatingSystem()     != null          : operatingSystems.contains(pkg.getOperatingSystem()))
-                                        .filter(pkg -> libCTypes.isEmpty()                        ? pkg.getLibCType()            != null          : libCTypes.contains(pkg.getLibCType()))
-                                        .filter(pkg -> termsOfSupport.isEmpty()                   ? pkg.getTermOfSupport()       != null          : termsOfSupport.contains(pkg.getTermOfSupport()))
-                                        .filter(pkg -> PackageType.NONE   == packageType          ? pkg.getPackageType()         != packageType   : pkg.getPackageType()         == packageType)
-                                        .filter(pkg -> releaseStatus.isEmpty()                    ? pkg.getReleaseStatus()       != null          : releaseStatus.contains(pkg.getReleaseStatus()))
-                                        .filter(pkg -> Bitness.NONE       == bitness              ? pkg.getBitness()             != bitness       : pkg.getBitness()             == bitness)
-                                        .filter(pkg -> null               == javafxBundled        ? pkg.isJavaFXBundled()        != null          : pkg.isJavaFXBundled()        == javafxBundled)
-                                        .filter(pkg -> null               == directlyDownloadable ? pkg.isDirectlyDownloadable() != null          : pkg.isDirectlyDownloadable() == directlyDownloadable)
-                                        .filter(pkg -> pkg.getJavaVersion().getVersionNumber().compareTo(maxNumber) == 0)
-                                        .sorted(Comparator.comparing(Pkg::getDistributionName).reversed().thenComparing(Comparator.comparing((Pkg pkg1) -> pkg1.getJavaVersion().getVersionNumber()).reversed()))
-                                        .collect(Collectors.toList());
-                    break;
-                case PER_DISTRIBUTION:
-                    List<Distribution>               distributionsToCheck      = distributions.isEmpty() ? Distribution.getAsList().stream().filter(distribution -> Constants.SCOPE_LOOKUP.get(distribution).stream().anyMatch(scopes.stream().collect(toSet())::contains)).collect(Collectors.toList()) : distributions.stream().filter(distribution -> Constants.SCOPE_LOOKUP.get(distribution).stream().anyMatch(scopes.stream().collect(toSet())::contains)).collect(Collectors.toList());
-                    List<Pkg>                        pkgsTmp                   = new ArrayList<>();
-                    Map<Distribution, VersionNumber> maxVersionPerDistribution = new ConcurrentHashMap<>();
-                    distributionsToCheck.forEach(distro -> {
-                        Optional<Pkg> pkgFound = pkgCache.stream()
-                                                         .filter(pkg -> pkg.getDistribution().equals(distro))
-                                                         .filter(pkg -> architectures.isEmpty()                    ? pkg.getArchitecture()        != null          : architectures.contains(pkg.getArchitecture()))
-                                                         .filter(pkg -> archiveTypes.isEmpty()                     ? pkg.getArchiveType()         != null          : archiveTypes.contains(pkg.getArchiveType()))
-                                                         .filter(pkg -> operatingSystems.isEmpty()                 ? pkg.getOperatingSystem()     != null          : operatingSystems.contains(pkg.getOperatingSystem()))
-                                                         .filter(pkg -> libCTypes.isEmpty()                        ? pkg.getLibCType()            != null          : libCTypes.contains(pkg.getLibCType()))
-                                                         .filter(pkg -> termsOfSupport.isEmpty()                   ? pkg.getTermOfSupport()       != null          : termsOfSupport.contains(pkg.getTermOfSupport()))
-                                                         .filter(pkg -> PackageType.NONE   == packageType          ? pkg.getPackageType()         != packageType   : pkg.getPackageType()         == packageType)
-                                                         .filter(pkg -> releaseStatus.isEmpty()                    ? pkg.getReleaseStatus()       != null          : releaseStatus.contains(pkg.getReleaseStatus()))
-                                                         .filter(pkg -> Bitness.NONE       == bitness              ? pkg.getBitness()             != bitness       : pkg.getBitness()             == bitness)
-                                                         .filter(pkg -> null               == javafxBundled        ? pkg.isJavaFXBundled()        != null          : pkg.isJavaFXBundled()        == javafxBundled)
-                                                         .filter(pkg -> null               == directlyDownloadable ? pkg.isDirectlyDownloadable() != null          : pkg.isDirectlyDownloadable() == directlyDownloadable)
-                                                         .max(Comparator.comparing(pkg -> pkg.getJavaVersion().getVersionNumber()));
-                        if (pkgFound.isPresent()) { maxVersionPerDistribution.put(distro, pkgFound.get().getJavaVersion().getVersionNumber()); }
-                    });
-
-                    distributionsToCheck.forEach(distro -> pkgsTmp.addAll(pkgCache.stream()
-                                                                                  .filter(pkg -> pkg.getDistribution().equals(distro))
-                                                                                  .filter(pkg -> Constants.SCOPE_LOOKUP.get(pkg.getDistribution()).stream().anyMatch(scopes.stream().collect(toSet())::contains))
-                                                                                  .filter(pkg -> architectures.isEmpty()                    ? pkg.getArchitecture()        != null          : architectures.contains(pkg.getArchitecture()))
-                                                                                  .filter(pkg -> archiveTypes.isEmpty()                     ? pkg.getArchiveType()         != null          : archiveTypes.contains(pkg.getArchiveType()))
-                                                                                  .filter(pkg -> operatingSystems.isEmpty()                 ? pkg.getOperatingSystem()     != null          : operatingSystems.contains(pkg.getOperatingSystem()))
-                                                                                  .filter(pkg -> libCTypes.isEmpty()                        ? pkg.getLibCType()            != null          : libCTypes.contains(pkg.getLibCType()))
-                                                                                  .filter(pkg -> termsOfSupport.isEmpty()                   ? pkg.getTermOfSupport()       != null          : termsOfSupport.contains(pkg.getTermOfSupport()))
-                                                                                  .filter(pkg -> PackageType.NONE   == packageType          ? pkg.getPackageType()         != packageType   : pkg.getPackageType()         == packageType)
-                                                                                  .filter(pkg -> releaseStatus.isEmpty()                    ? pkg.getReleaseStatus()       != null          : releaseStatus.contains(pkg.getReleaseStatus()))
-                                                                                  .filter(pkg -> Bitness.NONE       == bitness              ? pkg.getBitness()             != bitness       : pkg.getBitness()             == bitness)
-                                                                                  .filter(pkg -> null               == javafxBundled        ? pkg.isJavaFXBundled()        != null          : pkg.isJavaFXBundled()        == javafxBundled)
-                                                                                  .filter(pkg -> null               == directlyDownloadable ? pkg.isDirectlyDownloadable() != null          : pkg.isDirectlyDownloadable() == directlyDownloadable)
-                                                                                  .filter(pkg -> pkg.getJavaVersion().getVersionNumber().equals(maxVersionPerDistribution.get(distro)))
-                                                                                  .sorted(Comparator.comparing(Pkg::getDistributionName).reversed().thenComparing(Comparator.comparing((Pkg pkg1) -> pkg1.getJavaVersion().getVersionNumber()).reversed()))
-                                                                                  .collect(Collectors.toList())));
-                    pkgsFound = pkgsTmp;
-                    break;
-                case PER_VERSION:
-                    pkgsFound = pkgCache.stream()
-                                        .filter(pkg -> distributions.isEmpty()                    ? pkg.getDistribution()        != null          : distributions.contains(pkg.getDistribution()))
-                                        .filter(pkg -> Constants.SCOPE_LOOKUP.get(pkg.getDistribution()).stream().anyMatch(scopes.stream().collect(toSet())::contains))
-                                        .filter(pkg -> architectures.isEmpty()                    ? pkg.getArchitecture()        != null          : architectures.contains(pkg.getArchitecture()))
-                                        .filter(pkg -> archiveTypes.isEmpty()                     ? pkg.getArchiveType()         != null          : archiveTypes.contains(pkg.getArchiveType()))
-                                        .filter(pkg -> operatingSystems.isEmpty()                 ? pkg.getOperatingSystem()     != null          : operatingSystems.contains(pkg.getOperatingSystem()))
-                                        .filter(pkg -> libCTypes.isEmpty()                        ? pkg.getLibCType()            != null          : libCTypes.contains(pkg.getLibCType()))
-                                        .filter(pkg -> termsOfSupport.isEmpty()                   ? pkg.getTermOfSupport()       != null          : termsOfSupport.contains(pkg.getTermOfSupport()))
-                                        .filter(pkg -> PackageType.NONE   == packageType          ? pkg.getPackageType()         != packageType   : pkg.getPackageType()         == packageType)
-                                        .filter(pkg -> releaseStatus.isEmpty()                    ? pkg.getReleaseStatus()       != null          : releaseStatus.contains(pkg.getReleaseStatus()))
-                                        .filter(pkg -> Bitness.NONE       == bitness              ? pkg.getBitness()             != bitness       : pkg.getBitness()             == bitness)
-                                        .filter(pkg -> null               == javafxBundled        ? pkg.isJavaFXBundled()        != null          : pkg.isJavaFXBundled()        == javafxBundled)
-                                        .filter(pkg -> null               == directlyDownloadable ? pkg.isDirectlyDownloadable() != null          : pkg.isDirectlyDownloadable() == directlyDownloadable)
-                                        .filter(pkg -> pkg.getJavaVersion().getVersionNumber().getFeature().getAsInt() == versionNumber.getFeature().getAsInt())
-                                        .filter(pkg -> pkg.isLatestBuildAvailable())
-                                        .sorted(Comparator.comparing(Pkg::getDistributionName).reversed().thenComparing(Comparator.comparing((Pkg pkg1) -> pkg1.getJavaVersion().getVersionNumber()).reversed()))
-                                        .collect(Collectors.toList());
-                    break;
-                case NONE:
-                case NOT_FOUND:
-                default:
-                    pkgsFound = pkgCache.stream()
-                                        .filter(pkg -> distributions.isEmpty()                    ? pkg.getDistribution()        != null          : distributions.contains(pkg.getDistribution()))
-                                        .filter(pkg -> Constants.SCOPE_LOOKUP.get(pkg.getDistribution()).stream().anyMatch(scopes.stream().collect(toSet())::contains))
-                                        .filter(pkg -> null != versionNumber ? pkg.getJavaVersion().getVersionNumber().compareTo(versionNumber) == 0 : null != pkg.getJavaVersion().getVersionNumber())
-                                        .filter(pkg -> architectures.isEmpty()                    ? pkg.getArchitecture()        != null          : architectures.contains(pkg.getArchitecture()))
-                                        .filter(pkg -> archiveTypes.isEmpty()                     ? pkg.getArchiveType()         != null          : archiveTypes.contains(pkg.getArchiveType()))
-                                        .filter(pkg -> operatingSystems.isEmpty()                 ? pkg.getOperatingSystem()     != null          : operatingSystems.contains(pkg.getOperatingSystem()))
-                                        .filter(pkg -> libCTypes.isEmpty()                        ? pkg.getLibCType()            != null          : libCTypes.contains(pkg.getLibCType()))
-                                        .filter(pkg -> termsOfSupport.isEmpty()                   ? pkg.getTermOfSupport()       != null          : termsOfSupport.contains(pkg.getTermOfSupport()))
-                                        .filter(pkg -> PackageType.NONE   == packageType          ? pkg.getPackageType()         != packageType   : pkg.getPackageType()         == packageType)
-                                        .filter(pkg -> releaseStatus.isEmpty()                    ? pkg.getReleaseStatus()       != null          : releaseStatus.contains(pkg.getReleaseStatus()))
-                                        .filter(pkg -> Bitness.NONE       == bitness              ? pkg.getBitness()             != bitness       : pkg.getBitness()             == bitness)
-                                        .filter(pkg -> null               == javafxBundled        ? pkg.isJavaFXBundled()        != null          : pkg.isJavaFXBundled()        == javafxBundled)
-                                        .filter(pkg -> null               == directlyDownloadable ? pkg.isDirectlyDownloadable() != null          : pkg.isDirectlyDownloadable() == directlyDownloadable)
-                                        .sorted(Comparator.comparing(Pkg::getDistributionName).reversed().thenComparing(Comparator.comparing((Pkg pkg1) -> pkg1.getJavaVersion().getVersionNumber()).reversed()))
-                                        .collect(Collectors.toList());
-                    if (null != versionNumber) {
-                        int featureVersion = versionNumber.getFeature().getAsInt();
-                        int interimVersion = versionNumber.getInterim().getAsInt();
-                        int updateVersion  = versionNumber.getUpdate().getAsInt();
-                        int patchVersion   = versionNumber.getPatch().getAsInt();
-                        if (0 != patchVersion) {
-                            // e.g. 11.N.N.3
-                            pkgsFound = pkgsFound.stream()
-                                                 .filter(pkg -> pkg.getJavaVersion().getVersionNumber().getFeature().getAsInt() == featureVersion)
-                                                 .filter(pkg -> pkg.getJavaVersion().getVersionNumber().getInterim().getAsInt() == interimVersion)
-                                                 .filter(pkg -> pkg.getJavaVersion().getVersionNumber().getUpdate().getAsInt()  == updateVersion)
-                                                 .filter(pkg -> pkg.getJavaVersion().getVersionNumber().getPatch().getAsInt()   == patchVersion)
-                                                 .collect(Collectors.toList());
-                        } else if (0 != updateVersion) {
-                            // e.g. 11.N.2.N
-                            pkgsFound = pkgsFound.stream()
-                                                 .filter(pkg -> pkg.getJavaVersion().getVersionNumber().getFeature().getAsInt() == featureVersion)
-                                                 .filter(pkg -> pkg.getJavaVersion().getVersionNumber().getInterim().getAsInt() == interimVersion)
-                                                 .filter(pkg -> pkg.getJavaVersion().getVersionNumber().getUpdate().getAsInt()  == updateVersion)
-                                                 .collect(Collectors.toList());
-                        } else if (0 != interimVersion) {
-                            // e.g. 11.1.N.N
-                            pkgsFound = pkgsFound.stream()
-                                                 .filter(pkg -> pkg.getJavaVersion().getVersionNumber().getFeature().getAsInt() == featureVersion)
-                                                 .filter(pkg -> pkg.getJavaVersion().getVersionNumber().getInterim().getAsInt() == interimVersion)
-                                                 .collect(Collectors.toList());
-                        } else {
-                            // e.g. 11.N.N.N
-                            pkgsFound = pkgsFound.stream()
-                                                 .filter(pkg -> pkg.getJavaVersion().getVersionNumber().getFeature().getAsInt() == featureVersion)
-                                                 .collect(Collectors.toList());
-                        }
-                    }
-                    break;
-            }
-        } else {
-            VersionNumber  minVersionNumber;
-            VersionNumber  maxVersionNumber;
-            Predicate<Pkg> greaterCheck;
-            Predicate<Pkg> smallerCheck;
-            Queue<MajorVersion> majorVersions = majorVersionCache.isEmpty() ? getAllMajorVersions(true) : majorVersionCache;
-            switch (comparison) {
-                case EQUAL:
-                    minVersionNumber = versionNumber;
-                    maxVersionNumber = versionNumber;
-                    greaterCheck     = pkg -> pkg.getJavaVersion().getVersionNumber().compareTo(minVersionNumber) >= 0;
-                    smallerCheck     = pkg -> pkg.getJavaVersion().getVersionNumber().compareTo(maxVersionNumber) <= 0;
-                    break;
-                case LESS_THAN:
-                    minVersionNumber = new VersionNumber(6);
-                    maxVersionNumber = versionNumber;
-                    greaterCheck     = pkg -> pkg.getJavaVersion().getVersionNumber().compareTo(minVersionNumber) >= 0;
-                    smallerCheck     = pkg -> pkg.getJavaVersion().getVersionNumber().compareTo(maxVersionNumber) < 0;
-                    break;
-                case LESS_THAN_OR_EQUAL:
-                    minVersionNumber = new VersionNumber(6);
-                    maxVersionNumber = versionNumber;
-                    greaterCheck     = pkg -> pkg.getJavaVersion().getVersionNumber().compareTo(minVersionNumber) >= 0;
-                    smallerCheck     = pkg -> pkg.getJavaVersion().getVersionNumber().compareTo(maxVersionNumber) <= 0;
-                    break;
-                case GREATER_THAN:
-                    minVersionNumber = versionNumber;
-                    maxVersionNumber = new VersionNumber(majorVersions.peek().getAsInt());
-                    greaterCheck     = pkg -> pkg.getJavaVersion().getVersionNumber().compareTo(minVersionNumber) > 0;
-                    smallerCheck     = pkg -> pkg.getJavaVersion().getVersionNumber().compareTo(maxVersionNumber) <= 0;
-                    break;
-                case GREATER_THAN_OR_EQUAL:
-                    minVersionNumber = versionNumber;
-                    maxVersionNumber = new VersionNumber(majorVersions.peek().getAsInt());
-                    greaterCheck     = pkg -> pkg.getJavaVersion().getVersionNumber().compareTo(minVersionNumber) >= 0;
-                    smallerCheck     = pkg -> pkg.getJavaVersion().getVersionNumber().compareTo(maxVersionNumber) <= 0;
-                    break;
-                default:
-                    minVersionNumber = new VersionNumber(6);
-                    maxVersionNumber = new VersionNumber(majorVersions.peek().getAsInt());
-                    greaterCheck     = pkg -> pkg.getJavaVersion().getVersionNumber().compareTo(minVersionNumber) >= 0;
-                    smallerCheck     = pkg -> pkg.getJavaVersion().getVersionNumber().compareTo(maxVersionNumber) <= 0;
-                    break;
-            }
-
-            pkgsFound = pkgCache.stream()
-                                .filter(pkg -> distributions.isEmpty()                  ? pkg.getDistribution()        != null          : distributions.contains(pkg.getDistribution()))
-                                .filter(pkg -> Constants.SCOPE_LOOKUP.get(pkg.getDistribution()).stream().anyMatch(scopes.stream().collect(toSet())::contains))
-                                .filter(pkg -> architectures.isEmpty()                  ? pkg.getArchitecture()        != null          : architectures.contains(pkg.getArchitecture()))
-                                .filter(pkg -> archiveTypes.isEmpty()                   ? pkg.getArchiveType()         != null          : archiveTypes.contains(pkg.getArchiveType()))
-                                .filter(pkg -> operatingSystems.isEmpty()               ? pkg.getOperatingSystem()     != null          : operatingSystems.contains(pkg.getOperatingSystem()))
-                                .filter(pkg -> libCTypes.isEmpty()                      ? pkg.getLibCType()            != null          : libCTypes.contains(pkg.getLibCType()))
-                                .filter(pkg -> termsOfSupport.isEmpty()                 ? pkg.getTermOfSupport()       != null          : termsOfSupport.contains(pkg.getTermOfSupport()))
-                                .filter(pkg -> PackageType.NONE == packageType          ? pkg.getPackageType()         != packageType   : pkg.getPackageType()         == packageType)
-                                .filter(pkg -> releaseStatus.isEmpty()                  ? pkg.getReleaseStatus()       != null          : releaseStatus.contains(pkg.getReleaseStatus()))
-                                .filter(pkg -> Bitness.NONE     == bitness              ? pkg.getBitness()             != bitness       : pkg.getBitness()             == bitness)
-                                .filter(pkg -> null             == javafxBundled        ? pkg.isJavaFXBundled()        != null          : pkg.isJavaFXBundled()        == javafxBundled)
-                                .filter(pkg -> null             == directlyDownloadable ? pkg.isDirectlyDownloadable() != null          : pkg.isDirectlyDownloadable() == directlyDownloadable)
-                                .filter(greaterCheck)
-                                .filter(smallerCheck)
-                                .sorted(Comparator.comparing(Pkg::getDistributionName).reversed().thenComparing(Comparator.comparing((Pkg pkg1) -> pkg1.getJavaVersion().getVersionNumber()).reversed()))
-                                .collect(Collectors.toList());
-        }
-        return pkgsFound;
-    }
-
 
 
     // ******************** Event Handling ************************************
