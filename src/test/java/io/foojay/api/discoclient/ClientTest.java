@@ -100,6 +100,7 @@ public class ClientTest {
         assert packagesFound.size() == 1;
     }
 
+    /*
     @Test
     public void downloadPkgTest() {
         DiscoClient discoClient = new DiscoClient();
@@ -110,6 +111,7 @@ public class ClientTest {
         Pkg     pkg     = packagesFound.get(0);
         PkgInfo pkgInfo = discoClient.getPkgInfo(pkg.getEphemeralId(), pkg.getJavaVersion());
 
+        assert null != pkgInfo;
         assert "https://cdn.azul.com/zulu/bin/zulu11.43.55-ca-jre11.0.9.1-win_x64.zip".equals(pkgInfo.getDirectDownloadUri());
 
         Future<?> future = discoClient.downloadPkg(pkgInfo, "./" + pkgInfo.getFileName());
@@ -123,6 +125,7 @@ public class ClientTest {
             System.out.println(e);
         }
     }
+    */
 
     @Test
     public void getPkgsAsJsonTest() {
