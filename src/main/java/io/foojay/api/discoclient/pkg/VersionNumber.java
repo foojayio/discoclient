@@ -21,8 +21,6 @@ import io.foojay.api.discoclient.util.OutputFormat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Positive;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -44,22 +42,13 @@ public class VersionNumber implements Comparable<VersionNumber> {
     public static final Pattern BUILD_NUMBER_PATTERN    = Pattern.compile("\\+?(b|B)([0-9]+)");
     public static final Pattern LEADING_INT_PATTERN     = Pattern.compile("^[0-9]*");
 
-    @NotNull
-    @Positive
     private OptionalInt feature;
-    @Positive
     private OptionalInt interim;
-    @Positive
     private OptionalInt update;
-    @Positive
     private OptionalInt patch;
-    @Positive
     private OptionalInt fifth;
-    @Positive
     private OptionalInt sixth;
-    @Positive
     private OptionalInt build;
-    @Positive
     private OptionalInt preBuild;
 
 
@@ -69,25 +58,25 @@ public class VersionNumber implements Comparable<VersionNumber> {
     public VersionNumber() {
         this(OptionalInt.empty(), OptionalInt.empty(), OptionalInt.empty(), OptionalInt.empty(), OptionalInt.empty(), OptionalInt.empty(), OptionalInt.empty(), Optional.empty(), OptionalInt.empty());
     }
-    public VersionNumber(@NotNull VersionNumber versionNumber) {
+    public VersionNumber(VersionNumber versionNumber) {
         this(versionNumber.getFeature(), versionNumber.getInterim(), versionNumber.getUpdate(), versionNumber.getPatch(), versionNumber.getFifth(), versionNumber.getSixth(), versionNumber.getBuild(), versionNumber.getReleaseStatus(), versionNumber.getPreBuild());
     }
-    public VersionNumber(@NotNull @Positive final Integer feature) {
+    public VersionNumber(final Integer feature) {
         this(feature, 0, 0, 0, 0, 0, null, null, null);
     }
-    public VersionNumber(@NotNull @Positive final Integer feature, @Positive final Integer interim) {
+    public VersionNumber(final Integer feature, final Integer interim) {
         this(feature, interim, 0, 0, 0, 0, null, null, null);
     }
-    public VersionNumber(@NotNull @Positive final Integer feature, @Positive final Integer interim, @Positive final Integer update) {
+    public VersionNumber(final Integer feature, final Integer interim, final Integer update) {
         this(feature, interim, update, 0, 0, 0, null, null, null);
     }
-    public VersionNumber(@NotNull @Positive final Integer feature, @Positive final Integer interim, @Positive final Integer update, @Positive final Integer patch) throws IllegalArgumentException {
+    public VersionNumber(final Integer feature, final Integer interim, final Integer update, final Integer patch) throws IllegalArgumentException {
         this(feature, interim, update, patch, 0, 0, null, null, null);
     }
-    public VersionNumber(@NotNull @Positive final Integer feature, @Positive final Integer interim, @Positive final Integer update, @Positive final Integer patch, @Positive final Integer fifth, @Positive final Integer sixth) {
+    public VersionNumber(final Integer feature, final Integer interim, final Integer update, final Integer patch, final Integer fifth, final Integer sixth) {
         this(feature, interim, update, patch, fifth, sixth, null, null, null);
     }
-    public VersionNumber(@NotNull @Positive final Integer feature, @Positive final Integer interim, @Positive final Integer update, @Positive final Integer patch, @Positive final Integer fifth, @Positive final Integer sixth, final Integer build, final ReleaseStatus releaseStatus, final Integer preBuild) throws IllegalArgumentException {
+    public VersionNumber(final Integer feature,final Integer interim, final Integer update, final Integer patch, final Integer fifth, final Integer sixth, final Integer build, final ReleaseStatus releaseStatus, final Integer preBuild) throws IllegalArgumentException {
         if (null == feature) { throw new IllegalArgumentException("Feature version cannot be null"); }
         if (0 >= feature) { throw new IllegalArgumentException("Feature version cannot be smaller than 0"); }
         if (null != interim && 0 > interim) { throw new IllegalArgumentException("Interim version cannot be smaller than 0"); }

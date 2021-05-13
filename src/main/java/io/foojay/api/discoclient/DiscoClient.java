@@ -84,7 +84,7 @@ public class DiscoClient {
     private static final Map<String, Distribution>              DISTRIBUTIONS = new ConcurrentHashMap<>();
     private static final String                                 DISTRO_URL    = "https://github.com/foojay2020/distributions/raw/main/distributions.json";
     private        final Map<String, List<EvtObserver>>         observers     = new ConcurrentHashMap<>();
-    private              AtomicBoolean                          initialzed    = new AtomicBoolean(false);
+    private static       AtomicBoolean                          initialzed    = new AtomicBoolean(false);
 
 
     public DiscoClient() {
@@ -92,7 +92,7 @@ public class DiscoClient {
     }
 
 
-    private void preloadDistributions() {
+    private static void preloadDistributions() {
         Helper.preloadDistributions().thenAccept(distros -> {
             DISTRIBUTIONS.putAll(distros);
             DISTRIBUTIONS.entrySet().stream().forEach(entry -> SCOPE_LOOKUP.put(entry.getKey(), entry.getValue().getScopes()));
@@ -1295,6 +1295,16 @@ public class DiscoClient {
 
     public static Distribution getDistributionFromText(final String text) {
         if (null == text) { return null; }
+        if (DISTRIBUTIONS.isEmpty()) {
+            preloadDistributions();
+            while (initialzed.get() == false) {
+                try {
+                    Thread.sleep(10);
+                } catch (InterruptedException e) {
+
+                }
+            }
+        }
         return DISTRIBUTIONS.values().stream().filter(distribution -> distribution.getFromText(text) != null).findFirst().orElse(null);
     }
 
