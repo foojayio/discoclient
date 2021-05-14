@@ -54,24 +54,26 @@ public class Pkg {
     public  static final String          FIELD_DIRECTLY_DOWNLOADABLE  = "directly_downloadable";
     public  static final String          FIELD_FILENAME               = "filename";
     public  static final String          FIELD_EPHEMERAL_ID           = "ephemeral_id";
+    public  static final String          FIELD_USAGE_INFO             = "usage_info";
 
     private              String          id;
-    private              ArchiveType     archiveType;
+    private              String          ephemeralId;
     private              Distribution    distribution;
     private              MajorVersion    majorVersion;
     private              SemVer          javaVersion;
     private              VersionNumber   distributionVersion;
-    private              Boolean         latestBuildAvailable;
-    private              ReleaseStatus   releaseStatus;
-    private              TermOfSupport   termOfSupport;
+    private              Architecture    architecture;
     private              OperatingSystem operatingSystem;
     private              LibCType        libcType;
-    private              Architecture    architecture;
     private              PackageType     packageType;
+    private              ReleaseStatus   releaseStatus;
+    private              ArchiveType     archiveType;
+    private              TermOfSupport   termOfSupport;
     private              Boolean         javafxBundled;
+    private              Boolean         latestBuildAvailable;
     private              Boolean         directlyDownloadable;
     private              String          fileName;
-    private              String          ephemeralId;
+    private              UsageInfo       usageInfo;
 
 
     public Pkg(final String packageJson) {
@@ -99,6 +101,7 @@ public class Pkg {
         this.directlyDownloadable = json.has(FIELD_DIRECTLY_DOWNLOADABLE)  ? json.get(FIELD_DIRECTLY_DOWNLOADABLE).getAsBoolean()                            : Boolean.FALSE;
         this.fileName             = json.has(FIELD_FILENAME)               ? json.get(FIELD_FILENAME).getAsString()                                          : "";
         this.ephemeralId          = json.has(FIELD_EPHEMERAL_ID)           ? json.get(FIELD_EPHEMERAL_ID).getAsString()                                      : "";
+        this.usageInfo            = json.has(FIELD_USAGE_INFO)             ? UsageInfo.fromText(json.get(FIELD_USAGE_INFO).getAsString())                    : UsageInfo.NOT_FOUND;
     }
 
 
@@ -148,6 +151,8 @@ public class Pkg {
 
     public String getEphemeralId() { return ephemeralId; }
 
+    public UsageInfo getUsageInfo() { return usageInfo; }
+
     @Override public boolean equals(final Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
@@ -176,7 +181,8 @@ public class Pkg {
                                   .append(INDENTED_QUOTES).append(FIELD_TERM_OF_SUPPORT).append(QUOTES).append(COLON).append(QUOTES).append(termOfSupport.name()).append(QUOTES).append(COMMA_NEW_LINE)
                                   .append(INDENTED_QUOTES).append(FIELD_JAVAFX_BUNDLED).append(QUOTES).append(COLON).append(javafxBundled).append(COMMA_NEW_LINE)
                                   .append(INDENTED_QUOTES).append(FIELD_FILENAME).append(QUOTES).append(COLON).append(fileName).append(COMMA_NEW_LINE)
-                                  .append(INDENTED_QUOTES).append(FIELD_EPHEMERAL_ID).append(QUOTES).append(COLON).append(QUOTES).append(ephemeralId).append(QUOTES).append(NEW_LINE)
+                                  .append(INDENTED_QUOTES).append(FIELD_EPHEMERAL_ID).append(QUOTES).append(COLON).append(QUOTES).append(ephemeralId).append(QUOTES).append(COMMA_NEW_LINE)
+                                  .append(INDENTED_QUOTES).append(FIELD_USAGE_INFO).append(QUOTES).append(COLON).append(QUOTES).append(usageInfo.getUiString()).append(QUOTES).append(NEW_LINE)
                                   .append(CURLY_BRACKET_CLOSE)
                                   .toString();
     }
