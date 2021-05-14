@@ -69,6 +69,10 @@ public class MajorVersion {
 
     public boolean isMaintained() { return maintained; }
 
+    public Boolean isEarlyAccessOnly() {
+        return getVersions().stream().filter(semver -> ReleaseStatus.EA == semver.getReleaseStatus()).count() == getVersions().size();
+    }
+
     public List<SemVer> getVersions() { return versions; }
 
     // VersionNumber
