@@ -85,9 +85,14 @@ public class DiscoClient {
     private static final String                                 DISTRO_URL    = "https://github.com/foojay2020/distributions/raw/main/distributions.json";
     private        final Map<String, List<EvtObserver>>         observers     = new ConcurrentHashMap<>();
     private static       AtomicBoolean                          initialzed    = new AtomicBoolean(false);
+    private              String                                 userAgent     = "";
 
 
     public DiscoClient() {
+        this("");
+    }
+    public DiscoClient(final String userAgent) {
+        this.userAgent = userAgent;
         preloadDistributions();
     }
 
@@ -693,12 +698,13 @@ public class DiscoClient {
 
 
     public final List<MajorVersion> getMaintainedMajorVersions() { return getMaintainedMajorVersions(false); }
-    public final List<MajorVersion> getMaintainedMajorVersions(final boolean include_ea) {
+    public final List<MajorVersion> getMaintainedMajorVersions(final boolean include_ea) { return getMaintainedMajorVersions(include_ea, true); }
+    public final List<MajorVersion> getMaintainedMajorVersions(final boolean include_ea, final boolean include_build) {
         StringBuilder queryBuilder = new StringBuilder().append(PropertyManager.INSTANCE.getString(Constants.PROPERTY_KEY_DISCO_URL))
                                                         .append(Constants.MAJOR_VERSIONS_PATH)
                                                         .append("?maintained=true&ga=true")
                                                         .append(include_ea ? "&ea=true" : "")
-                                                        .append(include_ea);
+                                                        .append(include_build ? "" : "&include_build=false");
 
         String             query              = queryBuilder.toString();
         String             bodyText           = Helper.get(query).body();
@@ -1310,6 +1316,13 @@ public class DiscoClient {
 
 
     public void cancelRequest() { Helper.cancelRequest(); }
+
+
+    public String getUserAgent() { return userAgent; }
+    public void setUserAgent(final String userAgent) {
+        if (null == userAgent || userAgent.isEmpty()) { return; }
+        this.userAgent = userAgent;
+    }
 
 
     public static final OperatingSystem getOperatingSystem() {
