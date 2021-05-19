@@ -1115,11 +1115,20 @@ public class DiscoClient {
     }
 
 
-    public final String getPkgDirectDownloadUri(final String id, final SemVer javaVersion) {
-        return getPkgInfo(id, javaVersion).getDirectDownloadUri();
+    public final String getPkgDirectDownloadUri(final String pkgId) {
+        final Pkg pkg = getPkg(pkgId);
+        return getPkgInfo(pkg.getEphemeralId(), pkg.getJavaVersion()).getDirectDownloadUri();
     }
-    public final CompletableFuture<String> getPkgDirectDownloadUriAsync(final String id, final SemVer javaVersion) {
-        return getPkgInfoAsync(id, javaVersion).thenApply(pkgInfo -> pkgInfo.getDirectDownloadUri());
+    public final CompletableFuture<String> getPkgDirectDownloadUriAsync(final String pkgId) {
+        return getPkgAsync(pkgId).thenApply(pkg -> getPkgInfoAsync(pkg.getEphemeralId(), pkg.getJavaVersion()).thenApply(pkgInfo -> pkgInfo.getDirectDownloadUri())).join();
+    }
+
+
+    public final String getPkgDirectDownloadUri(final String ephemeralId, final SemVer javaVersion) {
+        return getPkgInfo(ephemeralId, javaVersion).getDirectDownloadUri();
+    }
+    public final CompletableFuture<String> getPkgDirectDownloadUriAsync(final String ephemeralId, final SemVer javaVersion) {
+        return getPkgInfoAsync(ephemeralId, javaVersion).thenApply(pkgInfo -> pkgInfo.getDirectDownloadUri());
     }
 
 
@@ -1139,9 +1148,10 @@ public class DiscoClient {
             JsonArray  jsonArray  = jsonObject.getAsJsonArray("result");
             if (jsonArray.size() > 0) {
                 final JsonObject packageInfoJson   = jsonArray.get(0).getAsJsonObject();
-                final String     filename          = packageInfoJson.get(PkgInfo.FIELD_FILENAME).getAsString();
-                final String     directDownloadUri = packageInfoJson.get(PkgInfo.FIELD_DIRECT_DOWNLOAD_URI).getAsString();
-                final String     downloadSiteUri   = packageInfoJson.get(PkgInfo.FIELD_DOWNLOAD_SITE_URI).getAsString();
+                final String     filename          = packageInfoJson.has(PkgInfo.FIELD_FILENAME)            ? packageInfoJson.get(PkgInfo.FIELD_FILENAME).getAsString()            : "";
+                final String     directDownloadUri = packageInfoJson.has(PkgInfo.FIELD_DIRECT_DOWNLOAD_URI) ? packageInfoJson.get(PkgInfo.FIELD_DIRECT_DOWNLOAD_URI).getAsString() : "";
+                final String     downloadSiteUri   = packageInfoJson.has(PkgInfo.FIELD_DIRECT_DOWNLOAD_URI) ? packageInfoJson.get(PkgInfo.FIELD_DOWNLOAD_SITE_URI).getAsString()   : "";
+                if (null == filename) { return null; }
                 return new PkgInfo(filename, javaVersion, directDownloadUri, downloadSiteUri);
             } else {
                 return null;
@@ -1163,9 +1173,10 @@ public class DiscoClient {
                 JsonArray  jsonArray  = jsonObject.getAsJsonArray("result");
                 if (jsonArray.size() > 0) {
                     final JsonObject packageInfoJson   = jsonArray.get(0).getAsJsonObject();
-                    final String     filename          = packageInfoJson.get(PkgInfo.FIELD_FILENAME).getAsString();
-                    final String     directDownloadUri = packageInfoJson.get(PkgInfo.FIELD_DIRECT_DOWNLOAD_URI).getAsString();
-                    final String     downloadSiteUri   = packageInfoJson.get(PkgInfo.FIELD_DOWNLOAD_SITE_URI).getAsString();
+                    final String     filename          = packageInfoJson.has(PkgInfo.FIELD_FILENAME)            ? packageInfoJson.get(PkgInfo.FIELD_FILENAME).getAsString()            : "";
+                    final String     directDownloadUri = packageInfoJson.has(PkgInfo.FIELD_DIRECT_DOWNLOAD_URI) ? packageInfoJson.get(PkgInfo.FIELD_DIRECT_DOWNLOAD_URI).getAsString() : "";
+                    final String     downloadSiteUri   = packageInfoJson.has(PkgInfo.FIELD_DIRECT_DOWNLOAD_URI) ? packageInfoJson.get(PkgInfo.FIELD_DOWNLOAD_SITE_URI).getAsString()   : "";
+                    if (null == filename) { return null; }
                     return new PkgInfo(filename, javaVersion, directDownloadUri, downloadSiteUri);
                 } else {
                     return null;
@@ -1177,6 +1188,7 @@ public class DiscoClient {
 
 
     public final Future<?> downloadPkg(final String pkgId, final String targetFileName) {
+        if (null == pkgId || null == targetFileName) { return null; }
         Pkg pkg = getPkg(pkgId);
         if (null == pkg) {
             return null;
