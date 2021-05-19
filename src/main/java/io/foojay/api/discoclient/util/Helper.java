@@ -127,7 +127,10 @@ public class Helper {
                                                   .setConnectionRequestTimeout(60, TimeUnit.SECONDS)
                                                   .setResponseTimeout(60, TimeUnit.SECONDS)
                                                   .build();
-        try (final CloseableHttpClient httpClient = HttpClientBuilder.create().setDefaultRequestConfig(config).build()) {
+        try (final CloseableHttpClient httpClient = HttpClientBuilder.create()
+                                                                     .setUserAgent("DiscoClient (NetBeans)")
+                                                                     .setDefaultRequestConfig(config)
+                                                                     .build()) {
             final HttpGet httpGet = new HttpGet(URI.create(uri));
             httpGet.addHeader(HttpHeaders.USER_AGENT, "DiscoClient");
 
@@ -154,7 +157,10 @@ public class Helper {
                                                   .setConnectionRequestTimeout(60, TimeUnit.SECONDS)
                                                   .setResponseTimeout(60, TimeUnit.SECONDS)
                                                   .build();
-        final CloseableHttpAsyncClient client = HttpAsyncClientBuilder.create().setDefaultRequestConfig(config).build();
+        final CloseableHttpAsyncClient client = HttpAsyncClientBuilder.create()
+                                                                      .setUserAgent("DiscoClient (NetBeans)")
+                                                                      .setDefaultRequestConfig(config)
+                                                                      .build();
         client.start();
 
         final CompletableFuture<String>  toComplete = new CompletableFuture<>();
