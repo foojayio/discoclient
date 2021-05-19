@@ -84,7 +84,7 @@ public class DiscoClient {
     private static final Map<String, Distribution>              DISTRIBUTIONS = new ConcurrentHashMap<>();
     private static final String                                 DISTRO_URL    = "https://github.com/foojay2020/distributions/raw/main/distributions.json";
     private        final Map<String, List<EvtObserver>>         observers     = new ConcurrentHashMap<>();
-    private static       AtomicBoolean                          initialzed    = new AtomicBoolean(false);
+    private static       AtomicBoolean                          initialized   = new AtomicBoolean(false);
     private              String                                 userAgent     = "";
 
 
@@ -101,7 +101,7 @@ public class DiscoClient {
         Helper.preloadDistributions().thenAccept(distros -> {
             DISTRIBUTIONS.putAll(distros);
             DISTRIBUTIONS.entrySet().stream().forEach(entry -> SCOPE_LOOKUP.put(entry.getKey(), entry.getValue().getScopes()));
-            Helper.getAsync(DISTRO_URL).thenAccept(response -> {
+            Helper.getAsync(DISTRO_URL, "").thenAccept(response -> {
                 if (null != response) {
                     if (response.statusCode() == 200) {
                         String                    jsonText           = response.body();
@@ -115,13 +115,13 @@ public class DiscoClient {
                         }
                     }
                 }
-                initialzed.set(true);
+                initialized.set(true);
             });
         });
     }
 
 
-    public boolean isInitialzed() { return initialzed.get(); }
+    public boolean isInitialzed() { return initialized.get(); }
 
 
     public Queue<Pkg> getAllPackages() {
@@ -136,7 +136,7 @@ public class DiscoClient {
         Queue<Pkg> pkgs     = new ConcurrentLinkedQueue<>();
         List<Pkg> pkgsFound = new ArrayList<>();
 
-        String      bodyText = Helper.get(query).body();
+        String      bodyText = Helper.get(query, userAgent).body();
         Gson        gson     = new Gson();
         JsonElement element  = gson.fromJson(bodyText, JsonElement.class);
         if (element instanceof JsonObject) {
@@ -161,7 +161,7 @@ public class DiscoClient {
                                                         .append("&release_status=ga");
         String query = queryBuilder.toString();
 
-        CompletableFuture<Queue<Pkg>> future = Helper.getAsync(query).thenApply(response -> {
+        CompletableFuture<Queue<Pkg>> future = Helper.getAsync(query, userAgent).thenApply(response -> {
             Queue<Pkg>  pkgsFound = new ConcurrentLinkedQueue<>();
             Gson        gson      = new Gson();
             JsonElement element   = gson.fromJson(response.body(), JsonElement.class);
@@ -291,7 +291,7 @@ public class DiscoClient {
         if (query.isEmpty()) { return List.of(); }
 
         List<Pkg>   pkgs     = new LinkedList<>();
-        String      bodyText = Helper.get(query).body();
+        String      bodyText = Helper.get(query, userAgent).body();
 
         List<Pkg>   pkgsFound = new ArrayList<>();
         Gson        gson      = new Gson();
@@ -392,7 +392,7 @@ public class DiscoClient {
         String query = queryBuilder.toString();
         if (query.isEmpty()) { return new CompletableFuture<>(); }
 
-        return Helper.getAsync(query).thenApply(response -> {
+        return Helper.getAsync(query, userAgent).thenApply(response -> {
             List<Pkg>   pkgs      = new LinkedList<>();
             List<Pkg>   pkgsFound = new ArrayList<>();
             Gson        gson      = new Gson();
@@ -437,7 +437,7 @@ public class DiscoClient {
             LOGGER.debug("No major version found for given parameter {}.", parameter);
             return null;
         }
-        String      bodyText = Helper.get(query).body();
+        String      bodyText = Helper.get(query, userAgent).body();
         Gson        gson     = new Gson();
         JsonElement element  = gson.fromJson(bodyText, JsonElement.class);
         if (element instanceof JsonObject) {
@@ -466,7 +466,7 @@ public class DiscoClient {
             LOGGER.debug("No major version found for given parameter {}.", parameter);
             return null;
         }
-        return Helper.getAsync(query).thenApply(response -> {
+        return Helper.getAsync(query, userAgent).thenApply(response -> {
             Gson        gson     = new Gson();
             JsonElement element  = gson.fromJson(response.body(), JsonElement.class);
             if (element instanceof JsonObject) {
@@ -496,7 +496,7 @@ public class DiscoClient {
                                                         .append(include_build ? "" : "&include_build=false");
 
         String              query              = queryBuilder.toString();
-        String              bodyText           = Helper.get(query).body();
+        String              bodyText           = Helper.get(query, userAgent).body();
         Queue<MajorVersion> majorVersionsFound = new ConcurrentLinkedQueue<>();
 
         Gson        gson     = new Gson();
@@ -533,7 +533,7 @@ public class DiscoClient {
         }
 
         String             query              = queryBuilder.toString();
-        String             bodyText           = Helper.get(query).body();
+        String             bodyText           = Helper.get(query, userAgent).body();
         List<MajorVersion> majorVersionsFound = new ArrayList<>();
 
         Gson        gson     = new Gson();
@@ -558,7 +558,7 @@ public class DiscoClient {
                                                         .append("?ea=").append(include_ea)
                                                         .append(include_build ? "" : "&include_build=false");
         String query = queryBuilder.toString();
-        return Helper.getAsync(query).thenApply(reponse -> {
+        return Helper.getAsync(query, userAgent).thenApply(reponse -> {
             List<MajorVersion> majorVersionsFound = new CopyOnWriteArrayList<>();
             Gson        gson     = new Gson();
             JsonElement element  = gson.fromJson(reponse.body(), JsonElement.class);
@@ -595,7 +595,7 @@ public class DiscoClient {
         }
 
         String query = queryBuilder.toString();
-        return Helper.getAsync(query).thenApply(response -> {
+        return Helper.getAsync(query, userAgent).thenApply(response -> {
             List<MajorVersion> majorVersionsFound = new ArrayList<>();
             Gson        gson     = new Gson();
             JsonElement element  = gson.fromJson(response.body(), JsonElement.class);
@@ -620,7 +620,7 @@ public class DiscoClient {
                                                         .append(include_build ? "": "&include_build=false");
 
         String query    = queryBuilder.toString();
-        String bodyText = Helper.get(query).body();
+        String bodyText = Helper.get(query, userAgent).body();
 
         Gson        gson     = new Gson();
         JsonElement element  = gson.fromJson(bodyText, JsonElement.class);
@@ -647,7 +647,7 @@ public class DiscoClient {
                                                         .append(include_build ? "" : "&include_build=false");
 
         String query = queryBuilder.toString();
-        return Helper.getAsync(query).thenApply(response -> {
+        return Helper.getAsync(query, userAgent).thenApply(response -> {
             Gson        gson     = new Gson();
             JsonElement element  = gson.fromJson(response.body(), JsonElement.class);
             if (element instanceof JsonObject) {
@@ -707,7 +707,7 @@ public class DiscoClient {
                                                         .append(include_build ? "" : "&include_build=false");
 
         String             query              = queryBuilder.toString();
-        String             bodyText           = Helper.get(query).body();
+        String             bodyText           = Helper.get(query, userAgent).body();
         List<MajorVersion> majorVersionsFound = new ArrayList<>();
 
         Gson        gson     = new Gson();
@@ -736,7 +736,7 @@ public class DiscoClient {
                                                         .append(include_build ? "" : "&include_build=false");
 
         String query = queryBuilder.toString();
-        return Helper.getAsync(query).thenApply(response -> {
+        return Helper.getAsync(query, userAgent).thenApply(response -> {
             List<MajorVersion> majorVersionsFound = new ArrayList<>();
 
             Gson        gson     = new Gson();
@@ -764,7 +764,7 @@ public class DiscoClient {
                                                         .append(include_build ? "" : "&include_build=false");
 
         String             query              = queryBuilder.toString();
-        String             bodyText           = Helper.get(query).body();
+        String             bodyText           = Helper.get(query, userAgent).body();
         List<MajorVersion> majorVersionsFound = new ArrayList<>();
 
         Gson        gson     = new Gson();
@@ -791,7 +791,7 @@ public class DiscoClient {
                                                         .append(include_build ? "" : "include_build=false");
 
         String query = queryBuilder.toString();
-        return Helper.getAsync(query).thenApply(response -> {
+        return Helper.getAsync(query, userAgent).thenApply(response -> {
             List<MajorVersion> majorVersionsFound = new ArrayList<>();
 
             Gson        gson     = new Gson();
@@ -943,7 +943,7 @@ public class DiscoClient {
                                                         .append(Constants.DISTRIBUTIONS_PATH);
 
         String             query              = queryBuilder.toString();
-        String             bodyText           = Helper.get(query).body();
+        String             bodyText           = Helper.get(query, userAgent).body();
         List<Distribution> distributionsFound = new LinkedList<>();
 
         Gson        gson     = new Gson();
@@ -965,7 +965,7 @@ public class DiscoClient {
         StringBuilder queryBuilder = new StringBuilder().append(PropertyManager.INSTANCE.getString(Constants.PROPERTY_KEY_DISCO_URL))
                                                         .append(Constants.DISTRIBUTIONS_PATH);
         String query = queryBuilder.toString();
-        return Helper.getAsync(query).thenApply(response -> {
+        return Helper.getAsync(query, userAgent).thenApply(response -> {
             List<Distribution> distributionsFound = new LinkedList<>();
             Gson               gson               = new Gson();
             JsonElement        element            = gson.fromJson(response.body(), JsonElement.class);
@@ -991,7 +991,7 @@ public class DiscoClient {
                                                         .append("/versions/")
                                                         .append(semVer.toString());
         String             query              = queryBuilder.toString();
-        String             bodyText           = Helper.get(query).body();
+        String             bodyText           = Helper.get(query, userAgent).body();
         List<Distribution> distributionsFound = new LinkedList<>();
 
         Gson        gson     = new Gson();
@@ -1016,7 +1016,7 @@ public class DiscoClient {
                                                         .append(semVer.toString());
 
         String query = queryBuilder.toString();
-        return Helper.getAsync(query).thenApply(response -> {
+        return Helper.getAsync(query, userAgent).thenApply(response -> {
             List<Distribution> distributionsFound = new LinkedList<>();
             Gson               gson               = new Gson();
             JsonElement        element            = gson.fromJson(response.body(), JsonElement.class);
@@ -1043,7 +1043,7 @@ public class DiscoClient {
                                                         .append(versionNumber.toString());
 
         String             query              = queryBuilder.toString();
-        String             bodyText           = Helper.get(query).body();
+        String             bodyText           = Helper.get(query, userAgent).body();
         List<Distribution> distributionsFound = new LinkedList<>();
 
         Gson        gson     = new Gson();
@@ -1068,7 +1068,7 @@ public class DiscoClient {
                                                         .append(versionNumber.toString());
 
         String query = queryBuilder.toString();
-        return Helper.getAsync(query).thenApply(response -> {
+        return Helper.getAsync(query, userAgent).thenApply(response -> {
             List<Distribution> distributionsFound = new LinkedList<>();
             Gson               gson               = new Gson();
             JsonElement        element            = gson.fromJson(response.body(), JsonElement.class);
@@ -1092,7 +1092,7 @@ public class DiscoClient {
         StringBuilder queryBuilder = new StringBuilder().append(PropertyManager.INSTANCE.getString(Constants.PROPERTY_KEY_DISCO_URL))
                                                         .append(Constants.DISTRIBUTIONS_PATH);
         String                                 query              = queryBuilder.toString();
-        String                                 bodyText           = Helper.get(query).body();
+        String                                 bodyText           = Helper.get(query, "").body();
         Map<Distribution, List<VersionNumber>> distributionsFound = new LinkedHashMap<>();
         Gson                                   gson               = new Gson();
         JsonElement                            element            = gson.fromJson(bodyText, JsonElement.class);
@@ -1120,7 +1120,7 @@ public class DiscoClient {
                                                         .append(Constants.DISTRIBUTIONS_PATH);
 
         String query = queryBuilder.toString();
-        return Helper.getAsync(query).thenApply(response -> {
+        return Helper.getAsync(query, "").thenApply(response -> {
             Map<Distribution, List<VersionNumber>> distributionsFound = new LinkedHashMap<>();
             Gson                                   gson               = new Gson();
             JsonElement                            element            = gson.fromJson(response.body(), JsonElement.class);
@@ -1181,7 +1181,7 @@ public class DiscoClient {
                                                         .append(ephemeralId);
 
         String query           = queryBuilder.toString();
-        String packageInfoBody = Helper.get(query).body();
+        String packageInfoBody = Helper.get(query, userAgent).body();
 
         Gson        packageInfoGson    = new Gson();
         JsonElement packageInfoElement = packageInfoGson.fromJson(packageInfoBody, JsonElement.class);
@@ -1206,7 +1206,7 @@ public class DiscoClient {
                                                         .append("/")
                                                         .append(ephemeralId);
         String query           = queryBuilder.toString();
-        return Helper.getAsync(query).thenApply(response -> {
+        return Helper.getAsync(query, userAgent).thenApply(response -> {
             Gson        packageInfoGson    = new Gson();
             JsonElement packageInfoElement = packageInfoGson.fromJson(response.body(), JsonElement.class);
             if (packageInfoElement instanceof JsonObject) {
@@ -1238,7 +1238,7 @@ public class DiscoClient {
         }
     }
     public final Future<?> downloadPkg(final String ephemeralId, final SemVer javaVersion, final String targetFileName) {
-        final String              url      = getPkgInfo(ephemeralId,javaVersion).getDirectDownloadUri();
+        final String              url      = getPkgInfo(ephemeralId, javaVersion).getDirectDownloadUri();
         final FutureTask<Boolean> task     = createDownloadTask(targetFileName, url);
         final ExecutorService     executor = Executors.newSingleThreadExecutor();
         final Future<?>           future   = executor.submit(task);
@@ -1271,12 +1271,19 @@ public class DiscoClient {
                                                         .append(pkgId);
 
         String query    = queryBuilder.toString();
-        String bodyText = Helper.get(query).body();
+        String bodyText = Helper.get(query, userAgent).body();
 
         Gson        pkgGson    = new Gson();
         JsonElement pkgElement = pkgGson.fromJson(bodyText, JsonElement.class);
         if (pkgElement instanceof JsonObject) {
-            return new Pkg(pkgElement.getAsJsonObject().toString());
+            JsonObject jsonObject = pkgElement.getAsJsonObject();
+            JsonArray  jsonArray  = jsonObject.getAsJsonArray("result");
+            if (jsonArray.size() > 0) {
+                final JsonObject pkgJson = jsonArray.get(0).getAsJsonObject();
+                return new Pkg(pkgJson.toString());
+            } else {
+                return null;
+            }
         } else {
             return null;
         }
@@ -1287,11 +1294,18 @@ public class DiscoClient {
                                                         .append("/")
                                                         .append(pkgId);
         String query = queryBuilder.toString();
-        return Helper.getAsync(query).thenApply(response -> {
+        return Helper.getAsync(query, userAgent).thenApply(response -> {
             Gson        pkgGson    = new Gson();
             JsonElement pkgElement = pkgGson.fromJson(response.body(), JsonElement.class);
             if (pkgElement instanceof JsonObject) {
-                return new Pkg(pkgElement.getAsJsonObject().toString());
+                JsonObject jsonObject = pkgElement.getAsJsonObject();
+                JsonArray  jsonArray  = jsonObject.getAsJsonArray("result");
+                if (jsonArray.size() > 0) {
+                    final JsonObject pkgJson = jsonArray.get(0).getAsJsonObject();
+                    return new Pkg(pkgJson.toString());
+                } else {
+                    return null;
+                }
             } else {
                 return null;
             }
@@ -1303,7 +1317,7 @@ public class DiscoClient {
         if (null == text) { return null; }
         if (DISTRIBUTIONS.isEmpty()) {
             preloadDistributions();
-            while (initialzed.get() == false) {
+            while (initialized.get() == false) {
                 try {
                     Thread.sleep(10);
                 } catch (InterruptedException e) {
