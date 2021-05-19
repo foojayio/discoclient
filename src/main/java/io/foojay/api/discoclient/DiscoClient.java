@@ -1191,9 +1191,10 @@ public class DiscoClient {
             JsonArray  jsonArray  = jsonObject.getAsJsonArray("result");
             if (jsonArray.size() > 0) {
                 final JsonObject packageInfoJson   = jsonArray.get(0).getAsJsonObject();
-                final String     filename          = packageInfoJson.get(PkgInfo.FIELD_FILENAME).getAsString();
-                final String     directDownloadUri = packageInfoJson.get(PkgInfo.FIELD_DIRECT_DOWNLOAD_URI).getAsString();
-                final String     downloadSiteUri   = packageInfoJson.get(PkgInfo.FIELD_DOWNLOAD_SITE_URI).getAsString();
+                final String     filename          = packageInfoJson.has(PkgInfo.FIELD_FILENAME)            ? packageInfoJson.get(PkgInfo.FIELD_FILENAME).getAsString()            : "";
+                final String     directDownloadUri = packageInfoJson.has(PkgInfo.FIELD_DIRECT_DOWNLOAD_URI) ? packageInfoJson.get(PkgInfo.FIELD_DIRECT_DOWNLOAD_URI).getAsString() : "";
+                final String     downloadSiteUri   = packageInfoJson.has(PkgInfo.FIELD_DIRECT_DOWNLOAD_URI) ? packageInfoJson.get(PkgInfo.FIELD_DOWNLOAD_SITE_URI).getAsString()   : "";
+                if (null == filename) { return null; }
                 return new PkgInfo(filename, javaVersion, directDownloadUri, downloadSiteUri);
             } else {
                 return null;
@@ -1215,9 +1216,10 @@ public class DiscoClient {
                 JsonArray  jsonArray  = jsonObject.getAsJsonArray("result");
                 if (jsonArray.size() > 0) {
                     final JsonObject packageInfoJson   = jsonArray.get(0).getAsJsonObject();
-                    final String     filename          = packageInfoJson.get(PkgInfo.FIELD_FILENAME).getAsString();
-                    final String     directDownloadUri = packageInfoJson.get(PkgInfo.FIELD_DIRECT_DOWNLOAD_URI).getAsString();
-                    final String     downloadSiteUri   = packageInfoJson.get(PkgInfo.FIELD_DOWNLOAD_SITE_URI).getAsString();
+                    final String     filename          = packageInfoJson.has(PkgInfo.FIELD_FILENAME)            ? packageInfoJson.get(PkgInfo.FIELD_FILENAME).getAsString()            : "";
+                    final String     directDownloadUri = packageInfoJson.has(PkgInfo.FIELD_DIRECT_DOWNLOAD_URI) ? packageInfoJson.get(PkgInfo.FIELD_DIRECT_DOWNLOAD_URI).getAsString() : "";
+                    final String     downloadSiteUri   = packageInfoJson.has(PkgInfo.FIELD_DIRECT_DOWNLOAD_URI) ? packageInfoJson.get(PkgInfo.FIELD_DOWNLOAD_SITE_URI).getAsString()   : "";
+                    if (null == filename) { return null; }
                     return new PkgInfo(filename, javaVersion, directDownloadUri, downloadSiteUri);
                 } else {
                     return null;
