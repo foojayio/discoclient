@@ -1166,11 +1166,12 @@ public class DiscoClient {
     }
 
 
-    public final String getPkgDirectDownloadUri(final String id, final SemVer javaVersion) {
-        return getPkgInfo(id, javaVersion).getDirectDownloadUri();
+    public final String getPkgDirectDownloadUri(final String pkgId) {
+        final Pkg pkg = getPkg(pkgId);
+        return getPkgInfo(pkg.getEphemeralId(), pkg.getJavaVersion()).getDirectDownloadUri();
     }
-    public final CompletableFuture<String> getPkgDirectDownloadUriAsync(final String id, final SemVer javaVersion) {
-        return getPkgInfoAsync(id, javaVersion).thenApply(pkgInfo -> pkgInfo.getDirectDownloadUri());
+    public final CompletableFuture<String> getPkgDirectDownloadUriAsync(final String pkgId) {
+        return getPkgAsync(pkgId).thenApply(pkg -> getPkgInfoAsync(pkg.getEphemeralId(), pkg.getJavaVersion()).thenApply(pkgInfo -> pkgInfo.getDirectDownloadUri())).join();
     }
 
 
