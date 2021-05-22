@@ -39,10 +39,10 @@ public class Constants {
 
     public static final Pattern POSITIVE_INTEGER_PATTERN  = Pattern.compile("\\d+");
 
-    public static final String  PACKAGES_PATH             = "/disco/v1.0/packages";
-    public static final String  EPHEMERAL_IDS_PATH        = "/disco/v1.0/ephemeral_ids";
-    public static final String  MAJOR_VERSIONS_PATH       = "/disco/v1.0/major_versions";
-    public static final String  DISTRIBUTIONS_PATH        = "/disco/v1.0/distributions";
+    public static final String  PACKAGES_PATH             = "/disco/v2.0/packages";
+    public static final String  EPHEMERAL_IDS_PATH        = "/disco/v2.0/ephemeral_ids";
+    public static final String  MAJOR_VERSIONS_PATH       = "/disco/v2.0/major_versions";
+    public static final String  DISTRIBUTIONS_PATH        = "/disco/v2.0/distributions";
 
     public static final String  API_DISTRIBUTION          = "distro";
     public static final String  API_VERSION               = "version";
@@ -81,6 +81,7 @@ public class Constants {
         SCOPE_LOOKUP.put(Distribution.SAP_MACHINE, Arrays.asList(Scope.PUBLIC, Scope.BUILD_OF_OPEN_JDK, Scope.DIRECTLY_DOWNLOADABLE));
         SCOPE_LOOKUP.put(Distribution.TEMURIN, Arrays.asList(Scope.PUBLIC, Scope.BUILD_OF_OPEN_JDK, Scope.DIRECTLY_DOWNLOADABLE));
         SCOPE_LOOKUP.put(Distribution.TRAVA, Arrays.asList(Scope.PUBLIC, Scope.BUILD_OF_OPEN_JDK, Scope.DIRECTLY_DOWNLOADABLE));
+        SCOPE_LOOKUP.put(Distribution.TEMURIN, Arrays.asList(Scope.PUBLIC, Scope.BUILD_OF_OPEN_JDK, Scope.DIRECTLY_DOWNLOADABLE));
         SCOPE_LOOKUP.put(Distribution.ZULU, Arrays.asList(Scope.PUBLIC, Scope.BUILD_OF_OPEN_JDK, Scope.DIRECTLY_DOWNLOADABLE));
     }
 }
