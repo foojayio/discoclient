@@ -26,11 +26,12 @@ import org.apache.hc.client5.http.async.methods.SimpleHttpRequest;
 import org.apache.hc.client5.http.async.methods.SimpleHttpRequests;
 import org.apache.hc.client5.http.async.methods.SimpleHttpResponse;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
+import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.impl.async.CloseableHttpAsyncClient;
-import org.apache.hc.client5.http.impl.async.HttpAsyncClients;
+import org.apache.hc.client5.http.impl.async.HttpAsyncClientBuilder;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
-import org.apache.hc.client5.http.impl.classic.HttpClients;
+import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
 import org.apache.hc.core5.concurrent.FutureCallback;
 import org.apache.hc.core5.http.HttpEntity;
 import org.apache.hc.core5.http.HttpHeaders;
@@ -48,6 +49,7 @@ import java.util.Spliterators;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.regex.MatchResult;
 import java.util.regex.Pattern;
@@ -120,7 +122,15 @@ public class Helper {
     // ******************** REST calls ****************************************
     public static final String get(final String uri) {
         String result;
-        try (final CloseableHttpClient httpClient = HttpClients.createDefault()) {
+        final RequestConfig config = RequestConfig.custom()
+                                                  .setConnectTimeout(20, TimeUnit.SECONDS)
+                                                  .setConnectionRequestTimeout(60, TimeUnit.SECONDS)
+                                                  .setResponseTimeout(60, TimeUnit.SECONDS)
+                                                  .build();
+        try (final CloseableHttpClient httpClient = HttpClientBuilder.create()
+                                                                     .setUserAgent("DiscoClient (NetBeans)")
+                                                                     .setDefaultRequestConfig(config)
+                                                                     .build()) {
             final HttpGet httpGet = new HttpGet(URI.create(uri));
             httpGet.addHeader(HttpHeaders.USER_AGENT, "DiscoClient");
 
@@ -142,7 +152,15 @@ public class Helper {
     }
 
     public static final CompletableFuture<String> getAsync(final String uri) {
-        final CloseableHttpAsyncClient client = HttpAsyncClients.createHttp2Default();
+        final RequestConfig config = RequestConfig.custom()
+                                                  .setConnectTimeout(20, TimeUnit.SECONDS)
+                                                  .setConnectionRequestTimeout(60, TimeUnit.SECONDS)
+                                                  .setResponseTimeout(60, TimeUnit.SECONDS)
+                                                  .build();
+        final CloseableHttpAsyncClient client = HttpAsyncClientBuilder.create()
+                                                                      .setUserAgent("DiscoClient (NetBeans)")
+                                                                      .setDefaultRequestConfig(config)
+                                                                      .build();
         client.start();
 
         final CompletableFuture<String>  toComplete = new CompletableFuture<>();

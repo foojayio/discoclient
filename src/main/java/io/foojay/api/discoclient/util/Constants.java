@@ -39,10 +39,10 @@ public class Constants {
 
     public static final Pattern POSITIVE_INTEGER_PATTERN  = Pattern.compile("\\d+");
 
-    public static final String  PACKAGES_PATH             = "/disco/v1.0/packages";
-    public static final String  EPHEMERAL_IDS_PATH        = "/disco/v1.0/ephemeral_ids";
-    public static final String  MAJOR_VERSIONS_PATH       = "/disco/v1.0/major_versions";
-    public static final String  DISTRIBUTIONS_PATH        = "/disco/v1.0/distributions";
+    public static final String  PACKAGES_PATH             = "/disco/v2.0/packages";
+    public static final String  EPHEMERAL_IDS_PATH        = "/disco/v2.0/ephemeral_ids";
+    public static final String  MAJOR_VERSIONS_PATH       = "/disco/v2.0/major_versions";
+    public static final String  DISTRIBUTIONS_PATH        = "/disco/v2.0/distributions";
 
     public static final String  API_DISTRIBUTION          = "distro";
     public static final String  API_VERSION               = "version";
@@ -68,15 +68,19 @@ public class Constants {
         SCOPE_LOOKUP.put(Distribution.DRAGONWELL, Arrays.asList(Scope.PUBLIC, Scope.BUILD_OF_OPEN_JDK, Scope.DIRECTLY_DOWNLOADABLE));
         SCOPE_LOOKUP.put(Distribution.GRAALVM_CE8, Arrays.asList(Scope.PUBLIC, Scope.DIRECTLY_DOWNLOADABLE));
         SCOPE_LOOKUP.put(Distribution.GRAALVM_CE11, Arrays.asList(Scope.PUBLIC, Scope.DIRECTLY_DOWNLOADABLE));
+        SCOPE_LOOKUP.put(Distribution.GRAALVM_CE16, Arrays.asList(Scope.PUBLIC, Scope.DIRECTLY_DOWNLOADABLE));
         SCOPE_LOOKUP.put(Distribution.LIBERICA, Arrays.asList(Scope.PUBLIC, Scope.BUILD_OF_OPEN_JDK, Scope.DIRECTLY_DOWNLOADABLE));
         SCOPE_LOOKUP.put(Distribution.LIBERICA_NATIVE, Arrays.asList(Scope.PUBLIC, Scope.DIRECTLY_DOWNLOADABLE));
         SCOPE_LOOKUP.put(Distribution.MANDREL, Arrays.asList(Scope.PUBLIC, Scope.DIRECTLY_DOWNLOADABLE));
+        SCOPE_LOOKUP.put(Distribution.MICROSOFT, Arrays.asList(Scope.PUBLIC, Scope.BUILD_OF_OPEN_JDK, Scope.DIRECTLY_DOWNLOADABLE));
         SCOPE_LOOKUP.put(Distribution.OJDK_BUILD, Arrays.asList(Scope.PUBLIC, Scope.BUILD_OF_OPEN_JDK, Scope.DIRECTLY_DOWNLOADABLE));
+        SCOPE_LOOKUP.put(Distribution.OPEN_LOGIC, Arrays.asList(Scope.PUBLIC, Scope.BUILD_OF_OPEN_JDK, Scope.DIRECTLY_DOWNLOADABLE));
         SCOPE_LOOKUP.put(Distribution.ORACLE, Arrays.asList(Scope.PUBLIC, Scope.BUILD_OF_OPEN_JDK, Scope.NOT_DIRECTLY_DOWNLOADABLE));
         SCOPE_LOOKUP.put(Distribution.ORACLE_OPEN_JDK, Arrays.asList(Scope.PUBLIC, Scope.BUILD_OF_OPEN_JDK, Scope.DIRECTLY_DOWNLOADABLE));
         SCOPE_LOOKUP.put(Distribution.RED_HAT, Arrays.asList(Scope.PUBLIC, Scope.BUILD_OF_OPEN_JDK, Scope.NOT_DIRECTLY_DOWNLOADABLE));
         SCOPE_LOOKUP.put(Distribution.SAP_MACHINE, Arrays.asList(Scope.PUBLIC, Scope.BUILD_OF_OPEN_JDK, Scope.DIRECTLY_DOWNLOADABLE));
         SCOPE_LOOKUP.put(Distribution.TRAVA, Arrays.asList(Scope.PUBLIC, Scope.BUILD_OF_OPEN_JDK, Scope.DIRECTLY_DOWNLOADABLE));
+        SCOPE_LOOKUP.put(Distribution.TEMURIN, Arrays.asList(Scope.PUBLIC, Scope.BUILD_OF_OPEN_JDK, Scope.DIRECTLY_DOWNLOADABLE));
         SCOPE_LOOKUP.put(Distribution.ZULU, Arrays.asList(Scope.PUBLIC, Scope.BUILD_OF_OPEN_JDK, Scope.DIRECTLY_DOWNLOADABLE));
     }
 }
