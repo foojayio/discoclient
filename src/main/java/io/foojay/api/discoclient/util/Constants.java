@@ -81,7 +81,6 @@ public class Constants {
         SCOPE_LOOKUP.put(Distribution.SAP_MACHINE, Arrays.asList(Scope.PUBLIC, Scope.BUILD_OF_OPEN_JDK, Scope.DIRECTLY_DOWNLOADABLE));
         SCOPE_LOOKUP.put(Distribution.TEMURIN, Arrays.asList(Scope.PUBLIC, Scope.BUILD_OF_OPEN_JDK, Scope.DIRECTLY_DOWNLOADABLE));
         SCOPE_LOOKUP.put(Distribution.TRAVA, Arrays.asList(Scope.PUBLIC, Scope.BUILD_OF_OPEN_JDK, Scope.DIRECTLY_DOWNLOADABLE));
-        SCOPE_LOOKUP.put(Distribution.TEMURIN, Arrays.asList(Scope.PUBLIC, Scope.BUILD_OF_OPEN_JDK, Scope.DIRECTLY_DOWNLOADABLE));
         SCOPE_LOOKUP.put(Distribution.ZULU, Arrays.asList(Scope.PUBLIC, Scope.BUILD_OF_OPEN_JDK, Scope.DIRECTLY_DOWNLOADABLE));
     }
 }
