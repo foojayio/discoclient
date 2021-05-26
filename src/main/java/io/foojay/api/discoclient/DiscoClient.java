@@ -33,6 +33,7 @@ import io.foojay.api.discoclient.pkg.Feature;
 import io.foojay.api.discoclient.pkg.Latest;
 import io.foojay.api.discoclient.pkg.LibCType;
 import io.foojay.api.discoclient.pkg.MajorVersion;
+import io.foojay.api.discoclient.pkg.Match;
 import io.foojay.api.discoclient.pkg.OperatingSystem;
 import io.foojay.api.discoclient.pkg.PackageType;
 import io.foojay.api.discoclient.pkg.Pkg;
@@ -59,6 +60,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -133,8 +135,8 @@ public class DiscoClient {
         String query = queryBuilder.toString();
         if (query.isEmpty()) { return new ConcurrentLinkedQueue<>(); }
 
-        Queue<Pkg> pkgs     = new ConcurrentLinkedQueue<>();
-        List<Pkg> pkgsFound = new ArrayList<>();
+        Queue<Pkg> pkgs      = new ConcurrentLinkedQueue<>();
+        Set<Pkg>   pkgsFound = new HashSet<>();
 
         String      bodyText = Helper.get(query, userAgent).body();
         Gson        gson     = new Gson();
@@ -149,9 +151,6 @@ public class DiscoClient {
         }
 
         pkgs.addAll(pkgsFound);
-        HashSet<Pkg> unique = new HashSet<>(pkgs);
-        pkgs = new LinkedList<>(unique);
-
         return pkgs;
     }
     public CompletableFuture<Queue<Pkg>> getAllPackagesAsync() {
@@ -179,22 +178,26 @@ public class DiscoClient {
     }
 
 
-    public List<Pkg> getPkgs(final Distribution distribution, final VersionNumber versionNumber, final Latest latest, final OperatingSystem operatingSystem,
+    public List<Pkg> getPkgs(final List<Distribution> distributions, final VersionNumber versionNumber, final Latest latest, final OperatingSystem operatingSystem,
                              final LibCType libcType, final Architecture architecture, final Bitness bitness, final ArchiveType archiveType, final PackageType packageType,
-                             final Boolean javafxBundled, final Boolean directlyDownloadable, final ReleaseStatus releaseStatus, final TermOfSupport termOfSupport, final Scope scope) {
-        return getPkgs(distribution, versionNumber, latest, operatingSystem, libcType, architecture, bitness, archiveType, packageType, javafxBundled, directlyDownloadable, releaseStatus, termOfSupport, List.of(), scope);
+                             final Boolean javafxBundled, final Boolean directlyDownloadable, final List<ReleaseStatus> releaseStatus, final TermOfSupport termOfSupport, final List<Scope> scopes, final Match match) {
+        return getPkgs(distributions, versionNumber, latest, operatingSystem, libcType, architecture, bitness, archiveType, packageType, javafxBundled, directlyDownloadable, releaseStatus, termOfSupport, new ArrayList(), scopes, match);
     }
-    public List<Pkg> getPkgs(final Distribution distribution, final VersionNumber versionNumber, final Latest latest, final OperatingSystem operatingSystem,
+    public List<Pkg> getPkgs(final List<Distribution> distributions, final VersionNumber versionNumber, final Latest latest, final OperatingSystem operatingSystem,
                              final LibCType libcType, final Architecture architecture, final Bitness bitness, final ArchiveType archiveType, final PackageType packageType,
-                             final Boolean javafxBundled, final Boolean directlyDownloadable, final ReleaseStatus releaseStatus, final TermOfSupport termOfSupport, final List<String> ftrs, final Scope scope) {
+                             final Boolean javafxBundled, final Boolean directlyDownloadable, final List<ReleaseStatus> releaseStatus, final TermOfSupport termOfSupport, final List<String> ftrs, final List<Scope> scopes, final Match match) {
 
         StringBuilder queryBuilder = new StringBuilder().append(PropertyManager.INSTANCE.getString(Constants.PROPERTY_KEY_DISCO_URL))
                                                         .append(Constants.PACKAGES_PATH);
         final int initialLength = queryBuilder.length();
 
-        if (null != distribution) {
-            queryBuilder.append(queryBuilder.length() == initialLength ? "?" : "&");
-            queryBuilder.append(Constants.API_DISTRIBUTION).append("=").append(distribution.getApiString());
+        if (null != distributions && !distributions.isEmpty()) {
+            distributions.forEach(distribution -> {
+                if (null != distribution) {
+                    queryBuilder.append(queryBuilder.length() == initialLength ? "?" : "&");
+                    queryBuilder.append(Constants.API_DISTRIBUTION).append("=").append(distribution.getApiString());
+                }
+            });
         }
 
         if (null != versionNumber) {
@@ -237,9 +240,18 @@ public class DiscoClient {
             queryBuilder.append(Constants.API_PACKAGE_TYPE).append("=").append(packageType.getApiString());
         }
 
-        if (null != scope && Scope.NONE != scope && Scope.NOT_FOUND != scope) {
+        if (null != scopes && !scopes.isEmpty()) {
+            scopes.forEach(scope -> {
+                if (null != scope && Scope.NONE != scope && Scope.NOT_FOUND != scope) {
+                    queryBuilder.append(queryBuilder.length() == initialLength ? "?" : "&");
+                    queryBuilder.append(Constants.API_DISCOVERY_SCOPE_ID).append("=").append(scope.getApiString());
+                }
+            });
+        }
+
+        if (null != match && Match.NONE != match && Match.NOT_FOUND != match) {
             queryBuilder.append(queryBuilder.length() == initialLength ? "?" : "&");
-            queryBuilder.append(Constants.API_DISCOVERY_SCOPE_ID).append("=").append(scope.getApiString());
+            queryBuilder.append(Constants.API_MATCH).append("=").append(match.getApiString());
         }
 
         if (null != javafxBundled) {
@@ -252,9 +264,13 @@ public class DiscoClient {
             queryBuilder.append(Constants.API_DIRECTLY_DOWNLOADABLE).append("=").append(directlyDownloadable);
         }
 
-        if (null != releaseStatus && ReleaseStatus.NONE != releaseStatus && ReleaseStatus.NOT_FOUND != releaseStatus) {
-            queryBuilder.append(queryBuilder.length() == initialLength ? "?" : "&");
-            queryBuilder.append(Constants.API_RELEASE_STATUS).append("=").append(releaseStatus.getApiString());
+        if (null != releaseStatus && !releaseStatus.isEmpty()) {
+            releaseStatus.forEach(rs -> {
+                if (null != rs && ReleaseStatus.NONE != rs && ReleaseStatus.NOT_FOUND != rs) {
+                    queryBuilder.append(queryBuilder.length() == initialLength ? "?" : "&");
+                    queryBuilder.append(Constants.API_RELEASE_STATUS).append("=").append(rs.getApiString());
+                }
+            });
         }
 
         if (null != termOfSupport && TermOfSupport.NONE != termOfSupport && TermOfSupport.NOT_FOUND != termOfSupport) {
@@ -276,7 +292,7 @@ public class DiscoClient {
                     featuresFound.add(feat);
                 }
                 if (featuresFound.isEmpty()) {
-                    features = List.of();
+                    features = new ArrayList();
                 } else {
                     features = new ArrayList<>(featuresFound);
                 }
@@ -288,12 +304,12 @@ public class DiscoClient {
         }
 
         String query = queryBuilder.toString();
-        if (query.isEmpty()) { return List.of(); }
+        if (query.isEmpty()) { return new ArrayList(); }
 
         List<Pkg>   pkgs     = new LinkedList<>();
         String      bodyText = Helper.get(query, userAgent).body();
 
-        List<Pkg>   pkgsFound = new ArrayList<>();
+        Set<Pkg>    pkgsFound = new HashSet<>();
         Gson        gson      = new Gson();
         JsonElement element   = gson.fromJson(bodyText, JsonElement.class);
         if (element instanceof JsonObject) {
@@ -304,24 +320,24 @@ public class DiscoClient {
                 pkgsFound.add(new Pkg(pkgJsonObj.toString()));
             }
         }
-
         pkgs.addAll(pkgsFound);
-        HashSet<Pkg> unique = new HashSet<>(pkgs);
-        pkgs = new LinkedList<>(unique);
-
         return pkgs;
     }
-    public CompletableFuture<List<Pkg>> getPkgsAsync(final Distribution distribution, final VersionNumber versionNumber, final Latest latest, final OperatingSystem operatingSystem,
+    public CompletableFuture<List<Pkg>> getPkgsAsync(final List<Distribution> distributions, final VersionNumber versionNumber, final Latest latest, final OperatingSystem operatingSystem,
                                                      final LibCType libCType, final Architecture architecture, final Bitness bitness, final ArchiveType archiveType, final PackageType packageType,
-                                                     final Boolean javafxBundled, final Boolean directlyDownloadable, final ReleaseStatus releaseStatus, final TermOfSupport termOfSupport, final Scope scope) {
+                                                     final Boolean javafxBundled, final Boolean directlyDownloadable, final List<ReleaseStatus> releaseStatus, final TermOfSupport termOfSupport, final List<Scope> scopes, final Match match) {
 
         StringBuilder queryBuilder = new StringBuilder().append(PropertyManager.INSTANCE.getString(Constants.PROPERTY_KEY_DISCO_URL))
                                                         .append(Constants.PACKAGES_PATH);
         final int initialLength = queryBuilder.length();
 
-        if (null != distribution) {
-            queryBuilder.append(queryBuilder.length() == initialLength ? "?" : "&");
-            queryBuilder.append(Constants.API_DISTRIBUTION).append("=").append(distribution.getApiString());
+        if (null != distributions && !distributions.isEmpty()) {
+            distributions.forEach(distribution -> {
+                if (null != distribution) {
+                    queryBuilder.append(queryBuilder.length() == initialLength ? "?" : "&");
+                    queryBuilder.append(Constants.API_DISTRIBUTION).append("=").append(distribution.getApiString());
+                }
+            });
         }
 
         if (null != versionNumber) {
@@ -364,9 +380,18 @@ public class DiscoClient {
             queryBuilder.append(Constants.API_PACKAGE_TYPE).append("=").append(packageType.getApiString());
         }
 
-        if (null != scope && Scope.NONE != scope && Scope.NOT_FOUND != scope) {
+        if (null != scopes && !scopes.isEmpty()) {
+            scopes.forEach(scope -> {
+                if (null != scope && Scope.NONE != scope && Scope.NOT_FOUND != scope) {
+                    queryBuilder.append(queryBuilder.length() == initialLength ? "?" : "&");
+                    queryBuilder.append(Constants.API_DISCOVERY_SCOPE_ID).append("=").append(scope.getApiString());
+                }
+            });
+        }
+
+        if (null != match && Match.NONE != match && Match.NOT_FOUND != match) {
             queryBuilder.append(queryBuilder.length() == initialLength ? "?" : "&");
-            queryBuilder.append(Constants.API_DISCOVERY_SCOPE_ID).append("=").append(scope.getApiString());
+            queryBuilder.append(Constants.API_MATCH).append("=").append(match.getApiString());
         }
 
         if (null != javafxBundled) {
@@ -379,9 +404,13 @@ public class DiscoClient {
             queryBuilder.append(Constants.API_DIRECTLY_DOWNLOADABLE).append("=").append(directlyDownloadable);
         }
 
-        if (null != releaseStatus && ReleaseStatus.NONE != releaseStatus && ReleaseStatus.NOT_FOUND != releaseStatus) {
-            queryBuilder.append(queryBuilder.length() == initialLength ? "?" : "&");
-            queryBuilder.append(Constants.API_RELEASE_STATUS).append("=").append(releaseStatus.getApiString());
+        if (null != releaseStatus && !releaseStatus.isEmpty()) {
+            releaseStatus.forEach(rs -> {
+                if (null != rs && ReleaseStatus.NONE != rs && ReleaseStatus.NOT_FOUND != rs) {
+                    queryBuilder.append(queryBuilder.length() == initialLength ? "?" : "&");
+                    queryBuilder.append(Constants.API_RELEASE_STATUS).append("=").append(rs.getApiString());
+                }
+            });
         }
 
         if (null != termOfSupport && TermOfSupport.NONE != termOfSupport && TermOfSupport.NOT_FOUND != termOfSupport) {
@@ -394,7 +423,7 @@ public class DiscoClient {
 
         return Helper.getAsync(query, userAgent).thenApply(response -> {
             List<Pkg>   pkgs      = new LinkedList<>();
-            List<Pkg>   pkgsFound = new ArrayList<>();
+            Set<Pkg>    pkgsFound = new HashSet<>();
             Gson        gson      = new Gson();
             JsonElement element   = gson.fromJson(response.body(), JsonElement.class);
             if (element instanceof JsonObject) {
@@ -406,24 +435,154 @@ public class DiscoClient {
                 }
             }
             pkgs.addAll(pkgsFound);
-            HashSet<Pkg> unique = new HashSet<>(pkgs);
-            pkgs = new LinkedList<>(unique);
             return pkgs;
         });
     }
 
 
-    public String getPkgsAsJson(final Distribution distribution, final VersionNumber versionNumber, final Latest latest, final OperatingSystem operatingSystem,
+    public String getPkgsAsJson(final List<Distribution> distributions, final VersionNumber versionNumber, final Latest latest, final OperatingSystem operatingSystem,
                                 final LibCType libcType, final Architecture architecture, final Bitness bitness, final ArchiveType archiveType, final PackageType packageType,
-                                final Boolean javafxBundled, final Boolean directlyDownloadable, final ReleaseStatus releaseStatus, final TermOfSupport termOfSupport, final Scope scope) {
-        return getPkgs(distribution, versionNumber, latest, operatingSystem, libcType, architecture, bitness, archiveType, packageType, javafxBundled, directlyDownloadable, releaseStatus, termOfSupport, scope).toString();
+                                final Boolean javafxBundled, final Boolean directlyDownloadable, final List<ReleaseStatus> releaseStatus, final TermOfSupport termOfSupport, final List<Scope> scopes, final Match match) {
+        return getPkgs(distributions, versionNumber, latest, operatingSystem, libcType, architecture, bitness, archiveType, packageType, javafxBundled, directlyDownloadable, releaseStatus, termOfSupport, scopes, match).toString();
     }
-    public CompletableFuture<String> getPkgsAsJsonAsync(final Distribution distribution, final VersionNumber versionNumber, final Latest latest, final OperatingSystem operatingSystem,
+    public CompletableFuture<String> getPkgsAsJsonAsync(final List<Distribution> distributions, final VersionNumber versionNumber, final Latest latest, final OperatingSystem operatingSystem,
                                                         final LibCType libcType, final Architecture architecture, final Bitness bitness, final ArchiveType archiveType, final PackageType packageType,
-                                                        final Boolean javafxBundled, final Boolean directlyDownloadable, final ReleaseStatus releaseStatus, final TermOfSupport termOfSupport, final Scope scope) {
-        return getPkgsAsync(distribution, versionNumber, latest, operatingSystem, libcType, architecture, bitness, archiveType, packageType, javafxBundled, directlyDownloadable, releaseStatus, termOfSupport, scope).thenApply(pkgs -> pkgs.toString());
+                                                        final Boolean javafxBundled, final Boolean directlyDownloadable, final List<ReleaseStatus> releaseStatus, final TermOfSupport termOfSupport, final List<Scope> scopes, final Match match) {
+        return getPkgsAsync(distributions, versionNumber, latest, operatingSystem, libcType, architecture, bitness, archiveType, packageType, javafxBundled, directlyDownloadable, releaseStatus, termOfSupport, scopes, match).thenApply(pkgs -> pkgs.toString());
     }
 
+
+    public List<Pkg> getPkgsForFeatureVersion(final List<Distribution> distributions, final int featureVersion, final List<ReleaseStatus> releaseStatus, final Boolean directlyDownloadable, final List<Scope> scopes, final Match match) {
+        StringBuilder queryBuilder = new StringBuilder().append(PropertyManager.INSTANCE.getString(Constants.PROPERTY_KEY_DISCO_URL))
+                                                        .append(Constants.PACKAGES_PATH);
+        final int initialLength = queryBuilder.length();
+        if (featureVersion <= 6) { throw new IllegalArgumentException("Feature version has to be larger or equal to 6"); }
+
+        if (null != distributions && !distributions.isEmpty()) {
+            distributions.forEach(distribution -> {
+                if (null != distribution) {
+                    queryBuilder.append(queryBuilder.length() == initialLength ? "?" : "&");
+                    queryBuilder.append(Constants.API_DISTRIBUTION).append("=").append(distribution.getApiString());
+                }
+            });
+        }
+
+        queryBuilder.append(queryBuilder.length() == initialLength ? "?" : "&");
+        queryBuilder.append(Constants.API_VERSION).append("=").append(Helper.encodeValue(featureVersion + "..<" + (featureVersion + 1)));
+
+        if (null != scopes && !scopes.isEmpty()) {
+            scopes.forEach(scope -> {
+                if (null != scope && Scope.NONE != scope && Scope.NOT_FOUND != scope) {
+                    queryBuilder.append(queryBuilder.length() == initialLength ? "?" : "&");
+                    queryBuilder.append(Constants.API_DISCOVERY_SCOPE_ID).append("=").append(scope.getApiString());
+                }
+            });
+        }
+
+        if (null != match && Match.NONE != match && Match.NOT_FOUND != match) {
+            queryBuilder.append(queryBuilder.length() == initialLength ? "?" : "&");
+            queryBuilder.append(Constants.API_MATCH).append("=").append(match.getApiString());
+        }
+
+        if (null != directlyDownloadable) {
+            queryBuilder.append(queryBuilder.length() == initialLength ? "?" : "&");
+            queryBuilder.append(Constants.API_DIRECTLY_DOWNLOADABLE).append("=").append(directlyDownloadable);
+        }
+
+        if (null != releaseStatus && !releaseStatus.isEmpty()) {
+            releaseStatus.forEach(rs -> {
+                if (null != rs && ReleaseStatus.NONE != rs && ReleaseStatus.NOT_FOUND != rs) {
+                    queryBuilder.append(queryBuilder.length() == initialLength ? "?" : "&");
+                    queryBuilder.append(Constants.API_RELEASE_STATUS).append("=").append(rs.getApiString());
+                }
+            });
+        }
+
+        String query = queryBuilder.toString();
+        if (query.isEmpty()) { return new ArrayList(); }
+
+        List<Pkg>   pkgs     = new LinkedList<>();
+        String      bodyText = Helper.get(query, userAgent).body();
+
+        Set<Pkg>    pkgsFound = new HashSet<>();
+        Gson        gson      = new Gson();
+        JsonElement element   = gson.fromJson(bodyText, JsonElement.class);
+        if (element instanceof JsonObject) {
+            JsonObject jsonObject = element.getAsJsonObject();
+            JsonArray jsonArray = jsonObject.getAsJsonArray("result");
+            for (int i = 0; i < jsonArray.size(); i++) {
+                JsonObject pkgJsonObj = jsonArray.get(i).getAsJsonObject();
+                pkgsFound.add(new Pkg(pkgJsonObj.toString()));
+            }
+        }
+
+        pkgs.addAll(pkgsFound);
+        return pkgs;
+    }
+    public CompletableFuture<List<Pkg>> getPkgsForFeatureVersionAsync(final List<Distribution> distributions, final int featureVersion, final List<ReleaseStatus> releaseStatus, final Boolean directlyDownloadable, final List<Scope> scopes, final Match match) {
+        StringBuilder queryBuilder = new StringBuilder().append(PropertyManager.INSTANCE.getString(Constants.PROPERTY_KEY_DISCO_URL))
+                                                        .append(Constants.PACKAGES_PATH);
+        final int initialLength = queryBuilder.length();
+        if (featureVersion <= 6) { throw new IllegalArgumentException("Feature version has to be larger or equal to 6"); }
+
+        if (null != distributions && !distributions.isEmpty()) {
+            distributions.forEach(distribution -> {
+                if (null != distribution) {
+                    queryBuilder.append(queryBuilder.length() == initialLength ? "?" : "&");
+                    queryBuilder.append(Constants.API_DISTRIBUTION).append("=").append(distribution.getApiString());
+                }
+            });
+        }
+
+        queryBuilder.append(queryBuilder.length() == initialLength ? "?" : "&");
+        queryBuilder.append(Constants.API_VERSION).append("=").append(Helper.encodeValue(featureVersion + "..<" + (featureVersion + 1)));
+
+        if (null != scopes && !scopes.isEmpty()) {
+            scopes.forEach(scope -> {
+                if (null != scope && Scope.NONE != scope && Scope.NOT_FOUND != scope) {
+                    queryBuilder.append(queryBuilder.length() == initialLength ? "?" : "&");
+                    queryBuilder.append(Constants.API_DISCOVERY_SCOPE_ID).append("=").append(scope.getApiString());
+                }
+            });
+        }
+
+        if (null != match && Match.NONE != match && Match.NOT_FOUND != match) {
+            queryBuilder.append(queryBuilder.length() == initialLength ? "?" : "&");
+            queryBuilder.append(Constants.API_MATCH).append("=").append(match.getApiString());
+        }
+
+        if (null != directlyDownloadable) {
+            queryBuilder.append(queryBuilder.length() == initialLength ? "?" : "&");
+            queryBuilder.append(Constants.API_DIRECTLY_DOWNLOADABLE).append("=").append(directlyDownloadable);
+        }
+
+        if (null != releaseStatus && !releaseStatus.isEmpty()) {
+            releaseStatus.forEach(rs -> {
+                if (null != rs && ReleaseStatus.NONE != rs && ReleaseStatus.NOT_FOUND != rs) {
+                    queryBuilder.append(queryBuilder.length() == initialLength ? "?" : "&");
+                    queryBuilder.append(Constants.API_RELEASE_STATUS).append("=").append(rs.getApiString());
+                }
+            });
+        }
+
+        String query = queryBuilder.toString();
+        return Helper.getAsync(query, userAgent).thenApply(response -> {
+            List<Pkg>   pkgs      = new LinkedList<>();
+            Set<Pkg>    pkgsFound = new HashSet<>();
+            Gson        gson      = new Gson();
+            JsonElement element   = gson.fromJson(response.body(), JsonElement.class);
+            if (element instanceof JsonObject) {
+                JsonObject jsonObject = element.getAsJsonObject();
+                JsonArray jsonArray = jsonObject.getAsJsonArray("result");
+                for (int i = 0; i < jsonArray.size(); i++) {
+                    JsonObject pkgJsonObj = jsonArray.get(i).getAsJsonObject();
+                    pkgsFound.add(new Pkg(pkgJsonObj.toString()));
+                }
+            }
+            pkgs.addAll(pkgsFound);
+            return pkgs;
+        });
+    }
 
     public final MajorVersion getMajorVersion(final String parameter) {
         StringBuilder queryBuilder = new StringBuilder().append(PropertyManager.INSTANCE.getString(Constants.PROPERTY_KEY_DISCO_URL))
@@ -826,6 +985,7 @@ public class DiscoClient {
 
     }
 
+
     public final MajorVersion getLatestMts(final boolean include_ea) { return getLatestMts(include_ea, true); }
     public final MajorVersion getLatestMts(final boolean include_ea, final boolean include_build) {
         Queue<MajorVersion> majorVersions = getAllMajorVersions(include_ea, include_build);
@@ -860,16 +1020,16 @@ public class DiscoClient {
     }
 
 
-    public final List<Distribution> getDistributionsThatSupportVersion(final String version) {
+    public final Set<Distribution> getDistributionsThatSupportVersion(final String version) {
         SemVer semver = SemVer.fromText(version).getSemVer1();
         if (null == semver) {
             LOGGER.debug("Error parsing version string {} to semver", version);
-            return new ArrayList<>();
+            return new HashSet<>();
         }
         return getDistributionsThatSupportVersion(semver);
     }
-    public final List<Distribution> getDistributionsThatSupportVersion(final SemVer semVer) { return getDistributionsForSemVer(semVer); }
-    public final CompletableFuture<List<Distribution>> getDistributionsThatSupportSemVerAsync(final SemVer semVer) { return getDistributionsForSemVerAsync(semVer); }
+    public final Set<Distribution> getDistributionsThatSupportVersion(final SemVer semVer) { return getDistributionsForSemVer(semVer); }
+    public final CompletableFuture<Set<Distribution>> getDistributionsThatSupportSemVerAsync(final SemVer semVer) { return getDistributionsForSemVerAsync(semVer); }
 
 
     public final CompletableFuture<List<Distribution>> getDistributionsThatSupportVersionAsync(final String version) {
@@ -887,27 +1047,27 @@ public class DiscoClient {
                                                                 final LibCType libcType, final ArchiveType archiveType, final PackageType packageType,
                                                                 final Boolean javafxBundled, final Boolean directlyDownloadable) {
         return getPkgs(null, semVer.getVersionNumber(), Latest.NONE, operatingSystem, libcType, architecture,
-                       Bitness.NONE, archiveType, packageType, javafxBundled, directlyDownloadable, semVer.getReleaseStatus(),
-                       TermOfSupport.NONE, Scope.PUBLIC).stream()
-                                                        .map(pkg -> pkg.getDistribution())
-                                                        .distinct()
-                                                        .collect(Collectors.toList());
+                       Bitness.NONE, archiveType, packageType, javafxBundled, directlyDownloadable, List.of(semVer.getReleaseStatus()),
+                       TermOfSupport.NONE, List.of(Scope.PUBLIC), Match.ANY).stream()
+                                                                            .map(pkg -> pkg.getDistribution())
+                                                                            .distinct()
+                                                                            .collect(Collectors.toList());
     }
     public final CompletableFuture<List<Distribution>> getDistributionsThatSupportAsync(final SemVer semVer, final OperatingSystem operatingSystem, final Architecture architecture,
                                                                                         final LibCType libcType, final ArchiveType archiveType, final PackageType packageType,
                                                                                         final Boolean javafxBundled, final Boolean directlyDownloadable) {
         return getPkgsAsync(null, semVer.getVersionNumber(), Latest.NONE, operatingSystem, libcType, architecture,
-                            Bitness.NONE, archiveType, packageType, javafxBundled, directlyDownloadable, semVer.getReleaseStatus(),
-                            TermOfSupport.NONE, Scope.PUBLIC).thenApply(pkgs -> pkgs.stream()
-                                                                                    .map(pkg -> pkg.getDistribution())
-                                                                                    .distinct()
-                                                                                    .collect(Collectors.toList()));
+                            Bitness.NONE, archiveType, packageType, javafxBundled, directlyDownloadable, List.of(semVer.getReleaseStatus()),
+                            TermOfSupport.NONE, List.of(Scope.PUBLIC), Match.ANY).thenApply(pkgs -> pkgs.stream()
+                                                                                                        .map(pkg -> pkg.getDistribution())
+                                                                                                        .distinct()
+                                                                                                        .collect(Collectors.toList()));
     }
 
 
     public final List<Pkg> updateAvailableFor(final Distribution distribution, final SemVer semVer, final Architecture architecture, final Boolean javafxBundled) {
-        List<Pkg> pkgs = getPkgs(distribution, semVer.getVersionNumber(), Latest.OVERALL, getOperatingSystem(), LibCType.NONE, architecture, Bitness.NONE, ArchiveType.NONE, PackageType.JDK, javafxBundled,
-                                 Boolean.TRUE, semVer.getReleaseStatus(), TermOfSupport.NONE, Scope.PUBLIC);
+        List<Pkg> pkgs = getPkgs(null == distribution ? null : List.of(distribution), semVer.getVersionNumber(), Latest.OVERALL, getOperatingSystem(), LibCType.NONE, architecture, Bitness.NONE, ArchiveType.NONE, PackageType.JDK, javafxBundled,
+                                 Boolean.TRUE, List.of(semVer.getReleaseStatus()), TermOfSupport.NONE, List.of(Scope.PUBLIC), Match.ANY);
         List<Pkg> updatesFound = new ArrayList<>();
         if (pkgs.isEmpty()) {
             return updatesFound;
@@ -921,8 +1081,8 @@ public class DiscoClient {
         }
     }
     public final CompletableFuture<List<Pkg>> updateAvailableForAsync(final Distribution distribution, final SemVer semVer, final Architecture architecture, final Boolean javafxBundled) {
-        return getPkgsAsync(distribution, semVer.getVersionNumber(), Latest.OVERALL, getOperatingSystem(), LibCType.NONE, architecture, Bitness.NONE, ArchiveType.NONE, PackageType.JDK, javafxBundled,
-                            Boolean.TRUE, semVer.getReleaseStatus(), TermOfSupport.NONE, Scope.PUBLIC).thenApplyAsync(pkgs -> {
+        return getPkgsAsync(null == distribution ? null : List.of(distribution), semVer.getVersionNumber(), Latest.OVERALL, getOperatingSystem(), LibCType.NONE, architecture, Bitness.NONE, ArchiveType.NONE, PackageType.JDK, javafxBundled,
+                            Boolean.TRUE, List.of(semVer.getReleaseStatus()), TermOfSupport.NONE, List.of(Scope.PUBLIC), Match.ANY).thenApplyAsync(pkgs -> {
             List<Pkg> updatesFound = new ArrayList<>();
             if (pkgs.isEmpty()) {
                 return updatesFound;
@@ -985,14 +1145,14 @@ public class DiscoClient {
     }
 
 
-    public final List<Distribution> getDistributionsForSemVer(final SemVer semVer) {
+    public final Set<Distribution> getDistributionsForSemVer(final SemVer semVer) {
         StringBuilder queryBuilder = new StringBuilder().append(PropertyManager.INSTANCE.getString(Constants.PROPERTY_KEY_DISCO_URL))
                                                         .append(Constants.DISTRIBUTIONS_PATH)
                                                         .append("/versions/")
-                                                        .append(semVer.toString());
+                                                        .append(semVer.toString(true));
         String             query              = queryBuilder.toString();
         String             bodyText           = Helper.get(query, userAgent).body();
-        List<Distribution> distributionsFound = new LinkedList<>();
+        Set<Distribution> distributionsFound = new LinkedHashSet<>();
 
         Gson        gson     = new Gson();
         JsonElement element  = gson.fromJson(bodyText, JsonElement.class);
@@ -1001,32 +1161,31 @@ public class DiscoClient {
             JsonArray  jsonArray  = jsonObject.getAsJsonArray("result");
             for (int i = 0; i < jsonArray.size(); i++) {
                 JsonObject distributionJsonObj = jsonArray.get(i).getAsJsonObject();
-                final String       api_parameter     = distributionJsonObj.get("api_parameter").getAsString();
-                final Distribution distributionFound = getDistributionFromText(api_parameter);
+                final String       api_parameter     = distributionJsonObj.has("api_parameter") ? distributionJsonObj.get("api_parameter").getAsString() : "";
+                final Distribution distributionFound = api_parameter.isEmpty() ? null : getDistributionFromText(api_parameter);
                 if (null == distributionFound) { continue; }
                 distributionsFound.add(distributionFound);
             }
         }
         return distributionsFound;
     }
-    public final CompletableFuture<List<Distribution>> getDistributionsForSemVerAsync(final SemVer semVer) {
+    public final CompletableFuture<Set<Distribution>> getDistributionsForSemVerAsync(final SemVer semVer) {
         StringBuilder queryBuilder = new StringBuilder().append(PropertyManager.INSTANCE.getString(Constants.PROPERTY_KEY_DISCO_URL))
                                                         .append(Constants.DISTRIBUTIONS_PATH)
                                                         .append("/versions/")
-                                                        .append(semVer.toString());
-
+                                                        .append(semVer.toString(true));
         String query = queryBuilder.toString();
         return Helper.getAsync(query, userAgent).thenApply(response -> {
-            List<Distribution> distributionsFound = new LinkedList<>();
-            Gson               gson               = new Gson();
-            JsonElement        element            = gson.fromJson(response.body(), JsonElement.class);
+            Set<Distribution> distributionsFound = new LinkedHashSet<>();
+            Gson              gson               = new Gson();
+            JsonElement       element            = gson.fromJson(response.body(), JsonElement.class);
             if (element instanceof JsonObject) {
                 JsonObject jsonObject = element.getAsJsonObject();
                 JsonArray  jsonArray  = jsonObject.getAsJsonArray("result");
                 for (int i = 0; i < jsonArray.size(); i++) {
                     JsonObject distributionJsonObj = jsonArray.get(i).getAsJsonObject();
-                    final String       api_parameter     = distributionJsonObj.get("api_parameter").getAsString();
-                    final Distribution distributionFound = getDistributionFromText(api_parameter);
+                    final String       api_parameter     = distributionJsonObj.has("api_parameter") ? distributionJsonObj.get("api_parameter").getAsString() : "";
+                    final Distribution distributionFound = api_parameter.isEmpty() ? null : getDistributionFromText(api_parameter);
                     if (null == distributionFound) { continue; }
                     distributionsFound.add(distributionFound);
                 }
@@ -1181,9 +1340,8 @@ public class DiscoClient {
                                                         .append("/")
                                                         .append(ephemeralId);
 
-        String query           = queryBuilder.toString();
-        String packageInfoBody = Helper.get(query, userAgent).body();
-
+        String      query              = queryBuilder.toString();
+        String      packageInfoBody    = Helper.get(query, userAgent).body();
         Gson        packageInfoGson    = new Gson();
         JsonElement packageInfoElement = packageInfoGson.fromJson(packageInfoBody, JsonElement.class);
         if (packageInfoElement instanceof JsonObject) {

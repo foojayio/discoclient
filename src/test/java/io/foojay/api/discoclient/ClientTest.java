@@ -27,6 +27,7 @@ import io.foojay.api.discoclient.pkg.Distribution;
 import io.foojay.api.discoclient.pkg.Latest;
 import io.foojay.api.discoclient.pkg.LibCType;
 import io.foojay.api.discoclient.pkg.MajorVersion;
+import io.foojay.api.discoclient.pkg.Match;
 import io.foojay.api.discoclient.pkg.OperatingSystem;
 import io.foojay.api.discoclient.pkg.PackageType;
 import io.foojay.api.discoclient.pkg.Pkg;
@@ -36,9 +37,11 @@ import io.foojay.api.discoclient.pkg.TermOfSupport;
 import io.foojay.api.discoclient.pkg.VersionNumber;
 import org.junit.jupiter.api.Test;
 
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 
 public class ClientTest {
@@ -63,11 +66,11 @@ public class ClientTest {
     public void cancelRequestTest() {
         DiscoClient discoClient = new DiscoClient();
         List<Pkg> pkgs = discoClient.getPkgs(null, new VersionNumber(11), Latest.OVERALL, OperatingSystem.NONE, LibCType.NONE,
-                                             Architecture.NONE, Bitness.NONE, ArchiveType.NONE, PackageType.NONE, false, true, ReleaseStatus.NONE, TermOfSupport.NONE, Scope.PUBLIC);
+                                             Architecture.NONE, Bitness.NONE, ArchiveType.NONE, PackageType.NONE, false, true, List.of(ReleaseStatus.NONE), TermOfSupport.NONE, List.of(Scope.PUBLIC), Match.ANY);
         System.out.println(pkgs.size() + " pkgs found");
 
         discoClient.getPkgsAsync(null, new VersionNumber(11), Latest.OVERALL, OperatingSystem.NONE, LibCType.NONE,
-                                 Architecture.NONE, Bitness.NONE, ArchiveType.NONE, PackageType.NONE, false, true, ReleaseStatus.NONE, TermOfSupport.NONE, Scope.PUBLIC).thenAccept(e -> System.out.println(e.size() + " pkgs found async"));
+                                 Architecture.NONE, Bitness.NONE, ArchiveType.NONE, PackageType.NONE, false, true, List.of(ReleaseStatus.NONE), TermOfSupport.NONE, List.of(Scope.PUBLIC), Match.ANY).thenAccept(e -> System.out.println(e.size() + " pkgs found async"));
 
         try {
             Thread.sleep(500);
@@ -81,8 +84,8 @@ public class ClientTest {
     @Test
     public void getPkgsAndTest() {
         DiscoClient discoClient = new DiscoClient();
-        List<Pkg> packagesFound = discoClient.getPkgs(DiscoClient.getDistributionFromText("zulu"), new VersionNumber(11, 0, 9, 1), Latest.NONE, OperatingSystem.WINDOWS, LibCType.NONE,
-                                                      Architecture.X64, Bitness.BIT_64, ArchiveType.ZIP, PackageType.JDK, false, true, ReleaseStatus.GA, TermOfSupport.LTS, Scope.PUBLIC);
+        List<Pkg> packagesFound = discoClient.getPkgs(List.of(DiscoClient.getDistributionFromText("zulu")), new VersionNumber(11, 0, 9, 1), Latest.NONE, OperatingSystem.WINDOWS, LibCType.NONE,
+                                                      Architecture.X64, Bitness.BIT_64, ArchiveType.ZIP, PackageType.JDK, false, true, List.of(ReleaseStatus.GA), TermOfSupport.LTS, List.of(Scope.PUBLIC), Match.ANY);
         assert packagesFound.size() == 1;
     }
 
@@ -116,8 +119,8 @@ public class ClientTest {
     @Test
     public void getPkgsAsJsonTest() {
         DiscoClient discoClient = new DiscoClient();
-        String packagesFoundJson = discoClient.getPkgsAsJson(DiscoClient.getDistributionFromText("zulu"), new VersionNumber(11, 0, 9, 1), Latest.NONE, OperatingSystem.WINDOWS, LibCType.NONE,
-                                                             Architecture.X64, Bitness.BIT_64, ArchiveType.ZIP, PackageType.JDK, false, true, ReleaseStatus.GA, TermOfSupport.LTS, Scope.PUBLIC);
+        String packagesFoundJson = discoClient.getPkgsAsJson(List.of(DiscoClient.getDistributionFromText("zulu")), new VersionNumber(11, 0, 9, 1), Latest.NONE, OperatingSystem.WINDOWS, LibCType.NONE,
+                                                             Architecture.X64, Bitness.BIT_64, ArchiveType.ZIP, PackageType.JDK, false, true, List.of(ReleaseStatus.GA), TermOfSupport.LTS, List.of(Scope.PUBLIC), Match.ANY);
         Gson        gson    = new Gson();
         JsonElement element = gson.fromJson(packagesFoundJson, JsonElement.class);
         assert (element instanceof JsonArray);
@@ -141,8 +144,8 @@ public class ClientTest {
 
     @Test
     public void getDistributionForVersionTest() {
-        DiscoClient  discoClient        = new DiscoClient();
-        List<Distribution> distributionsFound = discoClient.getDistributionsThatSupportVersion("13.0.5.1");
+        DiscoClient       discoClient        = new DiscoClient();
+        List<Distribution> distributionsFound = new LinkedList<>(discoClient.getDistributionsThatSupportVersion("13.0.5.1"));
         assert distributionsFound.size() == 1;
         assert distributionsFound.get(0).getName().equals(DiscoClient.getDistributionFromText("zulu").getName());
     }

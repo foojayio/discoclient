@@ -56,6 +56,7 @@ public class Constants {
     public static final String  API_DIRECTLY_DOWNLOADABLE = "directly_downloadable";
     public static final String  API_LATEST                = "latest";
     public static final String  API_DISCOVERY_SCOPE_ID    = "discovery_scope_id";
+    public static final String  API_MATCH                 = "match";
     public static final String  API_FEATURE               = "feature";
 
     public static final String  SQUARE_BRACKET_OPEN       = "[";
