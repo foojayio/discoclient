@@ -19,8 +19,6 @@ package io.foojay.api.discoclient.pkg;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import io.foojay.api.discoclient.DiscoClient;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.Objects;
 import java.util.OptionalInt;
@@ -35,8 +33,6 @@ import static io.foojay.api.discoclient.util.Constants.QUOTES;
 
 
 public class Pkg {
-    private static final Logger          LOGGER                       = LoggerFactory.getLogger(Pkg.class);
-
     public  static final String          FIELD_ID                     = "id";
     public  static final String          FIELD_ARCHIVE_TYPE           = "archive_type";
     public  static final String          FIELD_DISTRIBUTION           = "distribution";
@@ -54,7 +50,7 @@ public class Pkg {
     public  static final String          FIELD_DIRECTLY_DOWNLOADABLE  = "directly_downloadable";
     public  static final String          FIELD_FILENAME               = "filename";
     public  static final String          FIELD_EPHEMERAL_ID           = "ephemeral_id";
-    public  static final String          FIELD_USAGE_INFO             = "usage_info";
+    public  static final String          FIELD_FREE_USE_IN_PROD       = "free_use_in_production";
 
     private              String          id;
     private              String          ephemeralId;
@@ -73,12 +69,11 @@ public class Pkg {
     private              Boolean         latestBuildAvailable;
     private              Boolean         directlyDownloadable;
     private              String          fileName;
-    private              UsageInfo       usageInfo;
+    private              Boolean         freeUseInProduction;
 
 
     public Pkg(final String packageJson) {
         if (null == packageJson || packageJson.isEmpty()) {
-            LOGGER.debug("Package json string cannot be null or empty.");
             throw new IllegalArgumentException("Package json string cannot be null or empty.");
         }
         final Gson       gson = new Gson();
@@ -101,7 +96,7 @@ public class Pkg {
         this.directlyDownloadable = json.has(FIELD_DIRECTLY_DOWNLOADABLE)  ? json.get(FIELD_DIRECTLY_DOWNLOADABLE).getAsBoolean()                            : Boolean.FALSE;
         this.fileName             = json.has(FIELD_FILENAME)               ? json.get(FIELD_FILENAME).getAsString()                                          : "";
         this.ephemeralId          = json.has(FIELD_EPHEMERAL_ID)           ? json.get(FIELD_EPHEMERAL_ID).getAsString()                                      : "";
-        this.usageInfo            = json.has(FIELD_USAGE_INFO)             ? UsageInfo.fromText(json.get(FIELD_USAGE_INFO).getAsString())                    : UsageInfo.NOT_FOUND;
+        this.freeUseInProduction  = json.has(FIELD_FREE_USE_IN_PROD)       ? json.get(FIELD_FREE_USE_IN_PROD).getAsBoolean()                                 : Boolean.TRUE;
     }
 
 
@@ -151,7 +146,7 @@ public class Pkg {
 
     public String getEphemeralId() { return ephemeralId; }
 
-    public UsageInfo getUsageInfo() { return usageInfo; }
+    public Boolean getFreeUseInProduction() { return freeUseInProduction; }
 
     @Override public boolean equals(final Object o) {
         if (this == o) return true;
@@ -168,7 +163,7 @@ public class Pkg {
 
     @Override public String toString() {
         return new StringBuilder().append(CURLY_BRACKET_OPEN).append(NEW_LINE)
-                                  .append(INDENTED_QUOTES).append(FIELD_ID).append(QUOTES).append(COLON).append(getId()).append(COMMA_NEW_LINE)
+                                  .append(INDENTED_QUOTES).append(FIELD_ID).append(QUOTES).append(COLON).append(QUOTES).append(getId()).append(QUOTES).append(COMMA_NEW_LINE)
                                   .append(INDENTED_QUOTES).append(FIELD_DISTRIBUTION).append(QUOTES).append(COLON).append(QUOTES).append(distribution.getName()).append(QUOTES).append(COMMA_NEW_LINE)
                                   .append(INDENTED_QUOTES).append(FIELD_JAVA_VERSION).append(QUOTES).append(COLON).append(QUOTES).append(javaVersion.toString()).append(QUOTES).append(COMMA_NEW_LINE)
                                   .append(INDENTED_QUOTES).append(FIELD_DISTRIBUTION_VERSION).append(QUOTES).append(COLON).append(QUOTES).append(distributionVersion).append(QUOTES).append(COMMA_NEW_LINE)
@@ -180,9 +175,9 @@ public class Pkg {
                                   .append(INDENTED_QUOTES).append(FIELD_ARCHIVE_TYPE).append(QUOTES).append(COLON).append(QUOTES).append(archiveType.getUiString()).append(QUOTES).append(COMMA_NEW_LINE)
                                   .append(INDENTED_QUOTES).append(FIELD_TERM_OF_SUPPORT).append(QUOTES).append(COLON).append(QUOTES).append(termOfSupport.name()).append(QUOTES).append(COMMA_NEW_LINE)
                                   .append(INDENTED_QUOTES).append(FIELD_JAVAFX_BUNDLED).append(QUOTES).append(COLON).append(javafxBundled).append(COMMA_NEW_LINE)
-                                  .append(INDENTED_QUOTES).append(FIELD_FILENAME).append(QUOTES).append(COLON).append(fileName).append(COMMA_NEW_LINE)
+                                  .append(INDENTED_QUOTES).append(FIELD_FILENAME).append(QUOTES).append(COLON).append(QUOTES).append(fileName).append(QUOTES).append(COMMA_NEW_LINE)
                                   .append(INDENTED_QUOTES).append(FIELD_EPHEMERAL_ID).append(QUOTES).append(COLON).append(QUOTES).append(ephemeralId).append(QUOTES).append(COMMA_NEW_LINE)
-                                  .append(INDENTED_QUOTES).append(FIELD_USAGE_INFO).append(QUOTES).append(COLON).append(QUOTES).append(usageInfo.getUiString()).append(QUOTES).append(NEW_LINE)
+                                  .append(INDENTED_QUOTES).append(FIELD_FREE_USE_IN_PROD).append(QUOTES).append(COLON).append(freeUseInProduction).append(NEW_LINE)
                                   .append(CURLY_BRACKET_CLOSE)
                                   .toString();
     }

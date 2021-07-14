@@ -16,9 +16,6 @@
 
 package io.foojay.api.discoclient.util;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.net.http.HttpResponse.BodyHandler;
 import java.net.http.HttpResponse.BodySubscriber;
 import java.net.http.HttpResponse.ResponseInfo;
@@ -27,11 +24,9 @@ import java.util.concurrent.CountDownLatch;
 
 
 public class BodyHandlerWrapper implements BodyHandler<String> {
-    private static final Logger            LOGGER = LoggerFactory.getLogger(BodyHandlerWrapper.class);
-
-    private        final CountDownLatch      latch  = new CountDownLatch(1);
-    private        final BodyHandler<String> handler;
-    private              SubscriberWrapper   subscriberWrapper;
+    private final CountDownLatch      latch  = new CountDownLatch(1);
+    private final BodyHandler<String> handler;
+    private       SubscriberWrapper   subscriberWrapper;
 
 
     public BodyHandlerWrapper(final BodyHandler<String> handler) {
@@ -50,7 +45,6 @@ public class BodyHandlerWrapper implements BodyHandler<String> {
                 latch.await();
                 subscriberWrapper.cancel();
             } catch (InterruptedException e) {
-                LOGGER.debug("Error canceling subscription {}", e.getMessage());
             }
         });
     }

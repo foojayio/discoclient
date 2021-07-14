@@ -47,8 +47,6 @@ import io.foojay.api.discoclient.util.Helper;
 import io.foojay.api.discoclient.util.OutputFormat;
 import io.foojay.api.discoclient.util.PkgInfo;
 import io.foojay.api.discoclient.util.ReadableConsumerByteChannel;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -79,9 +77,11 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
+import static io.foojay.api.discoclient.util.Constants.COMMA;
+import static io.foojay.api.discoclient.util.Constants.QUOTES;
+
 
 public class DiscoClient {
-    private static final Logger                                 LOGGER        = LoggerFactory.getLogger(DiscoClient.class);
     public  static final ConcurrentHashMap<String, List<Scope>> SCOPE_LOOKUP  = new ConcurrentHashMap<>();
     private static final Map<String, Distribution>              DISTRIBUTIONS = new ConcurrentHashMap<>();
     private static final String                                 DISTRO_URL    = "https://github.com/foojay2020/distributions/raw/main/distributions.json";
@@ -593,7 +593,6 @@ public class DiscoClient {
 
         String query = queryBuilder.toString();
         if (query.isEmpty()) {
-            LOGGER.debug("No major version found for given parameter {}.", parameter);
             return null;
         }
         String      bodyText = Helper.get(query, userAgent).body();
@@ -622,7 +621,6 @@ public class DiscoClient {
 
         String query = queryBuilder.toString();
         if (query.isEmpty()) {
-            LOGGER.debug("No major version found for given parameter {}.", parameter);
             return null;
         }
         return Helper.getAsync(query, userAgent).thenApply(response -> {
@@ -1023,7 +1021,6 @@ public class DiscoClient {
     public final Set<Distribution> getDistributionsThatSupportVersion(final String version) {
         SemVer semver = SemVer.fromText(version).getSemVer1();
         if (null == semver) {
-            LOGGER.debug("Error parsing version string {} to semver", version);
             return new HashSet<>();
         }
         return getDistributionsThatSupportVersion(semver);
@@ -1081,8 +1078,11 @@ public class DiscoClient {
         }
     }
     public final CompletableFuture<List<Pkg>> updateAvailableForAsync(final Distribution distribution, final SemVer semVer, final Architecture architecture, final Boolean javafxBundled) {
+        return updateAvailableForAsync(distribution, semVer, architecture, javafxBundled, Boolean.TRUE);
+    }
+    public final CompletableFuture<List<Pkg>> updateAvailableForAsync(final Distribution distribution, final SemVer semVer, final Architecture architecture, final Boolean javafxBundled, final Boolean directlyDownloadable) {
         return getPkgsAsync(null == distribution ? null : List.of(distribution), semVer.getVersionNumber(), Latest.OVERALL, getOperatingSystem(), LibCType.NONE, architecture, Bitness.NONE, ArchiveType.NONE, PackageType.JDK, javafxBundled,
-                            Boolean.TRUE, List.of(semVer.getReleaseStatus()), TermOfSupport.NONE, List.of(Scope.PUBLIC), Match.ANY).thenApplyAsync(pkgs -> {
+                            directlyDownloadable, List.of(semVer.getReleaseStatus()), TermOfSupport.NONE, List.of(Scope.PUBLIC), Match.ANY).thenApplyAsync(pkgs -> {
             List<Pkg> updatesFound = new ArrayList<>();
             if (pkgs.isEmpty()) {
                 return updatesFound;
@@ -1143,8 +1143,7 @@ public class DiscoClient {
             return distributionsFound;
         });
     }
-
-
+    
     public final Set<Distribution> getDistributionsForSemVer(final SemVer semVer) {
         StringBuilder queryBuilder = new StringBuilder().append(PropertyManager.INSTANCE.getString(Constants.PROPERTY_KEY_DISCO_URL))
                                                         .append(Constants.DISTRIBUTIONS_PATH)
@@ -1194,12 +1193,24 @@ public class DiscoClient {
         });
     }
 
-
     public final List<Distribution> getDistributionsForVersion(final VersionNumber versionNumber) {
+        return getDistributionsForVersion(versionNumber, List.of(), Match.ANY);
+    }
+    public final List<Distribution> getDistributionsForVersion(final VersionNumber versionNumber, final List<Scope> scopes, final Match match) {
+        StringBuilder scopeBuilder = new StringBuilder();
+        if (!scopes.isEmpty()) {
+            scopeBuilder.append("?discovery_scope_id=")
+                        .append(scopes.stream().map(scope -> scope.getApiString()).collect(Collectors.joining("&discovery_scope_id=")));
+            if (null != match && Match.NONE != match && Match.NOT_FOUND != match) {
+                scopeBuilder.append("&match=").append(match.getApiString());
+            }
+        }
+
         StringBuilder queryBuilder = new StringBuilder().append(PropertyManager.INSTANCE.getString(Constants.PROPERTY_KEY_DISCO_URL))
                                                         .append(Constants.DISTRIBUTIONS_PATH)
                                                         .append("/versions/")
-                                                        .append(versionNumber.toString());
+                                                        .append(versionNumber.toString())
+                                                        .append(scopeBuilder);
 
         String             query              = queryBuilder.toString();
         String             bodyText           = Helper.get(query, userAgent).body();
@@ -1221,10 +1232,23 @@ public class DiscoClient {
         return distributionsFound;
     }
     public final CompletableFuture<List<Distribution>> getDistributionsForVersionAsync(final VersionNumber versionNumber) {
+        return getDistributionsForVersionAsync(versionNumber, List.of(), Match.ANY);
+    }
+    public final CompletableFuture<List<Distribution>> getDistributionsForVersionAsync(final VersionNumber versionNumber, final List<Scope> scopes, final Match match) {
+        StringBuilder scopeBuilder = new StringBuilder();
+        if (!scopes.isEmpty()) {
+            scopeBuilder.append("?discovery_scope_id=")
+                        .append(scopes.stream().map(scope -> scope.getApiString()).collect(Collectors.joining("&discovery_scope_id=")));
+            if (null != match && Match.NONE != match && Match.NOT_FOUND != match) {
+                scopeBuilder.append("&match=").append(match.getApiString());
+            }
+        }
+
         StringBuilder queryBuilder = new StringBuilder().append(PropertyManager.INSTANCE.getString(Constants.PROPERTY_KEY_DISCO_URL))
                                                         .append(Constants.DISTRIBUTIONS_PATH)
                                                         .append("/versions/")
-                                                        .append(versionNumber.toString());
+                                                        .append(versionNumber.toString())
+                                                        .append(scopeBuilder);
 
         String query = queryBuilder.toString();
         return Helper.getAsync(query, userAgent).thenApply(response -> {
@@ -1245,7 +1269,6 @@ public class DiscoClient {
             return distributionsFound;
         });
     }
-
 
     public static Map<Distribution, List<VersionNumber>> getVersionsPerDistribution() {
         StringBuilder queryBuilder = new StringBuilder().append(PropertyManager.INSTANCE.getString(Constants.PROPERTY_KEY_DISCO_URL))
@@ -1319,7 +1342,7 @@ public class DiscoClient {
     public List<Distribution> getDistributionsBasedOnGraalVm() {
         return DISTRIBUTIONS.values()
                             .stream()
-                            .filter(distribution -> !distribution.getScopes().contains(Scope.BUILD_OF_OPEN_JDK))
+                            .filter(distribution -> distribution.getScopes().contains(Scope.BUILD_OF_GRAALVM))
                             .filter(distribution -> distribution.getScopes().contains(Scope.PUBLIC))
                             .collect(Collectors.toList());
     }
@@ -1407,7 +1430,6 @@ public class DiscoClient {
         try {
             executor.awaitTermination(10, TimeUnit.MINUTES);
         } catch (InterruptedException e) {
-            LOGGER.error("Error shutdown executor. {}", e.getMessage());
         }
         return future;
     }
@@ -1419,7 +1441,6 @@ public class DiscoClient {
         try {
             executor.awaitTermination(10, TimeUnit.MINUTES);
         } catch (InterruptedException e) {
-            LOGGER.error("Error shutdown executor. {}", e.getMessage());
         }
         return future;
     }
@@ -1543,11 +1564,9 @@ public class DiscoClient {
                 rcbc.close();
                 rbc.close();
                 fireEvt(new DownloadEvt(DiscoClient.this, DownloadEvt.DOWNLOAD_FINISHED, fileSize));
-                LOGGER.debug("Successfully downloaded file: {}", fileName);
                 return true;
             } catch (IOException ex) {
                 fireEvt(new DownloadEvt(DiscoClient.this, DownloadEvt.DOWNLOAD_FAILED, 0));
-                LOGGER.error("Error downloading file: {} with message {}", fileName, ex.getMessage());
                 return false;
             }
         });

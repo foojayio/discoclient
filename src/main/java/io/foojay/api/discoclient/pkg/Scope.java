@@ -25,6 +25,9 @@ public enum Scope implements ApiFeature {
     DIRECTLY_DOWNLOADABLE("Directly downloadable", "directly_downloadable"),
     NOT_DIRECTLY_DOWNLOADABLE("Not directly downloadable", "not_directly_downloadable"),
     BUILD_OF_OPEN_JDK("Build of OpenJDK", "build_of_openjdk"),
+    BUILD_OF_GRAALVM("Build of GraalVM", "build_of_graalvm"),
+    FREE_TO_USE_IN_PRODUCTION("Free to use in production", "free_to_use_in_production"),
+    LICENSE_NEEDED_FOR_PRODUCTION("License needed for production", "license_needed_for_production"),
     NONE("-", ""),
     NOT_FOUND("", "");
 
@@ -68,6 +71,17 @@ public enum Scope implements ApiFeature {
             case "build_of_openjdk":
             case "BUILD_OF_OPENJDK":
                 return BUILD_OF_OPEN_JDK;
+            case "build_of_graalvm":
+            case "BUILD_OF_GRAALVM":
+                return BUILD_OF_GRAALVM;
+            case "free":
+            case "free_to_use":
+            case "free_to_use_in_production":
+                return FREE_TO_USE_IN_PRODUCTION;
+            case "license":
+            case "license_needed":
+            case "license_needed_for_production":
+                return LICENSE_NEEDED_FOR_PRODUCTION;
             default:
                 return NOT_FOUND;
         }

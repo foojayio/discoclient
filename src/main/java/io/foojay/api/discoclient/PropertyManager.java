@@ -17,8 +17,6 @@
 package io.foojay.api.discoclient;
 
 import io.foojay.api.discoclient.util.Constants;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -36,7 +34,6 @@ import static io.foojay.api.discoclient.util.Constants.DISCO_API_BASE_URL;
 public enum PropertyManager {
     INSTANCE;
 
-    private static final Logger     LOGGER               = LoggerFactory.getLogger(PropertyManager.class);
     private static final String     PROPERTIES_FILE_NAME = Constants.NAME + ".properties";
     private              Properties properties;
 
@@ -94,7 +91,6 @@ public enum PropertyManager {
             properties.put(Constants.PROPERTY_KEY_DISCO_URL, DISCO_API_BASE_URL);
             properties.store(output, null);
         } catch (IOException ex) {
-            LOGGER.debug("Error creating {} file: {}", PROPERTIES_FILE_NAME, ex.getMessage());
         }
     }
 }

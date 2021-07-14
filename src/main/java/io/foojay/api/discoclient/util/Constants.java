@@ -16,12 +16,6 @@
 
 package io.foojay.api.discoclient.util;
 
-import io.foojay.api.discoclient.DiscoClient;
-import io.foojay.api.discoclient.pkg.Distribution;
-import io.foojay.api.discoclient.pkg.Scope;
-
-import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
 
 

@@ -42,6 +42,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
+
+import static io.foojay.api.discoclient.util.Constants.QUOTES;
 
 
 public class ClientTest {
@@ -53,7 +56,7 @@ public class ClientTest {
             try { Thread.sleep(10); } catch (InterruptedException e) {}
         }
         Map<String, Distribution> distributions = discoClient.getDistros();
-        assert distributions.size() == 20;
+        assert distributions.size() == 22;
 
         Optional<Distribution> optionalDistro  = distributions.values().stream().filter(d -> d.getFromText("zulu") != null).findFirst();
         assert optionalDistro.isPresent();
@@ -154,7 +157,7 @@ public class ClientTest {
     public void getVersionsPerDistributionTest() {
         DiscoClient                            discoClient             = new DiscoClient();
         Map<Distribution, List<VersionNumber>> versionsPerDistribution = discoClient.getVersionsPerDistribution();
-        assert versionsPerDistribution.keySet().size() == 20;
+        assert versionsPerDistribution.keySet().size() == 22;
     }
 
     @Test

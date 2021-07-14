@@ -18,8 +18,6 @@ package io.foojay.api.discoclient.pkg;
 
 import io.foojay.api.discoclient.util.Helper;
 import io.foojay.api.discoclient.util.OutputFormat;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -34,8 +32,6 @@ import java.util.stream.Collectors;
 
 
 public class VersionNumber implements Comparable<VersionNumber> {
-    private static final Logger LOGGER = LoggerFactory.getLogger(VersionNumber.class);
-
     public static final Pattern VERSION_NO_PATTERN      = Pattern.compile("([1-9]\\d*)((u(\\d+))|(\\.?(\\d+)?\\.?(\\d+)?\\.?(\\d+)?\\.?(\\d+)?\\.(\\d+)))?((_|b)(\\d+))?((-|\\+|\\.)([a-zA-Z0-9\\-\\+]+)(\\.[0-9]+)?)?");
     public static final Pattern EA_PATTERN              = Pattern.compile("(ea|EA)((\\.|\\+|\\-)([0-9]+))?");
     public static final Pattern EA_BUILD_NUMBER_PATTERN = Pattern.compile("(\\.?)([0-9]+)");
@@ -211,7 +207,6 @@ public class VersionNumber implements Comparable<VersionNumber> {
      */
     public static VersionNumber fromText(final String text, final int resultToMatch) throws IllegalArgumentException {
         if (null == text || text.isEmpty()) {
-            LOGGER.warn("No version number can be parsed because given text is null or empty.");
             return new VersionNumber();
         }
 
@@ -373,7 +368,6 @@ public class VersionNumber implements Comparable<VersionNumber> {
         }
 
         if (numbersFound.isEmpty()) {
-            LOGGER.error("No suitable version number found in String: {}", text);
             return new VersionNumber();
         } else {
             return numbersFound.stream().max(Comparator.comparingInt(VersionNumber::numbersAvailable)).get();
@@ -398,7 +392,6 @@ public class VersionNumber implements Comparable<VersionNumber> {
         if (Helper.isPositiveInteger(text)) {
             return Integer.valueOf(text);
         } else {
-            //LOGGER.info("Given text {} did not contain positive integer. Full text to parse was: {}", text, fullTextToParse);
             return -1;
         }
     }
@@ -409,7 +402,6 @@ public class VersionNumber implements Comparable<VersionNumber> {
         if (matcher.find()) {
             return matcher.group(0).isEmpty() ? -1 : Integer.valueOf(matcher.group(0));
         } else {
-            LOGGER.debug("Given text {} did not start with integer. Full text to parse was: {}", text, fullTextToParse);
             return -1;
         }
     }

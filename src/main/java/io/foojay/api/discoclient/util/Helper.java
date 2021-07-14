@@ -23,14 +23,11 @@ import io.foojay.api.discoclient.DiscoClient;
 import io.foojay.api.discoclient.pkg.Distribution;
 import io.foojay.api.discoclient.pkg.HashAlgorithm;
 import io.foojay.api.discoclient.pkg.TermOfSupport;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.StringReader;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URLEncoder;
@@ -54,9 +51,8 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 
 
 public class Helper {
-    private static final Logger             LOGGER         = LoggerFactory.getLogger(Helper.class);
-    private static       BodyHandlerWrapper handlerWrapper = null;
-    private static       HttpClient         httpClient;
+    private static BodyHandlerWrapper handlerWrapper = null;
+    private static HttpClient         httpClient;
 
 
     public static boolean isPositiveInteger(final String text) {
@@ -121,7 +117,6 @@ public class Helper {
         try {
             md = MessageDigest.getInstance("MD5");
         } catch (NoSuchAlgorithmException e) {
-            LOGGER.error("Error getting MD5 algorithm. {}", e.getMessage());
             return new byte[]{};
         }
         final byte[] result = md.digest(bytes);
@@ -137,7 +132,6 @@ public class Helper {
         try {
             md = MessageDigest.getInstance("SHA-1");
         } catch (NoSuchAlgorithmException e) {
-            LOGGER.error("Error getting SHA-1 algorithm. {}", e.getMessage());
             return new byte[]{};
         }
         final byte[] result = md.digest(bytes);
@@ -153,7 +147,6 @@ public class Helper {
         try {
             md = MessageDigest.getInstance("SHA-256");
         } catch (NoSuchAlgorithmException e) {
-            LOGGER.error("Error getting SHA-256 algorithm. {}", e.getMessage());
             return new byte[]{};
         }
         final byte[] result = md.digest(bytes);
@@ -169,7 +162,6 @@ public class Helper {
         try {
             md = MessageDigest.getInstance("SHA3-256");
         } catch (NoSuchAlgorithmException e) {
-            LOGGER.error("Error getting SHA3-256 algorithm. {}", e.getMessage());
             return new byte[]{};
         }
         final byte[] result = md.digest(bytes);
@@ -199,16 +191,13 @@ public class Helper {
             try {
                 final InputStream inputStream = DiscoClient.class.getResourceAsStream(Constants.DISTRIBUTION_JSON);
                 if (null == inputStream) {
-                    LOGGER.error("{} not found in resources.", Constants.DISTRIBUTION_JSON);
                     return distributions;
                 }
                 String jsonText = Helper.readFromInputStream(inputStream);
-                LOGGER.debug("Successfully read {} from resources.", Constants.DISTRIBUTION_JSON);
 
                 distributions.putAll(getDistributionsFromJsonText(jsonText));
                 return distributions;
             } catch (IOException e) {
-                LOGGER.error("Error loading distributions from json file. {}", e.getMessage());
                 return distributions;
             }
         });
@@ -252,6 +241,7 @@ public class Helper {
         HttpRequest request = HttpRequest.newBuilder()
                                          .GET()
                                          .uri(URI.create(uri))
+                                         .setHeader("Accept", "application/json")
                                          .setHeader("User-Agent", userAgentText)
                                          .timeout(Duration.ofSeconds(60))
                                          .build();
@@ -261,12 +251,9 @@ public class Helper {
                 return response;
             } else {
                 // Problem with url request
-                LOGGER.debug("Error executing get request {}", uri);
-                LOGGER.debug("Response (Status Code {}) {} ", response.statusCode(), response.body());
                 return response;
             }
         } catch (CompletionException | InterruptedException | IOException e) {
-            LOGGER.error("Error executing get request {} : {}", uri, e.getMessage());
             return null;
         }
     }
@@ -278,6 +265,7 @@ public class Helper {
         final HttpRequest request = HttpRequest.newBuilder()
                                                .GET()
                                                .uri(URI.create(uri))
+                                               .setHeader("Accept", "application/json")
                                                .setHeader("User-Agent", userAgentText)
                                                .timeout(Duration.ofSeconds(60))
                                                .build();
