@@ -120,6 +120,13 @@
 			"scopes": ["public","build_of_open_jdk","directly_downloadable"]
 		},
 		{
+			"name":"SEMERU",
+			"ui_string":"Semeru",
+			"api_string":"semeru",
+			"synonyms": ["semeru","SEMERU","Semeru"],
+			"scopes": ["public","build_of_open_jdk","directly_downloadable"]
+		},
+		{
 			"name":"TEMURIN",
 			"ui_string":"Temurin",
 			"api_string":"temurin",

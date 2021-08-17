@@ -234,7 +234,7 @@ public class Helper {
                          .build();
     }
 
-    public static final HttpResponse<String> get(final String uri) { return get("", uri); }
+    public static final HttpResponse<String> get(final String uri) { return get(uri, ""); }
     public static final HttpResponse<String> get(final String uri, final String userAgent) {
         if (null == httpClient) { httpClient = createHttpClient(); }
         final String userAgentText = (null == userAgent || userAgent.isEmpty()) ? "DiscoClient" : "DiscoClient (" + userAgent + ")";
@@ -261,6 +261,7 @@ public class Helper {
     public static final CompletableFuture<HttpResponse<String>> getAsync(final String uri) { return getAsync(uri, ""); }
     public static final CompletableFuture<HttpResponse<String>> getAsync(final String uri, final String userAgent) {
         if (null == httpClient) { httpClient = createHttpClient(); }
+
         final String userAgentText = (null == userAgent || userAgent.isEmpty()) ? "DiscoClient" : "DiscoClient (" + userAgent + ")";
         final HttpRequest request = HttpRequest.newBuilder()
                                                .GET()
