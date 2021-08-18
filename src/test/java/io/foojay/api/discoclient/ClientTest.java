@@ -33,8 +33,10 @@ import io.foojay.api.discoclient.pkg.PackageType;
 import io.foojay.api.discoclient.pkg.Pkg;
 import io.foojay.api.discoclient.pkg.ReleaseStatus;
 import io.foojay.api.discoclient.pkg.Scope;
+import io.foojay.api.discoclient.pkg.SemVer;
 import io.foojay.api.discoclient.pkg.TermOfSupport;
 import io.foojay.api.discoclient.pkg.VersionNumber;
+import io.foojay.api.discoclient.util.Helper;
 import org.junit.jupiter.api.Test;
 
 import java.util.LinkedList;
@@ -42,6 +44,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
 import static io.foojay.api.discoclient.util.Constants.QUOTES;
@@ -165,5 +168,16 @@ public class ClientTest {
         assert DiscoClient.getDistributionFromText("Liberica").getName().equals("LIBERICA");
         assert DiscoClient.getDistributionFromText("liberica").getName().equals("LIBERICA");
         assert DiscoClient.getDistributionFromText("LIBERICA").getName().equals("LIBERICA");
+    }
+
+    @Test
+    public void getDistributionForSemver() {
+        SemVer      semVer      = SemVer.fromText("13.0.5.1").getSemVer1();
+        DiscoClient discoClient = new DiscoClient();
+        try {
+            assert discoClient.getDistributionsForSemVerAsync(semVer).get().size() == 1;
+        } catch (ExecutionException | InterruptedException e) {
+
+        }
     }
 }

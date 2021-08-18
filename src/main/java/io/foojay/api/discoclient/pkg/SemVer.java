@@ -327,10 +327,8 @@ public class SemVer implements Comparable<SemVer> {
         d = compareSegment(getSixth(), semVer.getSixth());
         if (d != 0) { return d; }
 
-        if (ReleaseStatus.EA == releaseStatus) {
-            d = compareSegment(getPreBuildAsInt(), semVer.getPreBuildAsInt());
-            if (d != 0) { return d; }
-        }
+        d = compareSegment(getPreBuildAsInt(), semVer.getPreBuildAsInt());
+        if (d != 0) { return d; }
 
         if ((null != pre && pre.isEmpty()) && (null != semVer.getPre() && semVer.getPre().isEmpty())) { return 0; }
         if (null == pre || pre.isEmpty()) { return 1; }

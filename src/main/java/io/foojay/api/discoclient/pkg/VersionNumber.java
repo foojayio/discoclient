@@ -629,7 +629,9 @@ public class VersionNumber implements Comparable<VersionNumber> {
                                                             if (ReleaseStatus.EA == releaseStatus.get()) {
                                                                 ret = smallerThan;
                                                             } else {
-                                                                if (build.isPresent() && otherVersionNumber.getBuild().isEmpty()) {
+                                                                if (build.isEmpty() && otherVersionNumber.getBuild().isEmpty()) {
+                                                                    ret = equal;
+                                                                } else if (build.isPresent() && otherVersionNumber.getBuild().isEmpty()) {
                                                                     ret = largerThan;
                                                                 } else if (build.isEmpty() && otherVersionNumber.getBuild().isPresent()) {
                                                                     ret = smallerThan;
@@ -641,7 +643,9 @@ public class VersionNumber implements Comparable<VersionNumber> {
                                                             if (ReleaseStatus.EA == otherVersionNumber.getReleaseStatus().get()) {
                                                                 ret = largerThan;
                                                             } else {
-                                                                if (build.isPresent() && otherVersionNumber.getBuild().isEmpty()) {
+                                                                if (build.isEmpty() && otherVersionNumber.getBuild().isEmpty()) {
+                                                                    ret = equal;
+                                                                } else if (build.isPresent() && otherVersionNumber.getBuild().isEmpty()) {
                                                                     ret = largerThan;
                                                                 } else if (build.isEmpty() && otherVersionNumber.getBuild().isPresent()) {
                                                                     ret = smallerThan;

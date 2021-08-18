@@ -204,7 +204,7 @@ public class DiscoClient {
 
         if (null != versionNumber) {
             queryBuilder.append(queryBuilder.length() == initialLength ? "?" : "&");
-            queryBuilder.append(Constants.API_VERSION).append("=").append(versionNumber.toString());
+            queryBuilder.append(Constants.API_VERSION).append("=").append(Helper.encodeValue(versionNumber.toString(OutputFormat.REDUCED_COMPRESSED, true, true)));
         }
 
         if (null != latest && Latest.NONE != latest && Latest.NOT_FOUND != latest) {
@@ -344,7 +344,7 @@ public class DiscoClient {
 
         if (null != versionNumber) {
             queryBuilder.append(queryBuilder.length() == initialLength ? "?" : "&");
-            queryBuilder.append(Constants.API_VERSION).append("=").append(versionNumber.toString(OutputFormat.REDUCED, true, true));
+            queryBuilder.append(Constants.API_VERSION).append("=").append(Helper.encodeValue(versionNumber.toString(OutputFormat.REDUCED_COMPRESSED, true, true)));
         }
 
         if (null != latest && Latest.NONE != latest && Latest.NOT_FOUND != latest) {
@@ -1150,7 +1150,7 @@ public class DiscoClient {
         StringBuilder queryBuilder = new StringBuilder().append(PropertyManager.INSTANCE.getString(Constants.PROPERTY_KEY_DISCO_URL))
                                                         .append(Constants.DISTRIBUTIONS_PATH)
                                                         .append("/versions/")
-                                                        .append(semVer.toString(true));
+                                                        .append(Helper.encodeValue(semVer.toString(true)));
         String             query              = queryBuilder.toString();
         String             bodyText           = Helper.get(query, userAgent).body();
         Set<Distribution> distributionsFound = new LinkedHashSet<>();
@@ -1174,7 +1174,7 @@ public class DiscoClient {
         StringBuilder queryBuilder = new StringBuilder().append(PropertyManager.INSTANCE.getString(Constants.PROPERTY_KEY_DISCO_URL))
                                                         .append(Constants.DISTRIBUTIONS_PATH)
                                                         .append("/versions/")
-                                                        .append(semVer.toString(true));
+                                                        .append(Helper.encodeValue(semVer.toString(true)));
         String query = queryBuilder.toString();
         return Helper.getAsync(query, userAgent).thenApply(response -> {
             Set<Distribution> distributionsFound = new LinkedHashSet<>();
@@ -1211,7 +1211,7 @@ public class DiscoClient {
         StringBuilder queryBuilder = new StringBuilder().append(PropertyManager.INSTANCE.getString(Constants.PROPERTY_KEY_DISCO_URL))
                                                         .append(Constants.DISTRIBUTIONS_PATH)
                                                         .append("/versions/")
-                                                        .append(versionNumber.toString())
+                                                        .append(Helper.encodeValue(versionNumber.toString(OutputFormat.REDUCED_COMPRESSED, true, true)))
                                                         .append(scopeBuilder);
 
         String             query              = queryBuilder.toString();
@@ -1249,7 +1249,7 @@ public class DiscoClient {
         StringBuilder queryBuilder = new StringBuilder().append(PropertyManager.INSTANCE.getString(Constants.PROPERTY_KEY_DISCO_URL))
                                                         .append(Constants.DISTRIBUTIONS_PATH)
                                                         .append("/versions/")
-                                                        .append(versionNumber.toString())
+                                                        .append(Helper.encodeValue(versionNumber.toString(OutputFormat.REDUCED_COMPRESSED, true, true)))
                                                         .append(scopeBuilder);
 
         String query = queryBuilder.toString();
