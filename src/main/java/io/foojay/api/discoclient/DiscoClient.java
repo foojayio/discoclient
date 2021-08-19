@@ -1073,8 +1073,14 @@ public class DiscoClient {
         } else {
             Pkg firstEntry = pkgs.get(0);
             SemVer semVerFound = firstEntry.getJavaVersion();
-            if (semVerFound.compareTo(semVer) > 0) {
-                updatesFound = pkgs.stream().filter(pkg -> pkg.getJavaVersion().compareTo(semVerFound) == 0).collect(Collectors.toList());
+            if (ReleaseStatus.EA == semVerFound.getReleaseStatus()) {
+                if (semVerFound.compareTo(semVer) > 0) {
+                    updatesFound = pkgs.stream().filter(pkg -> pkg.getJavaVersion().compareTo(semVerFound) == 0).collect(Collectors.toList());
+                }
+            } else {
+                if (semVerFound.compareToIgnoreBuild(semVer) > 0) {
+                    updatesFound = pkgs.stream().filter(pkg -> pkg.getJavaVersion().compareToIgnoreBuild(semVerFound) == 0).collect(Collectors.toList());
+                }
             }
             return updatesFound;
         }
@@ -1091,8 +1097,14 @@ public class DiscoClient {
             } else {
                 Pkg    firstEntry  = pkgs.get(0);
                 SemVer semVerFound = firstEntry.getJavaVersion();
-                if (semVerFound.compareTo(semVer) > 0) {
-                    updatesFound = pkgs.stream().filter(pkg -> pkg.getJavaVersion().compareTo(semVerFound) == 0).collect(Collectors.toList());
+                if (ReleaseStatus.EA == semVerFound.getReleaseStatus()) {
+                    if (semVerFound.compareTo(semVer) > 0) {
+                        updatesFound = pkgs.stream().filter(pkg -> pkg.getJavaVersion().compareTo(semVerFound) == 0).collect(Collectors.toList());
+                    }
+                } else {
+                    if (semVerFound.compareToIgnoreBuild(semVer) > 0) {
+                        updatesFound = pkgs.stream().filter(pkg -> pkg.getJavaVersion().compareToIgnoreBuild(semVerFound) == 0).collect(Collectors.toList());
+                    }
                 }
                 return updatesFound;
             }
