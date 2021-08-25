@@ -304,6 +304,15 @@ public class VersionNumber implements Comparable<VersionNumber> {
                 versionNumber.setInterim(getPositiveIntFromText(result.group(10), version));
             } else if (null != result.group(1) && null != result.group(14) && null != result.group(15) && null != result.group(16)) {
                 //System.out.println("match: 1, 14, 15, 16");
+                versionNumber.setInterim(0);
+                if (result.group(15).equals("+")) {
+                    if (result.group(16).startsWith("b")) {
+                        versionNumber.setBuild(Integer.parseInt(result.group(16).substring(1)));
+                    } else {
+                        versionNumber.setBuild(Integer.parseInt(result.group(16)));
+                    }
+                    versionNumber.setReleaseStatus(ReleaseStatus.GA);
+                }
             }
 
             // Extract early access preBuild
@@ -313,9 +322,9 @@ public class VersionNumber implements Comparable<VersionNumber> {
                 if (eaResults.size() > 0) {
                     final MatchResult eaResult = eaResults.get(0);
                     if (null != eaResult.group(1)) {
-                versionNumber.setReleaseStatus(ReleaseStatus.EA);
+                        versionNumber.setReleaseStatus(ReleaseStatus.EA);
                         if (null == eaResult.group(4)) {
-                if (null != result.group(17)) {
+                            if (null != result.group(17)) {
                                 final Matcher           eaBuildNumberMatcher = EA_BUILD_NUMBER_PATTERN.matcher(result.group(17));
                                 final List<MatchResult> eaBuildNumberResults = eaBuildNumberMatcher.results().collect(Collectors.toList());
                                 if (eaBuildNumberResults.size() > 0) {
@@ -325,10 +334,12 @@ public class VersionNumber implements Comparable<VersionNumber> {
                             }
                         } else {
                             versionNumber.setBuild(Integer.parseInt(eaResult.group(4)));
-                                }
-                            }
                         }
                     }
+                }
+            } else {
+                versionNumber.setReleaseStatus(ReleaseStatus.GA);
+            }
 
             // Extract build number
             final Matcher           buildNumberMatcher = BUILD_NUMBER_PATTERN.matcher(version);
@@ -617,53 +628,27 @@ public class VersionNumber implements Comparable<VersionNumber> {
                                                     } else if (sixth.getAsInt() < otherVersionNumber.getSixth().getAsInt()) {
                                                         ret = smallerThan;
                                                     } else {
-                                                        if (build.isPresent() && otherVersionNumber.getBuild().isPresent()) {
-                                                            if (build.getAsInt() > otherVersionNumber.getBuild().getAsInt()) {
+                                                        ReleaseStatus thisStatus  = releaseStatus.isPresent()                         ? releaseStatus.get()                         : ReleaseStatus.GA;
+                                                        ReleaseStatus otherStatus = otherVersionNumber.getReleaseStatus().isPresent() ? otherVersionNumber.getReleaseStatus().get() : ReleaseStatus.GA;
+
+                                                        if (ReleaseStatus.GA == thisStatus && ReleaseStatus.EA == otherStatus) {
                                                                 ret = largerThan;
-                                                            } else if (build.getAsInt() < otherVersionNumber.getBuild().getAsInt()) {
+                                                        } else if (ReleaseStatus.EA == thisStatus && ReleaseStatus.GA == otherStatus) {
+                                                                ret = smallerThan;
+                                                        } else if (thisStatus == otherStatus) {
+                                                            // Either both GA or both EA
+                                                            int thisBuild = build.isPresent()                          ? build.getAsInt()                         : 0;
+                                                            int otherBuild = otherVersionNumber.getBuild().isPresent() ? otherVersionNumber.getBuild().getAsInt() : 0;
+
+                                                            if (thisBuild > otherBuild) {
+                                                                ret = largerThan;
+                                                            } else if (thisBuild < otherBuild) {
                                                                 ret = smallerThan;
                                                             } else {
                                                                 ret = equal;
-                                                            }
-                                                        } else if (releaseStatus.isPresent() && otherVersionNumber.getReleaseStatus().isEmpty()) {
-                                                            if (ReleaseStatus.EA == releaseStatus.get()) {
-                                                                ret = smallerThan;
-                                                            } else {
-                                                                if (build.isEmpty() && otherVersionNumber.getBuild().isEmpty()) {
-                                                                    ret = equal;
-                                                                } else if (build.isPresent() && otherVersionNumber.getBuild().isEmpty()) {
-                                                                    ret = largerThan;
-                                                                } else if (build.isEmpty() && otherVersionNumber.getBuild().isPresent()) {
-                                                                    ret = smallerThan;
-                                                                } else {
-                                                                    ret = Integer.valueOf(build.getAsInt()).compareTo(Integer.valueOf(otherVersionNumber.getBuild().getAsInt()));
-                                                                }
-                                                            }
-                                                        } else if (releaseStatus.isEmpty() && otherVersionNumber.getReleaseStatus().isPresent()) {
-                                                            if (ReleaseStatus.EA == otherVersionNumber.getReleaseStatus().get()) {
-                                                                ret = largerThan;
-                                                            } else {
-                                                                if (build.isEmpty() && otherVersionNumber.getBuild().isEmpty()) {
-                                                                    ret = equal;
-                                                                } else if (build.isPresent() && otherVersionNumber.getBuild().isEmpty()) {
-                                                                    ret = largerThan;
-                                                                } else if (build.isEmpty() && otherVersionNumber.getBuild().isPresent()) {
-                                                                    ret = smallerThan;
-                                                                } else {
-                                                                    ret = Integer.valueOf(build.getAsInt()).compareTo(Integer.valueOf(otherVersionNumber.getBuild().getAsInt()));
-                                                                }
                                                             }
                                                         } else {
-                                                            // No release status => no build number is smaller than build number because of latest build available
-                                                            if (build.isPresent() && otherVersionNumber.getBuild().isEmpty()) {
-                                                                ret = largerThan;
-                                                            } else if (build.isEmpty() && otherVersionNumber.getBuild().isPresent()) {
-                                                                ret = smallerThan;
-                                                            } else if (build.isPresent() && otherVersionNumber.getBuild().isPresent()) {
-                                                                ret = Integer.valueOf(build.getAsInt()).compareTo(Integer.valueOf(otherVersionNumber.getBuild().getAsInt()));
-                                                            } else {
-                                                                ret = equal;
-                                                            }
+                                                            ret = equal;
                                                         }
                                                     }
                                                 } else if (sixth.isPresent() && otherVersionNumber.getSixth().isEmpty()) {
