@@ -58,6 +58,8 @@ import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -325,121 +327,152 @@ public class DiscoClient {
         pkgs.addAll(pkgsFound);
         return pkgs;
     }
+
     public CompletableFuture<List<Pkg>> getPkgsAsync(final List<Distribution> distributions, final VersionNumber versionNumber, final Latest latest, final OperatingSystem operatingSystem,
                                                      final LibCType libCType, final Architecture architecture, final Bitness bitness, final ArchiveType archiveType, final PackageType packageType,
                                                      final Boolean javafxBundled, final Boolean directlyDownloadable, final List<ReleaseStatus> releaseStatus, final TermOfSupport termOfSupport, final List<Scope> scopes, final Match match) {
+        return getPkgsAsync(distributions, versionNumber, latest, operatingSystem, libCType, architecture, bitness, archiveType, packageType, javafxBundled, directlyDownloadable, releaseStatus, termOfSupport, new ArrayList<>(), scopes, match);
+    }
+    public CompletableFuture<List<Pkg>> getPkgsAsync(final List<Distribution> distributions, final VersionNumber versionNumber, final Latest latest, final OperatingSystem operatingSystem,
+                                                 final LibCType libCType, final Architecture architecture, final Bitness bitness, final ArchiveType archiveType, final PackageType packageType,
+                                                 final Boolean javafxBundled, final Boolean directlyDownloadable, final List<ReleaseStatus> releaseStatus, final TermOfSupport termOfSupport, final List<String> ftrs, final List<Scope> scopes, final Match match) {
 
-        StringBuilder queryBuilder = new StringBuilder().append(PropertyManager.INSTANCE.getString(Constants.PROPERTY_KEY_DISCO_URL))
-                                                        .append(Constants.PACKAGES_PATH);
-        final int initialLength = queryBuilder.length();
+    StringBuilder queryBuilder = new StringBuilder().append(PropertyManager.INSTANCE.getString(Constants.PROPERTY_KEY_DISCO_URL))
+                                                    .append(Constants.PACKAGES_PATH);
+    final int initialLength = queryBuilder.length();
 
-        if (null != distributions && !distributions.isEmpty()) {
-            distributions.forEach(distribution -> {
-                if (null != distribution) {
-                    queryBuilder.append(queryBuilder.length() == initialLength ? "?" : "&");
-                    queryBuilder.append(Constants.API_DISTRIBUTION).append("=").append(distribution.getApiString());
-                }
-            });
-        }
-
-        if (null != versionNumber) {
-            queryBuilder.append(queryBuilder.length() == initialLength ? "?" : "&");
-            queryBuilder.append(Constants.API_VERSION).append("=").append(Helper.encodeValue(versionNumber.toString(OutputFormat.REDUCED_COMPRESSED, true, true)));
-        }
-
-        if (null != latest && Latest.NONE != latest && Latest.NOT_FOUND != latest) {
-            queryBuilder.append(queryBuilder.length() == initialLength ? "?" : "&");
-            queryBuilder.append(Constants.API_LATEST).append("=").append(latest.getApiString());
-        }
-
-        if (null != operatingSystem && OperatingSystem.NONE != operatingSystem && OperatingSystem.NOT_FOUND != operatingSystem) {
-            queryBuilder.append(queryBuilder.length() == initialLength ? "?" : "&");
-            queryBuilder.append(Constants.API_OPERATING_SYSTEM).append("=").append(operatingSystem.getApiString());
-        }
-
-        if (null != libCType && LibCType.NONE != libCType && LibCType.NOT_FOUND != libCType) {
-            queryBuilder.append(queryBuilder.length() == initialLength ? "?" : "&");
-            queryBuilder.append(Constants.API_LIBC_TYPE).append("=").append(libCType.getApiString());
-        }
-
-        if (null != architecture && Architecture.NONE != architecture && Architecture.NOT_FOUND != architecture) {
-            queryBuilder.append(queryBuilder.length() == initialLength ? "?" : "&");
-            queryBuilder.append(Constants.API_ARCHITECTURE).append("=").append(architecture.getApiString());
-        }
-
-        if (null != bitness && Bitness.NONE != bitness && Bitness.NOT_FOUND != bitness) {
-            queryBuilder.append(queryBuilder.length() == initialLength ? "?" : "&");
-            queryBuilder.append(Constants.API_BITNESS).append("=").append(bitness.getApiString());
-        }
-
-        if (null != archiveType && ArchiveType.NONE != archiveType && ArchiveType.NOT_FOUND != archiveType) {
-            queryBuilder.append(queryBuilder.length() == initialLength ? "?" : "&");
-            queryBuilder.append(Constants.API_ARCHIVE_TYPE).append("=").append(archiveType.getApiString());
-        }
-
-        if (null != packageType && PackageType.NONE != packageType && PackageType.NOT_FOUND != packageType) {
-            queryBuilder.append(queryBuilder.length() == initialLength ? "?" : "&");
-            queryBuilder.append(Constants.API_PACKAGE_TYPE).append("=").append(packageType.getApiString());
-        }
-
-        if (null != scopes && !scopes.isEmpty()) {
-            scopes.forEach(scope -> {
-                if (null != scope && Scope.NONE != scope && Scope.NOT_FOUND != scope) {
-                    queryBuilder.append(queryBuilder.length() == initialLength ? "?" : "&");
-                    queryBuilder.append(Constants.API_DISCOVERY_SCOPE_ID).append("=").append(scope.getApiString());
-                }
-            });
-        }
-
-        if (null != match && Match.NONE != match && Match.NOT_FOUND != match) {
-            queryBuilder.append(queryBuilder.length() == initialLength ? "?" : "&");
-            queryBuilder.append(Constants.API_MATCH).append("=").append(match.getApiString());
-        }
-
-        if (null != javafxBundled) {
-            queryBuilder.append(queryBuilder.length() == initialLength ? "?" : "&");
-            queryBuilder.append(Constants.API_JAVAFX_BUNDLED).append("=").append(javafxBundled);
-        }
-
-        if (null != directlyDownloadable) {
-            queryBuilder.append(queryBuilder.length() == initialLength ? "?" : "&");
-            queryBuilder.append(Constants.API_DIRECTLY_DOWNLOADABLE).append("=").append(directlyDownloadable);
-        }
-
-        if (null != releaseStatus && !releaseStatus.isEmpty()) {
-            releaseStatus.forEach(rs -> {
-                if (null != rs && ReleaseStatus.NONE != rs && ReleaseStatus.NOT_FOUND != rs) {
-                    queryBuilder.append(queryBuilder.length() == initialLength ? "?" : "&");
-                    queryBuilder.append(Constants.API_RELEASE_STATUS).append("=").append(rs.getApiString());
-                }
-            });
-        }
-
-        if (null != termOfSupport && TermOfSupport.NONE != termOfSupport && TermOfSupport.NOT_FOUND != termOfSupport) {
-            queryBuilder.append(queryBuilder.length() == initialLength ? "?" : "&");
-            queryBuilder.append(Constants.API_SUPPORT_TERM).append("=").append(termOfSupport.getApiString());
-        }
-
-        String query = queryBuilder.toString();
-        if (query.isEmpty()) { return new CompletableFuture<>(); }
-
-        return Helper.getAsync(query, userAgent).thenApply(response -> {
-            List<Pkg>   pkgs      = new LinkedList<>();
-            Set<Pkg>    pkgsFound = new HashSet<>();
-            Gson        gson      = new Gson();
-            JsonElement element   = gson.fromJson(response.body(), JsonElement.class);
-            if (element instanceof JsonObject) {
-                JsonObject jsonObject = element.getAsJsonObject();
-                JsonArray jsonArray = jsonObject.getAsJsonArray("result");
-                for (int i = 0; i < jsonArray.size(); i++) {
-                    JsonObject pkgJsonObj = jsonArray.get(i).getAsJsonObject();
-                    pkgsFound.add(new Pkg(pkgJsonObj.toString()));
-                }
+    if (null != distributions && !distributions.isEmpty()) {
+        distributions.forEach(distribution -> {
+            if (null != distribution) {
+                queryBuilder.append(queryBuilder.length() == initialLength ? "?" : "&");
+                queryBuilder.append(Constants.API_DISTRIBUTION).append("=").append(distribution.getApiString());
             }
-            pkgs.addAll(pkgsFound);
-            return pkgs;
         });
     }
+
+    if (null != versionNumber) {
+        queryBuilder.append(queryBuilder.length() == initialLength ? "?" : "&");
+        queryBuilder.append(Constants.API_VERSION).append("=").append(Helper.encodeValue(versionNumber.toString(OutputFormat.REDUCED_COMPRESSED, true, true)));
+    }
+
+    if (null != latest && Latest.NONE != latest && Latest.NOT_FOUND != latest) {
+        queryBuilder.append(queryBuilder.length() == initialLength ? "?" : "&");
+        queryBuilder.append(Constants.API_LATEST).append("=").append(latest.getApiString());
+    }
+
+    if (null != operatingSystem && OperatingSystem.NONE != operatingSystem && OperatingSystem.NOT_FOUND != operatingSystem) {
+        queryBuilder.append(queryBuilder.length() == initialLength ? "?" : "&");
+        queryBuilder.append(Constants.API_OPERATING_SYSTEM).append("=").append(operatingSystem.getApiString());
+    }
+
+    if (null != libCType && LibCType.NONE != libCType && LibCType.NOT_FOUND != libCType) {
+        queryBuilder.append(queryBuilder.length() == initialLength ? "?" : "&");
+        queryBuilder.append(Constants.API_LIBC_TYPE).append("=").append(libCType.getApiString());
+    }
+
+    if (null != architecture && Architecture.NONE != architecture && Architecture.NOT_FOUND != architecture) {
+        queryBuilder.append(queryBuilder.length() == initialLength ? "?" : "&");
+        queryBuilder.append(Constants.API_ARCHITECTURE).append("=").append(architecture.getApiString());
+    }
+
+    if (null != bitness && Bitness.NONE != bitness && Bitness.NOT_FOUND != bitness) {
+        queryBuilder.append(queryBuilder.length() == initialLength ? "?" : "&");
+        queryBuilder.append(Constants.API_BITNESS).append("=").append(bitness.getApiString());
+    }
+
+    if (null != archiveType && ArchiveType.NONE != archiveType && ArchiveType.NOT_FOUND != archiveType) {
+        queryBuilder.append(queryBuilder.length() == initialLength ? "?" : "&");
+        queryBuilder.append(Constants.API_ARCHIVE_TYPE).append("=").append(archiveType.getApiString());
+    }
+
+    if (null != packageType && PackageType.NONE != packageType && PackageType.NOT_FOUND != packageType) {
+        queryBuilder.append(queryBuilder.length() == initialLength ? "?" : "&");
+        queryBuilder.append(Constants.API_PACKAGE_TYPE).append("=").append(packageType.getApiString());
+    }
+
+    if (null != scopes && !scopes.isEmpty()) {
+        scopes.forEach(scope -> {
+            if (null != scope && Scope.NONE != scope && Scope.NOT_FOUND != scope) {
+                queryBuilder.append(queryBuilder.length() == initialLength ? "?" : "&");
+                queryBuilder.append(Constants.API_DISCOVERY_SCOPE_ID).append("=").append(scope.getApiString());
+            }
+        });
+    }
+
+    if (null != match && Match.NONE != match && Match.NOT_FOUND != match) {
+        queryBuilder.append(queryBuilder.length() == initialLength ? "?" : "&");
+        queryBuilder.append(Constants.API_MATCH).append("=").append(match.getApiString());
+    }
+
+    if (null != javafxBundled) {
+        queryBuilder.append(queryBuilder.length() == initialLength ? "?" : "&");
+        queryBuilder.append(Constants.API_JAVAFX_BUNDLED).append("=").append(javafxBundled);
+    }
+
+    if (null != directlyDownloadable) {
+        queryBuilder.append(queryBuilder.length() == initialLength ? "?" : "&");
+        queryBuilder.append(Constants.API_DIRECTLY_DOWNLOADABLE).append("=").append(directlyDownloadable);
+    }
+
+    if (null != releaseStatus && !releaseStatus.isEmpty()) {
+        releaseStatus.forEach(rs -> {
+            if (null != rs && ReleaseStatus.NONE != rs && ReleaseStatus.NOT_FOUND != rs) {
+                queryBuilder.append(queryBuilder.length() == initialLength ? "?" : "&");
+                queryBuilder.append(Constants.API_RELEASE_STATUS).append("=").append(rs.getApiString());
+            }
+        });
+    }
+
+    if (null != termOfSupport && TermOfSupport.NONE != termOfSupport && TermOfSupport.NOT_FOUND != termOfSupport) {
+        queryBuilder.append(queryBuilder.length() == initialLength ? "?" : "&");
+        queryBuilder.append(Constants.API_SUPPORT_TERM).append("=").append(termOfSupport.getApiString());
+    }
+
+    if (null != ftrs && !ftrs.isEmpty()) {
+        List<Feature> features;
+        if (ftrs.isEmpty()) {
+            features = new ArrayList<>();
+        } else {
+            Set<Feature> featuresFound = new HashSet<>();
+            for (String featureString : ftrs) {
+                Feature feat = Feature.fromText(featureString);
+                if (Feature.NOT_FOUND == feat || Feature.NONE == feat) {
+                    continue;
+                }
+                featuresFound.add(feat);
+            }
+            if (featuresFound.isEmpty()) {
+                features = new ArrayList();
+            } else {
+                features = new ArrayList<>(featuresFound);
+            }
+        }
+        features.forEach(feature -> {
+            queryBuilder.append(queryBuilder.length() == initialLength ? "?" : "&");
+            queryBuilder.append(Constants.API_FEATURE).append("=").append(feature.getApiString());
+        });
+    }
+
+    String query = queryBuilder.toString();
+    if (query.isEmpty()) { return new CompletableFuture<>(); }
+
+    return Helper.getAsync(query, userAgent).thenApply(response -> {
+        List<Pkg>   pkgs      = new LinkedList<>();
+        Set<Pkg>    pkgsFound = new HashSet<>();
+        Gson        gson      = new Gson();
+        JsonElement element   = gson.fromJson(response.body(), JsonElement.class);
+        if (element instanceof JsonObject) {
+            JsonObject jsonObject = element.getAsJsonObject();
+            JsonArray jsonArray = jsonObject.getAsJsonArray("result");
+            for (int i = 0; i < jsonArray.size(); i++) {
+                JsonObject pkgJsonObj = jsonArray.get(i).getAsJsonObject();
+                pkgsFound.add(new Pkg(pkgJsonObj.toString()));
+            }
+        }
+        pkgs.addAll(pkgsFound);
+        return pkgs;
+    });
+}
 
 
     public String getPkgsAsJson(final List<Distribution> distributions, final VersionNumber versionNumber, final Latest latest, final OperatingSystem operatingSystem,
@@ -1065,9 +1098,13 @@ public class DiscoClient {
 
 
     public final List<Pkg> updateAvailableFor(final Distribution distribution, final SemVer semVer, final Architecture architecture, final Boolean javafxBundled) {
-        List<Pkg> pkgs = getPkgs(null == distribution ? null : List.of(distribution), semVer.getVersionNumber(), Latest.OVERALL, getOperatingSystem(), LibCType.NONE, architecture, Bitness.NONE, ArchiveType.NONE, PackageType.JDK, javafxBundled,
-                                 Boolean.TRUE, List.of(semVer.getReleaseStatus()), TermOfSupport.NONE, List.of(Scope.PUBLIC), Match.ANY);
+        return updateAvailableFor(distribution, semVer, architecture, javafxBundled, Boolean.TRUE);
+    }
+    public final List<Pkg> updateAvailableFor(final Distribution distribution, final SemVer semVer, final Architecture architecture, final Boolean javafxBundled, final Boolean directlyDownloadable) {
+        List<Pkg> pkgs = getPkgs(null == distribution ? null : List.of(distribution), semVer.getVersionNumber(), Latest.AVAILABLE, getOperatingSystem(), LibCType.NONE, architecture, Bitness.NONE, ArchiveType.NONE, PackageType.JDK, javafxBundled,
+                                 directlyDownloadable, List.of(ReleaseStatus.EA, ReleaseStatus.GA), TermOfSupport.NONE, List.of(Scope.PUBLIC), Match.ANY);
         List<Pkg> updatesFound = new ArrayList<>();
+        Collections.sort(pkgs, Comparator.comparing(Pkg::getJavaVersion).reversed());
         if (pkgs.isEmpty()) {
             return updatesFound;
         } else {
@@ -1085,12 +1122,15 @@ public class DiscoClient {
             return updatesFound;
         }
     }
+
     public final CompletableFuture<List<Pkg>> updateAvailableForAsync(final Distribution distribution, final SemVer semVer, final Architecture architecture, final Boolean javafxBundled) {
         return updateAvailableForAsync(distribution, semVer, architecture, javafxBundled, Boolean.TRUE);
     }
     public final CompletableFuture<List<Pkg>> updateAvailableForAsync(final Distribution distribution, final SemVer semVer, final Architecture architecture, final Boolean javafxBundled, final Boolean directlyDownloadable) {
-        return getPkgsAsync(null == distribution ? null : List.of(distribution), semVer.getVersionNumber(), Latest.OVERALL, getOperatingSystem(), LibCType.NONE, architecture, Bitness.NONE, ArchiveType.NONE, PackageType.JDK, javafxBundled,
-                            directlyDownloadable, List.of(semVer.getReleaseStatus()), TermOfSupport.NONE, List.of(Scope.PUBLIC), Match.ANY).thenApplyAsync(pkgs -> {
+        return getPkgsAsync(null == distribution ? null : List.of(distribution), semVer.getVersionNumber(), Latest.AVAILABLE, getOperatingSystem(), LibCType.NONE, architecture, Bitness.NONE, ArchiveType.NONE, PackageType.JDK, javafxBundled,
+                            directlyDownloadable, List.of(ReleaseStatus.EA, ReleaseStatus.GA), TermOfSupport.NONE, List.of(Scope.PUBLIC), Match.ANY).thenApplyAsync(pkgs -> {
+            Collections.sort(pkgs, Comparator.comparing(Pkg::getJavaVersion).reversed());
+            
             List<Pkg> updatesFound = new ArrayList<>();
             if (pkgs.isEmpty()) {
                 return updatesFound;

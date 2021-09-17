@@ -97,6 +97,40 @@ public class ClientTest {
 
     /*
     @Test
+    public void findUpdateTest() {
+        DiscoClient     discoClient          = new DiscoClient();
+        Distribution    distribution         = DiscoClient.getDistributionFromText("zulu");
+        OperatingSystem operatingSystem      = OperatingSystem.MACOS;
+        Architecture    architecture         = Architecture.X64;
+        Boolean         javafxBundled        = Boolean.FALSE;
+        SemVer          semVer               = SemVer.fromText("17-ea+35").getSemVer1();
+        Boolean         directlyDownloadable = Boolean.TRUE;
+
+        //System.out.println("updateAvailableFor() ----------------------");
+
+        //discoClient.updateAvailableFor(distribution, semVer, architecture, javafxBundled, directlyDownloadable).forEach(pkg -> System.out.println(pkg));
+
+        System.out.println("updateAvailableForAsync() ----------------------");
+
+        discoClient.updateAvailableForAsync(distribution, semVer, architecture, javafxBundled,directlyDownloadable).thenAccept(r -> {
+            r.forEach(pkg -> System.out.println(pkg));
+        });
+
+
+        System.out.println("getPkgs() ----------------------");
+        discoClient.getPkgs(null == distribution ? null : List.of(distribution), semVer.getVersionNumber(), Latest.AVAILABLE, discoClient.getOperatingSystem(), LibCType.NONE, architecture, Bitness.NONE, ArchiveType.NONE, PackageType.JDK, javafxBundled,
+                           directlyDownloadable, List.of(ReleaseStatus.EA, ReleaseStatus.GA), TermOfSupport.NONE, List.of(Scope.PUBLIC), Match.ANY).forEach(pkg -> System.out.println(pkg));
+
+        System.out.println("getPkgsAsync() ----------------------");
+        discoClient.getPkgsAsync(null == distribution ? null : List.of(distribution), semVer.getVersionNumber(), Latest.AVAILABLE, discoClient.getOperatingSystem(), LibCType.NONE, architecture, Bitness.NONE, ArchiveType.NONE, PackageType.JDK, javafxBundled,
+                     directlyDownloadable, List.of(ReleaseStatus.EA, ReleaseStatus.GA), TermOfSupport.NONE, List.of(Scope.PUBLIC), Match.ANY).thenAccept(pkgs -> {
+                         pkgs.forEach(pkg -> System.out.println(pkg));
+        });
+    }
+    */
+
+    /*
+    @Test
     public void downloadPkgTest() {
         DiscoClient discoClient = new DiscoClient();
         List<Pkg> packagesFound = discoClient.getPkgs(DiscoClient.getDistributionFromText("zulu"), new VersionNumber(11, 0, 9, 1), null, OperatingSystem.WINDOWS, LibCType.C_STD_LIB,
