@@ -1130,7 +1130,7 @@ public class DiscoClient {
         return getPkgsAsync(null == distribution ? null : List.of(distribution), semVer.getVersionNumber(), Latest.AVAILABLE, getOperatingSystem(), LibCType.NONE, architecture, Bitness.NONE, ArchiveType.NONE, PackageType.JDK, javafxBundled,
                             directlyDownloadable, List.of(ReleaseStatus.EA, ReleaseStatus.GA), TermOfSupport.NONE, List.of(Scope.PUBLIC), Match.ANY).thenApplyAsync(pkgs -> {
             Collections.sort(pkgs, Comparator.comparing(Pkg::getJavaVersion).reversed());
-            
+
             List<Pkg> updatesFound = new ArrayList<>();
             if (pkgs.isEmpty()) {
                 return updatesFound;

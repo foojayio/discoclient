@@ -203,7 +203,19 @@ public class VersionNumber implements Comparable<VersionNumber> {
         }
 
         // Remove leading "1." to get correct version number e.g. 1.8u262 -> 8u262
-        String version = text.startsWith("1.") ? text.replace("1.", "") : text;
+        String standardizedVersion = text.startsWith("1.") ? text.replace("1.", "") : text;
+
+        // Remove -LTS, -MTS and -STS
+        String version;
+        if (standardizedVersion.contains("-LTS")) {
+            version = standardizedVersion.replaceAll("-LTS", "");
+        } else if (standardizedVersion.contains("-MTS")) {
+            version = standardizedVersion.replaceAll("-MTS", "");
+        } else if (standardizedVersion.contains("-STS")) {
+            version = standardizedVersion.replaceAll("-STS", "");
+        } else {
+            version = standardizedVersion;
+        }
 
         final Matcher           versionNoMatcher = VERSION_NO_PATTERN.matcher(version);
         final List<MatchResult> results          = versionNoMatcher.results().collect(Collectors.toList());
