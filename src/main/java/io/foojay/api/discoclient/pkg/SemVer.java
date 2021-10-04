@@ -1,22 +1,17 @@
 /*
- * Copyright (c) 2021, Azul
- * All rights reserved.
+ * Copyright (c) 2021 by Gerrit Grunwald
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- * - Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
- * - Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer
- *   in the documentation and/or other materials provided with the distribution.
- * - Neither the name of Azul nor the names of its contributors may be used to endorse or promote products derived
- *   from this software without specific prior written permission.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING,
- * BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
- * IN NO EVENT SHALL AZUL BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY,
- * OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
- * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
- * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package io.foojay.api.discoclient.pkg;
@@ -53,7 +48,7 @@ public class SemVer implements Comparable<SemVer> {
 
 
     public SemVer(final VersionNumber versionNumber) {
-        this(versionNumber, versionNumber.getReleaseStatus() != null && versionNumber.getReleaseStatus().isPresent() ? versionNumber.getReleaseStatus().get() : ReleaseStatus.GA, versionNumber.getPreBuild() != null && versionNumber.getPreBuild().isPresent() ? "-ea." + versionNumber.getPreBuild().getAsInt() : "", versionNumber.getBuild() != null && versionNumber.getBuild().isPresent() ? "+b" + versionNumber.getBuild().getAsInt() : "");
+        this(versionNumber, versionNumber.getReleaseStatus() != null && versionNumber.getReleaseStatus().isPresent() ? versionNumber.getReleaseStatus().get() : ReleaseStatus.GA, versionNumber.getReleaseStatus().isPresent() ? ReleaseStatus.EA == versionNumber.getReleaseStatus().get() ? "-ea" : "" : "", (versionNumber.getBuild() != null && versionNumber.getBuild().isPresent() && versionNumber.getBuild().getAsInt() > 0) ? "+" + versionNumber.getBuild().getAsInt() : "");
     }
     public SemVer(final VersionNumber versionNumber, final ReleaseStatus releaseStatus) {
         this(versionNumber, releaseStatus, ReleaseStatus.EA == releaseStatus ? "ea" : "", "");
@@ -72,9 +67,23 @@ public class SemVer implements Comparable<SemVer> {
         this.comparison    = Comparison.EQUAL;
         this.preBuild      = "";
 
-        if (null != this.versionNumber.getReleaseStatus() && this.versionNumber.getReleaseStatus().isPresent() && this.versionNumber.getReleaseStatus().get() != this.releaseStatus) {
-            this.versionNumber.setReleaseStatus(this.releaseStatus);
+        if (versionNumber.getBuild().isPresent() && versionNumber.getBuild().getAsInt() > 0) {
+            this.preBuild = Integer.toString(versionNumber.getBuild().getAsInt());
         }
+
+        if (this.preBuild.isEmpty() && !metadata.isEmpty()) {
+            if (Helper.isPositiveInteger(this.metadata)) {
+                this.preBuild = this.metadata;
+                Integer build = Integer.valueOf(this.preBuild);
+                if (build > 0) {
+                    this.versionNumber.setBuild(build);
+                }
+            }
+        }
+
+        //if (this.versionNumber.getReleaseStatus().isPresent() && this.versionNumber.getReleaseStatus().get() != this.releaseStatus) {
+        //    this.versionNumber.setReleaseStatus(this.releaseStatus);
+        //}
 
         // Extract early access preBuild
         if (null != this.pre) {
@@ -91,9 +100,14 @@ public class SemVer implements Comparable<SemVer> {
                 if (null != eaResult.group(1)) {
                     this.versionNumber.setReleaseStatus(ReleaseStatus.EA);
                     if (null != eaResult.group(4)) {
-                        this.preBuild = eaResult.group(4);
-                        if (null == this.versionNumber.getPreBuild() || !this.versionNumber.getPreBuild().isPresent()) {
-                            this.versionNumber.setPreBuild(Integer.parseInt(this.preBuild));
+                        this.preBuild = !eaResult.group(4).equals("0") ? eaResult.group(4) : "";
+                        if (null == this.versionNumber.getBuild() || !this.versionNumber.getBuild().isPresent()) {
+                            if (!this.preBuild.isEmpty()) {
+                                Integer build = Integer.parseInt(this.preBuild);
+                                if (build > 0) {
+                                    this.versionNumber.setBuild(build);
+                                }
+                            }
                         }
                     }
                 }
@@ -126,7 +140,11 @@ public class SemVer implements Comparable<SemVer> {
                 if (null != buildNumberResult.group(1)) {
                     if (null != buildNumberResult.group(2)) {
                         if (null == this.versionNumber.getBuild() || !this.versionNumber.getBuild().isPresent()) {
-                            this.versionNumber.setBuild(Integer.parseInt(buildNumberResult.group(2)));
+                            Integer build = Integer.parseInt(buildNumberResult.group(2));
+                            if (build > 0) {
+                                this.versionNumber.setBuild(build);
+                                this.preBuild = Integer.toString(build);
+                            }
                         }
                     }
                 }
@@ -174,13 +192,18 @@ public class SemVer implements Comparable<SemVer> {
     public String getPreBuild() { return preBuild; }
     public void setPreBuild(final String preBuild) {
         if (preBuild.matches("[0-9]+")) {
-            if (preBuild.length() > 1 && preBuild.startsWith("0")) {
-                throw new IllegalArgumentException("preBuild cannot starts with 0: " + preBuild);
+            if (preBuild.length() > 1 && (preBuild.startsWith("0") || preBuild.startsWith("b0"))) {
+                throw new IllegalArgumentException("preBuild must be larger than 0");
             }
             this.preBuild = preBuild;
-        } else {
-            throw new IllegalArgumentException("Invalid preBuild: " + preBuild);
+            } else {
+                throw new IllegalArgumentException("Invalid preBuild: " + preBuild + ". It should only contain integers > 0.");
+            }
         }
+
+    public Integer getPreBuildAsInt() {
+        if (null == preBuild || preBuild.isEmpty()) { return -1; }
+        return Integer.valueOf(preBuild);
     }
 
     public String getMetadata() { return metadata; }
@@ -224,7 +247,7 @@ public class SemVer implements Comparable<SemVer> {
         vNext.setMetadata("");
         vNext.setPre("");
         vNext.setFifth(0);
-            vNext.setPatch(getPatch() + 1);
+        vNext.setPatch(getPatch() + 1);
         return vNext;
     }
 
@@ -320,13 +343,58 @@ public class SemVer implements Comparable<SemVer> {
         d = compareSegment(getSixth(), semVer.getSixth());
         if (d != 0) { return d; }
 
+        ReleaseStatus thisStatus  = releaseStatus;
+        ReleaseStatus otherStatus = semVer.getReleaseStatus();
+
+        if (ReleaseStatus.GA == thisStatus && ReleaseStatus.EA == otherStatus) {
+            d = 1;
+        } else if (ReleaseStatus.EA == thisStatus && ReleaseStatus.GA == otherStatus) {
+            d = -1;
+        } else if (thisStatus == otherStatus) {
+            // Either both GA or both EA
+            int thisBuild  = getPreBuildAsInt();
+            int otherBuild = semVer.getPreBuildAsInt();
+
+            if (thisBuild > otherBuild) {
+                d = 1;
+            } else if (thisBuild < otherBuild) {
+                d = -1;
+            } else {
+                d = 0;
+            }
+        } else {
+            d = 0;
+        }
+
+        return d;
+    }
+
+    public int compareToIgnoreBuild(final SemVer semVer) {
+        int d;
+        d = compareSegment(getFeature(), semVer.getFeature());
+        if (d != 0) { return d; }
+
+        d = compareSegment(getInterim(), semVer.getInterim());
+        if (d != 0) { return d; }
+
+        d = compareSegment(getUpdate(), semVer.getUpdate());
+        if (d != 0) { return d; }
+
+        d = compareSegment(getPatch(), semVer.getPatch());
+        if (d != 0) { return d; }
+
+        d = compareSegment(getFifth(), semVer.getFifth());
+        if (d != 0) { return d; }
+
+        d = compareSegment(getSixth(), semVer.getSixth());
+        if (d != 0) { return d; }
+
         if ((null != pre && pre.isEmpty()) && (null != semVer.getPre() && semVer.getPre().isEmpty())) { return 0; }
         if (null == pre || pre.isEmpty()) { return 1; }
         if (null == semVer.getPre() || semVer.getPre().isEmpty()) { return -1; }
 
         return comparePrerelease(pre, semVer.getPre());
     }
-
 
     private int compareSegment(final int s1, final int s2) {
         if (s1 < s2) {
@@ -370,17 +438,11 @@ public class SemVer implements Comparable<SemVer> {
         }
 
         if (prePart1.isEmpty()) {
-            if (!prePart2.isEmpty()) {
-                return -1;
-            }
-            return 1;
+            return !prePart2.isEmpty() ? -1 : 1;
         }
 
         if (prePart2.isEmpty()) {
-            if (!prePart1.isEmpty()) {
-                return 1;
-            }
-            return -1;
+            return !prePart1.isEmpty() ? 1 : -1;
         }
 
         Integer prePart1Number;
@@ -397,11 +459,7 @@ public class SemVer implements Comparable<SemVer> {
         }
 
         if (null != prePart1Number && null != prePart2Number) {
-            if (prePart1Number > prePart2Number) {
-                return 1;
-            } else {
-                return -1;
-            }
+            return prePart1Number > prePart2Number ? 1 : -1;
         } else if (null != prePart2Number) {
             return -1;
         } else if (null != prePart1Number) {
@@ -415,11 +473,27 @@ public class SemVer implements Comparable<SemVer> {
         versionBuilder.append(Comparison.EQUAL != comparison ? comparison.getOperator() : "");
         versionBuilder.append(versionNumber.toString(OutputFormat.REDUCED, javaFormat, false));
         if (ReleaseStatus.EA == releaseStatus) {
-            versionBuilder.append("-ea").append(preBuild.isEmpty() ? "" : ("." + preBuild));
+            versionBuilder.append("-ea");
         }
+
+        if (null == preBuild || preBuild.isEmpty()) {
         if (null != metadata && !metadata.isEmpty()) {
             versionBuilder.append(metadata.startsWith("+") ? metadata : ("+" + metadata));
         }
+        } else {
+            if (preBuild.startsWith("+")) {
+                preBuild = preBuild.substring(1);
+            }
+            try {
+                Integer pb = Integer.valueOf(preBuild);
+                if (pb > 0) {
+                    versionBuilder.append("+").append(pb);
+                }
+            } catch (NumberFormatException e) {
+                versionBuilder.append(preBuild.startsWith("+") ? preBuild : ("+" + preBuild));
+            }
+        }
+
         return versionBuilder.toString();
     }
 

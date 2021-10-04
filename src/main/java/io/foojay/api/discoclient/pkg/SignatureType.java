@@ -20,9 +20,11 @@ import java.util.Arrays;
 import java.util.List;
 
 
-public enum PackageType implements ApiFeature {
-    JDK("JDK", "jdk"),
-    JRE("JRE", "jre"),
+public enum SignatureType implements ApiFeature {
+    RSA("RSA", "rsa"), // Rivest Shamir Adleman
+    DSA("DSA", "dsa"), // Digital Signature Algorithm
+    ECDSA("ECDSA", "ecdsa"), // Elliptic Curve Cryptography DSA
+    EDDSA("EdDSA", "eddsa"), // Edwards Curve DSA
     NONE("-", ""),
     NOT_FOUND("", "");
 
@@ -30,7 +32,7 @@ public enum PackageType implements ApiFeature {
     private final String apiString;
 
 
-    PackageType(final String uiString, final String apiString) {
+    SignatureType(final String uiString, final String apiString) {
         this.uiString  = uiString;
         this.apiString = apiString;
     }
@@ -40,31 +42,32 @@ public enum PackageType implements ApiFeature {
 
     @Override public String getApiString() { return apiString; }
 
-    @Override public PackageType getDefault() { return PackageType.NONE; }
+    @Override public SignatureType getDefault() { return SignatureType.NONE; }
 
-    @Override public PackageType getNotFound() { return PackageType.NOT_FOUND; }
+    @Override public SignatureType getNotFound() { return SignatureType.NOT_FOUND; }
 
-    @Override public PackageType[] getAll() { return values(); }
+    @Override public SignatureType[] getAll() { return values(); }
 
-    public static PackageType fromText(final String text) {
+    public static SignatureType fromText(final String text) {
         if (null == text) { return NOT_FOUND; }
         switch (text) {
-            case "-jdk":
-            case "JDK":
-            case "jdk":
-            case "jdk+fx":
-            case "JDK+FX":
-                return JDK;
-            case "-jre":
-            case "JRE":
-            case "jre":
-            case "jre+fx":
-            case "JRE+FX":
-                return JRE;
+            case "rsa":
+            case "RSA":
+                return RSA;
+            case "dsa":
+            case "DSA":
+                return DSA;
+            case "ecdsa":
+            case "ECDSA":
+                return ECDSA;
+            case "eddsa":
+            case "EdDSA":
+            case "EDDSA":
+                return EDDSA;
             default:
                 return NOT_FOUND;
         }
     }
 
-    public static List<PackageType> getAsList() { return Arrays.asList(values()); }
+    public static List<SignatureType> getAsList() { return Arrays.asList(values()); }
 }

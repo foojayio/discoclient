@@ -1,32 +1,21 @@
 /*
- * Copyright (c) 2021, Azul
- * All rights reserved.
+ * Copyright (c) 2021 by Gerrit Grunwald
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- * - Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
- * - Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer
- *   in the documentation and/or other materials provided with the distribution.
- * - Neither the name of Azul nor the names of its contributors may be used to endorse or promote products derived
- *   from this software without specific prior written permission.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING,
- * BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
- * IN NO EVENT SHALL AZUL BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY,
- * OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
- * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
- * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package io.foojay.api.discoclient.util;
 
-import io.foojay.api.discoclient.pkg.Distribution;
-import io.foojay.api.discoclient.pkg.Scope;
-
-import java.util.Arrays;
-import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
 
 
@@ -34,6 +23,8 @@ public class Constants {
     public static final String  NAME                      = "discoclient";
 
     public static final String  DISCO_API_BASE_URL        = "https://api.foojay.io";
+
+    public static final String  DISTRIBUTION_JSON         = "distributions.json";
 
     public static final String  PROPERTY_KEY_DISCO_URL    = "url";
 
@@ -59,28 +50,17 @@ public class Constants {
     public static final String  API_DIRECTLY_DOWNLOADABLE = "directly_downloadable";
     public static final String  API_LATEST                = "latest";
     public static final String  API_DISCOVERY_SCOPE_ID    = "discovery_scope_id";
+    public static final String  API_MATCH                 = "match";
+    public static final String  API_FEATURE               = "feature";
 
-    public static final ConcurrentHashMap<Distribution, List<Scope>> SCOPE_LOOKUP = new ConcurrentHashMap<>();
-    static {
-        SCOPE_LOOKUP.put(Distribution.AOJ, Arrays.asList(Scope.PUBLIC, Scope.BUILD_OF_OPEN_JDK, Scope.DIRECTLY_DOWNLOADABLE));
-        SCOPE_LOOKUP.put(Distribution.AOJ_OPENJ9, Arrays.asList(Scope.PUBLIC, Scope.DIRECTLY_DOWNLOADABLE));
-        SCOPE_LOOKUP.put(Distribution.CORRETTO, Arrays.asList(Scope.PUBLIC, Scope.BUILD_OF_OPEN_JDK, Scope.DIRECTLY_DOWNLOADABLE));
-        SCOPE_LOOKUP.put(Distribution.DRAGONWELL, Arrays.asList(Scope.PUBLIC, Scope.BUILD_OF_OPEN_JDK, Scope.DIRECTLY_DOWNLOADABLE));
-        SCOPE_LOOKUP.put(Distribution.GRAALVM_CE8, Arrays.asList(Scope.PUBLIC, Scope.DIRECTLY_DOWNLOADABLE));
-        SCOPE_LOOKUP.put(Distribution.GRAALVM_CE11, Arrays.asList(Scope.PUBLIC, Scope.DIRECTLY_DOWNLOADABLE));
-        SCOPE_LOOKUP.put(Distribution.GRAALVM_CE16, Arrays.asList(Scope.PUBLIC, Scope.DIRECTLY_DOWNLOADABLE));
-        SCOPE_LOOKUP.put(Distribution.LIBERICA, Arrays.asList(Scope.PUBLIC, Scope.BUILD_OF_OPEN_JDK, Scope.DIRECTLY_DOWNLOADABLE));
-        SCOPE_LOOKUP.put(Distribution.LIBERICA_NATIVE, Arrays.asList(Scope.PUBLIC, Scope.DIRECTLY_DOWNLOADABLE));
-        SCOPE_LOOKUP.put(Distribution.MANDREL, Arrays.asList(Scope.PUBLIC, Scope.DIRECTLY_DOWNLOADABLE));
-        SCOPE_LOOKUP.put(Distribution.MICROSOFT, Arrays.asList(Scope.PUBLIC, Scope.BUILD_OF_OPEN_JDK, Scope.DIRECTLY_DOWNLOADABLE));
-        SCOPE_LOOKUP.put(Distribution.OJDK_BUILD, Arrays.asList(Scope.PUBLIC, Scope.BUILD_OF_OPEN_JDK, Scope.DIRECTLY_DOWNLOADABLE));
-        SCOPE_LOOKUP.put(Distribution.OPEN_LOGIC, Arrays.asList(Scope.PUBLIC, Scope.BUILD_OF_OPEN_JDK, Scope.DIRECTLY_DOWNLOADABLE));
-        SCOPE_LOOKUP.put(Distribution.ORACLE, Arrays.asList(Scope.PUBLIC, Scope.BUILD_OF_OPEN_JDK, Scope.NOT_DIRECTLY_DOWNLOADABLE));
-        SCOPE_LOOKUP.put(Distribution.ORACLE_OPEN_JDK, Arrays.asList(Scope.PUBLIC, Scope.BUILD_OF_OPEN_JDK, Scope.DIRECTLY_DOWNLOADABLE));
-        SCOPE_LOOKUP.put(Distribution.RED_HAT, Arrays.asList(Scope.PUBLIC, Scope.BUILD_OF_OPEN_JDK, Scope.NOT_DIRECTLY_DOWNLOADABLE));
-        SCOPE_LOOKUP.put(Distribution.SAP_MACHINE, Arrays.asList(Scope.PUBLIC, Scope.BUILD_OF_OPEN_JDK, Scope.DIRECTLY_DOWNLOADABLE));
-        SCOPE_LOOKUP.put(Distribution.TEMURIN, Arrays.asList(Scope.PUBLIC, Scope.BUILD_OF_OPEN_JDK, Scope.DIRECTLY_DOWNLOADABLE));
-        SCOPE_LOOKUP.put(Distribution.TRAVA, Arrays.asList(Scope.PUBLIC, Scope.BUILD_OF_OPEN_JDK, Scope.DIRECTLY_DOWNLOADABLE));
-        SCOPE_LOOKUP.put(Distribution.ZULU, Arrays.asList(Scope.PUBLIC, Scope.BUILD_OF_OPEN_JDK, Scope.DIRECTLY_DOWNLOADABLE));
-    }
+    public static final String  SQUARE_BRACKET_OPEN       = "[";
+    public static final String  SQUARE_BRACKET_CLOSE      = "]";
+    public static final String  CURLY_BRACKET_OPEN        = "{";
+    public static final String  CURLY_BRACKET_CLOSE       = "}";
+    public static final String  INDENTED_QUOTES           = "  \"";
+    public static final String  QUOTES                    = "\"";
+    public static final String  COLON                     = ":";
+    public static final String  COMMA                     = ",";
+    public static final String  NEW_LINE                  = "\n";
+    public static final String  COMMA_NEW_LINE            = ",\n";
 }
