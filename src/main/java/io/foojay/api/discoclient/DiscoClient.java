@@ -1482,10 +1482,6 @@ public class DiscoClient {
         final ExecutorService     executor = Executors.newSingleThreadExecutor();
         final Future<?>           future   = executor.submit(task);
         executor.shutdown();
-        try {
-            executor.awaitTermination(10, TimeUnit.MINUTES);
-        } catch (InterruptedException e) {
-        }
         return future;
     }
     public final Future<?> downloadPkg(final PkgInfo pkgInfo, final String targetFileName) {
@@ -1493,10 +1489,6 @@ public class DiscoClient {
         final ExecutorService     executor = Executors.newSingleThreadExecutor();
         final Future<?>           future   = executor.submit(task);
         executor.shutdown();
-        try {
-            executor.awaitTermination(10, TimeUnit.MINUTES);
-        } catch (InterruptedException e) {
-        }
         return future;
     }
 
