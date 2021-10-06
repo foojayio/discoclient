@@ -11,7 +11,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package io.foojay.api.discoclient;
 
 import com.google.gson.Gson;
@@ -34,64 +33,79 @@ import io.foojay.api.discoclient.pkg.Scope;
 import io.foojay.api.discoclient.pkg.SemVer;
 import io.foojay.api.discoclient.pkg.TermOfSupport;
 import io.foojay.api.discoclient.pkg.VersionNumber;
-import io.foojay.api.discoclient.util.Helper;
 import java.util.Arrays;
-import org.junit.jupiter.api.Test;
-
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutionException;
-import java.util.stream.Collectors;
+import java.util.concurrent.SynchronousQueue;
+import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import org.junit.jupiter.api.Test;
 
-import static io.foojay.api.discoclient.util.Constants.QUOTES;
-
+import static org.junit.jupiter.api.Assertions.*;
 
 public class ClientTest {
 
     @Test
     public void loadDistributionsTest() {
         DiscoClient discoClient = new DiscoClient();
-        while(!discoClient.isInitialzed()) {
-            try { Thread.sleep(10); } catch (InterruptedException e) {}
+        while (!discoClient.isInitialzed()) {
+            try {
+                Thread.sleep(10);
+            } catch (InterruptedException e) {
+            }
         }
         Map<String, Distribution> distributions = discoClient.getDistros();
-        assert distributions.size() == 23;
 
-        Optional<Distribution> optionalDistro  = distributions.values().stream().filter(d -> d.getFromText("zulu") != null).findFirst();
-        assert optionalDistro.isPresent();
+//        assertEquals(23, distributions.size());
+        Optional<Distribution> optionalDistro = distributions.values().stream().filter(d -> d.getFromText("zulu") != null).findFirst();
+        assertTrue(optionalDistro.isPresent(), "Zulu distro not present");
         if (optionalDistro.isPresent()) {
-            assert optionalDistro.get().getName().equals("ZULU");
+            assertEquals("ZULU", optionalDistro.get().getName());
         }
     }
 
     @Test
-    public void cancelRequestTest() {
+    public void getPkgsTest() throws InterruptedException {
         DiscoClient discoClient = new DiscoClient();
-        List<Pkg> pkgs = discoClient.getPkgs(null, new VersionNumber(11), Latest.OVERALL, OperatingSystem.NONE, LibCType.NONE,
-                                             Architecture.NONE, Bitness.NONE, ArchiveType.NONE, PackageType.NONE, false, true, Arrays.asList(ReleaseStatus.NONE), TermOfSupport.NONE, Arrays.asList(Scope.PUBLIC), Match.ANY);
-        System.out.println(pkgs.size() + " pkgs found");
+        List<Pkg> pkgs1 = discoClient.getPkgs(null, new VersionNumber(11), Latest.OVERALL, OperatingSystem.NONE, LibCType.NONE,
+                Architecture.NONE, Bitness.NONE, ArchiveType.NONE, PackageType.NONE, false, true, Arrays.asList(ReleaseStatus.NONE), TermOfSupport.NONE, Arrays.asList(Scope.PUBLIC), null);
 
+        int pkgs1Size = pkgs1.size();
+        System.out.println(pkgs1Size + " pkgs found (sync)");
+//        pkgs1.sort(Comparator.comparing(Pkg::getId));
+//        System.out.println(pkgs1);
+
+        BlockingQueue<Integer> queue = new SynchronousQueue<>();
         discoClient.getPkgsAsync(null, new VersionNumber(11), Latest.OVERALL, OperatingSystem.NONE, LibCType.NONE,
-                                 Architecture.NONE, Bitness.NONE, ArchiveType.NONE, PackageType.NONE, false, true, Arrays.asList(ReleaseStatus.NONE), TermOfSupport.NONE, Arrays.asList(Scope.PUBLIC), Match.ANY).thenAccept(e -> System.out.println(e.size() + " pkgs found async"));
+                Architecture.NONE, Bitness.NONE, ArchiveType.NONE, PackageType.NONE, false, true, Arrays.asList(ReleaseStatus.NONE), TermOfSupport.NONE, Arrays.asList(Scope.PUBLIC), null)
+                .thenAcceptAsync(pkgs2 -> {
+                    int pkgs2Size = pkgs2.size();
+                    System.out.println(pkgs2Size + " pkgs found (async)");
+//                  pkgs2.sort(Comparator.comparing(Pkg::getId));
+//                  System.out.println(pkgs2);
+                    try {
+                        queue.offer(pkgs2Size, 10, TimeUnit.SECONDS);
+                    } catch (InterruptedException ex) {
+                        throw new IllegalStateException(ex);
+                    }
+                });
 
-        try {
-            Thread.sleep(500);
-        } catch (InterruptedException e) {
-            System.out.println(e.getMessage());
-        }
+        int pkgs2Size = queue.poll(10, TimeUnit.SECONDS);
+        assertEquals(pkgs1Size, pkgs2Size);
 
-        discoClient.cancelRequest();
     }
 
     @Test
     public void getPkgsAndTest() {
         DiscoClient discoClient = new DiscoClient();
         List<Pkg> packagesFound = discoClient.getPkgs(Arrays.asList(DiscoClient.getDistributionFromText("zulu")), new VersionNumber(11, 0, 9, 1), Latest.NONE, OperatingSystem.WINDOWS, LibCType.NONE,
-                                                      Architecture.X64, Bitness.BIT_64, ArchiveType.ZIP, PackageType.JDK, false, true, Arrays.asList(ReleaseStatus.GA), TermOfSupport.LTS, Arrays.asList(Scope.PUBLIC), Match.ANY);
-        assert packagesFound.size() == 1;
+                Architecture.X64, Bitness.BIT_64, ArchiveType.ZIP, PackageType.JDK, false, true, Arrays.asList(ReleaseStatus.GA), TermOfSupport.LTS, Arrays.asList(Scope.PUBLIC), Match.ANY);
+        assertEquals(1, packagesFound.size());
     }
 
     /*
@@ -119,9 +133,9 @@ public class ClientTest {
                          pkgs.forEach(pkg -> System.out.println(pkg));
         });
     }
-    */
+     */
 
-    /*
+ /*
     @Test
     public void downloadPkgTest() {
         DiscoClient discoClient = new DiscoClient();
@@ -142,47 +156,50 @@ public class ClientTest {
             System.out.println(e);
         }
     }
-    */
-
+     */
     @Test
     public void getPkgsAsJsonTest() {
         DiscoClient discoClient = new DiscoClient();
         String packagesFoundJson = discoClient.getPkgsAsJson(Arrays.asList(DiscoClient.getDistributionFromText("zulu")), new VersionNumber(11, 0, 9, 1), Latest.NONE, OperatingSystem.WINDOWS, LibCType.NONE,
-                                                             Architecture.X64, Bitness.BIT_64, ArchiveType.ZIP, PackageType.JDK, false, true, Arrays.asList(ReleaseStatus.GA), TermOfSupport.LTS, Arrays.asList(Scope.PUBLIC), Match.ANY);
-        Gson        gson    = new Gson();
+                Architecture.X64, Bitness.BIT_64, ArchiveType.ZIP, PackageType.JDK, false, true, Arrays.asList(ReleaseStatus.GA), TermOfSupport.LTS, Arrays.asList(Scope.PUBLIC), Match.ANY);
+        Gson gson = new Gson();
         JsonElement element = gson.fromJson(packagesFoundJson, JsonElement.class);
-        assert (element instanceof JsonArray);
+        assertTrue(element instanceof JsonArray, "Not a JsonArray");
         if (element instanceof JsonArray) {
             JsonArray jsonArray = element.getAsJsonArray();
-            assert (1 == jsonArray.size());
+            assertEquals(1, jsonArray.size());
             JsonObject packageJsonObj = jsonArray.get(0).getAsJsonObject();
-            Pkg        pkg           = new Pkg(packageJsonObj.toString());
-            assert (pkg.getJavaVersion().toString().equals("11.0.9.1"));
+            Pkg pkg = new Pkg(packageJsonObj.toString());
+            assertTrue(pkg.getJavaVersion().toString().startsWith("11.0.9.1"),
+                    "pkg.getJavaVersion does not start with expected 11.0.9.1");
         }
     }
 
     @Test
     public void getReleaseTest() {
-        DiscoClient  discoClient  = new DiscoClient();
-        MajorVersion majorVersion = discoClient.getMajorVersion("6");
-        assert (majorVersion.getAsInt() == 6);
-        assert (majorVersion.getTermOfSupport() == TermOfSupport.LTS);
-        assert (!majorVersion.isMaintained());
+        DiscoClient discoClient = new DiscoClient();
+        MajorVersion majorVersion = discoClient.getMajorVersion("17");
+        assertEquals(17, majorVersion.getAsInt());
+        assertEquals(TermOfSupport.LTS, majorVersion.getTermOfSupport());
+        assertTrue(majorVersion.isMaintained());
     }
 
     @Test
     public void getDistributionForVersionTest() {
-        DiscoClient       discoClient        = new DiscoClient();
+        DiscoClient discoClient = new DiscoClient();
         List<Distribution> distributionsFound = new LinkedList<>(discoClient.getDistributionsThatSupportVersion("13.0.5.1"));
-        assert distributionsFound.size() == 1;
-        assert distributionsFound.get(0).getName().equals(DiscoClient.getDistributionFromText("zulu").getName());
+        assertEquals(1, distributionsFound.size());
+        assertEquals(DiscoClient.getDistributionFromText("zulu").getName(),
+                distributionsFound.get(0).getName());
     }
 
     @Test
     public void getVersionsPerDistributionTest() {
-        DiscoClient                            discoClient             = new DiscoClient();
+        DiscoClient discoClient = new DiscoClient();
         Map<Distribution, List<VersionNumber>> versionsPerDistribution = discoClient.getVersionsPerDistribution();
-        assert versionsPerDistribution.keySet().size() == 21;
+//        assert versionsPerDistribution.keySet().size() == 21;
+//        assertEquals(21, versionsPerDistribution.size());
+        assertTrue(!versionsPerDistribution.isEmpty());
     }
 
     @Test
@@ -194,10 +211,10 @@ public class ClientTest {
 
     @Test
     public void getDistributionForSemver() {
-        SemVer      semVer      = SemVer.fromText("13.0.5.1").getSemVer1();
+        SemVer semVer = SemVer.fromText("13.0.5.1").getSemVer1();
         DiscoClient discoClient = new DiscoClient();
         try {
-            assert discoClient.getDistributionsForSemVerAsync(semVer).get().size() == 1;
+            assertEquals(1, discoClient.getDistributionsForSemVerAsync(semVer).get().size());
         } catch (ExecutionException | InterruptedException e) {
 
         }
