@@ -1411,6 +1411,15 @@ public class DiscoClient {
     }
 
 
+    public final String getPkgDownloadSiteUri(final String pkgId) {
+        final Pkg pkg = getPkg(pkgId);
+        return getPkgInfo(pkg.getEphemeralId(), pkg.getJavaVersion()).getDownloadSiteUri();
+    }
+    public final CompletableFuture<String> getPkgDownloadSiteUriAsync(final String pkgId) {
+        return getPkgAsync(pkgId).thenApply(pkg -> getPkgInfoAsync(pkg.getEphemeralId(), pkg.getJavaVersion()).thenApply(pkgInfo -> pkgInfo.getDownloadSiteUri())).join();
+    }
+
+
     public PkgInfo getPkgInfo(final String ephemeralId, final SemVer javaVersion) {
         StringBuilder queryBuilder = new StringBuilder().append(PropertyManager.INSTANCE.getString(Constants.PROPERTY_KEY_DISCO_URL))
                                                         .append(Constants.EPHEMERAL_IDS_PATH)
