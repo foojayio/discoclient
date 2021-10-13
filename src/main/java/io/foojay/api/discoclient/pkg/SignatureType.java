@@ -70,4 +70,6 @@ public enum SignatureType implements ApiFeature {
     }
 
     public static List<SignatureType> getAsList() { return Arrays.asList(values()); }
+
+    @Override public String toString() { return uiString; }
 }

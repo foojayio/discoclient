@@ -88,4 +88,6 @@ public enum Scope implements ApiFeature {
     }
 
     public static List<Scope> getAsList() { return Arrays.asList(values()); }
+
+    @Override public String toString() { return uiString; }
 }

@@ -77,4 +77,8 @@ public class MajorVersion {
 
     // VersionNumber
     public VersionNumber getVersionNumber() { return new VersionNumber(majorVersion); }
+
+    @Override public String toString() {
+        return Integer.toString(getAsInt());
+    }
 }

@@ -74,4 +74,6 @@ public enum Latest {
                 return NOT_FOUND;
         }
     }
+
+    @Override public String toString() { return uiString; }
 }

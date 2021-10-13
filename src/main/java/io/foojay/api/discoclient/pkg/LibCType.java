@@ -95,4 +95,6 @@ public enum LibCType implements ApiFeature {
     }
 
     public static List<LibCType> getAsList() { return Arrays.asList(values()); }
+
+    @Override public String toString() { return uiString; }
 }

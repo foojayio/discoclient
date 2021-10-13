@@ -79,4 +79,6 @@ public enum Bitness implements ApiFeature {
     }
 
     public static List<Bitness> getAsList() { return Arrays.asList(values()); }
+
+    @Override public String toString() { return uiString; }
 }

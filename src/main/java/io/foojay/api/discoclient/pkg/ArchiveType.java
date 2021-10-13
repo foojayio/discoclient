@@ -135,5 +135,7 @@ public enum ArchiveType implements ApiFeature {
     }
 
     public static List<ArchiveType> getAsList() { return Arrays.asList(values()); }
+
+    @Override public String toString() { return uiString; }
 }
 

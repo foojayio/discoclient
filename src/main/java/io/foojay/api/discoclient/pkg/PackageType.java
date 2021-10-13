@@ -67,4 +67,6 @@ public enum PackageType implements ApiFeature {
     }
 
     public static List<PackageType> getAsList() { return Arrays.asList(values()); }
+
+    @Override public String toString() { return uiString; }
 }

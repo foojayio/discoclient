@@ -63,4 +63,6 @@ public enum Match implements ApiFeature {
     }
 
     public static List<Match> getAsList() { return Arrays.asList(values()); }
+
+    @Override public String toString() { return uiString; }
 }

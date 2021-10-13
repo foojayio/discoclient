@@ -77,4 +77,6 @@ public enum ReleaseStatus implements ApiFeature {
     public String getPreReleaseId() { return preReleaseId; }
 
     public static List<ReleaseStatus> getAsList() { return Arrays.asList(values()); }
+
+    @Override public String toString() { return uiString; }
 }

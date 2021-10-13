@@ -136,4 +136,6 @@ public enum Architecture implements ApiFeature {
     public Bitness getBitness() { return bitness; }
 
     public static List<Architecture> getAsList() { return Arrays.asList(values()); }
+
+    @Override public String toString() { return uiString; }
 }

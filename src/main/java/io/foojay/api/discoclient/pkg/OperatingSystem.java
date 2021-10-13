@@ -126,5 +126,7 @@ public enum OperatingSystem implements ApiFeature {
     public LibCType getLibCType() { return libCType; }
 
     public static List<OperatingSystem> getAsList() { return Arrays.asList(values()); }
+
+    @Override public String toString() { return uiString; }
 }
 
