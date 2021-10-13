@@ -15,6 +15,13 @@
 			"scopes": ["public","directly_downloadable"]
 		},
 		{
+			"name":"BISHENG",
+			"ui_string":"Bi Sheng",
+			"api_string":"bisheng",
+			"synonyms": ["bisheng", "BISHENG", "BiSheng", "bi_sheng", "BI_SHENG", "bi-sheng", "BI-SHENG", "bi sheng", "BI SHENG", "Bi Sheng"],
+			"scopes": ["public","build_of_open_jdk","directly_downloadable"]
+		},
+		{
 			"name":"CORRETTO",
 			"ui_string":"Corretto",
 			"api_string":"corretto",
@@ -50,6 +57,27 @@
 			"scopes": ["public","directly_downloadable"]
 		},
 		{
+			"name":"GRAALVM_CE17",
+			"ui_string":"Graal VM CE 17",
+			"api_string":"graalvm_ce17",
+			"synonyms": ["graalvm_ce17","graalvmce17","GraalVM CE 17","GraalVMCE17","GraalVM_CE17"],
+			"scopes": ["public","directly_downloadable"]
+		},
+		{
+			"name":"JETBRAINS",
+			"ui_string":"JetBrains",
+			"api_string":"jetbrains",
+			"synonyms": ["jetbrains","JETBRAINS","JetBrains"],
+			"scopes": ["public","build_of_open_jdk","directly_downloadable"]
+		},
+		{
+			"name":"KONA",
+			"ui_string":"Kona",
+			"api_string":"kona",
+			"synonyms": ["kona","KONA","Kona"],
+			"scopes": ["public","build_of_open_jdk","directly_downloadable"]
+		},
+		{
 			"name":"LIBERICA",
 			"ui_string":"Liberica",
 			"api_string":"liberica",
@@ -72,23 +100,23 @@
 		},
 		{
 			"name":"MICROSOFT",
-			"ui_string":"Microsoft OpenJDK",
+			"ui_string":"Microsoft",
 			"api_string":"microsoft",
-			"synonyms": ["microsoft","MICROSOFT","Microsoft"],
+			"synonyms": ["microsoft","Microsoft","MICROSOFT","Microsoft OpenJDK","Microsoft Build of OpenJDK"],
 			"scopes": ["public","build_of_open_jdk","directly_downloadable"]
 		},
 		{
 			"name":"OJDK_BUILD",
 			"ui_string":"OJDKBuild",
 			"api_string":"ojdk_build",
-			"synonyms": ["ojdk_build","OJDK_BUILD","ojdkbuild","OJDKBuild"],
+			"synonyms": ["ojdk_build","OJDK_BUILD","OJDK Build","ojdk build","ojdkbuild","OJDKBuild"],
 			"scopes": ["public","build_of_open_jdk","directly_downloadable"]
 		},
 		{
 			"name":"OPEN_LOGIC",
 			"ui_string":"OpenLogic",
 			"api_string":"openlogic",
-			"synonyms": ["openlogic","OPENLOGIC","OpenLogic","open_logic","OPEN_LOGIC"],
+			"synonyms": ["openlogic","OPENLOGIC","OpenLogic","open_logic","OPEN_LOGIC","Open Logic","OPEN LOGIC","open logic"],
 			"scopes": ["public","build_of_open_jdk","directly_downloadable"]
 		},
 		{
@@ -123,7 +151,7 @@
 			"name":"SEMERU",
 			"ui_string":"Semeru",
 			"api_string":"semeru",
-			"synonyms": ["semeru","SEMERU","Semeru"],
+			"synonyms": ["semeru", "Semeru", "SEMERU"],
 			"scopes": ["public","build_of_open_jdk","directly_downloadable"]
 		},
 		{
@@ -137,14 +165,21 @@
 			"name":"TRAVA",
 			"ui_string":"Trava",
 			"api_string":"trava",
-			"synonyms": ["trava","TRAVA","trava_openjdk","TRAVA_OPENJDK","trava openjdk","TRAVA OPENJDK"],
+			"synonyms": ["trava","TRAVA","Trava","trava_openjdk","TRAVA_OPENJDK","trava openjdk","TRAVA OPENJDK"],
 			"scopes": ["public","build_of_open_jdk","directly_downloadable"]
 		},
 		{
 			"name":"ZULU",
 			"ui_string":"Zulu",
 			"api_string":"zulu",
-			"synonyms": ["zulu","ZULU","Zulu"],
+			"synonyms": ["zulu","ZULU","Zulu","zulucore","ZULUCORE","ZuluCore","zulu_core","ZULU_CORE","Zulu_Core","zulu core","ZULU CORE","Zulu Core"],
+			"scopes": ["public","build_of_open_jdk","directly_downloadable"]
+		},
+		{
+			"name":"ZULU_PRIME",
+			"ui_string":"Zulu Prime",
+			"api_string":"zulu_prime",
+			"synonyms": ["zing","ZING","Zing","prime","PRIME","Prime","zuluprime","ZULUPRIME","ZuluPrime","zulu_prime","ZULU_PRIME","Zulu_Prime","zulu prime","ZULU PRIME","Zulu Prime"],
 			"scopes": ["public","build_of_open_jdk","directly_downloadable"]
 		}
 	]
