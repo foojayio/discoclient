@@ -33,6 +33,7 @@ public enum Distribution implements ApiFeature {
     DRAGONWELL("Dragonwell", "dragonwell"),
     GRAALVM_CE8("Graal VM CE 8", "graalvm_ce8"),
     GRAALVM_CE11("Graal VM CE 11", "graalvm_ce11"),
+    GRAALVM_CE17("Graal VM CE 17", "graalvm_ce17"),
     LIBERICA("Liberica", "liberica"),
     LIBERICA_NATIVE("Liberica Native", "liberica_native"),
     MANDREL("Mandrel", "mandrel"),
@@ -51,20 +52,35 @@ public enum Distribution implements ApiFeature {
 
 
     Distribution(final String uiString, final String apiString) {
-        this.uiString  = uiString;
+        this.uiString = uiString;
         this.apiString = apiString;
     }
 
 
-    @Override public String getUiString() { return uiString; }
+    @Override
+    public String getUiString() {
+        return uiString;
+    }
 
-    @Override public String getApiString() { return apiString; }
+    @Override
+    public String getApiString() {
+        return apiString;
+    }
 
-    @Override public Distribution getDefault() { return Distribution.NONE; }
+    @Override
+    public Distribution getDefault() {
+        return Distribution.NONE;
+    }
 
-    @Override public Distribution getNotFound() { return Distribution.NOT_FOUND; }
+    @Override
+    public Distribution getNotFound() {
+        return Distribution.NOT_FOUND;
+    }
 
-    @Override public Distribution[] getAll() { return values(); }
+    @Override
+    public Distribution[] getAll() {
+        return values();
+    }
 
     public static Distribution fromText(final String text) {
         switch (text) {
@@ -109,6 +125,12 @@ public enum Distribution implements ApiFeature {
             case "GraalVMCE11":
             case "GraalVM_CE11":
                 return GRAALVM_CE11;
+            case "graalvm_ce17":
+            case "graalvmce17":
+            case "GraalVM CE 17":
+            case "GraalVMCE17":
+            case "GraalVM_CE17":
+                return GRAALVM_CE17;
             case "liberica":
             case "LIBERICA":
             case "Liberica":
@@ -193,27 +215,31 @@ public enum Distribution implements ApiFeature {
         return Arrays.stream(values()).filter(distro -> Distribution.NONE != distro && Distribution.NOT_FOUND != distro).collect(Collectors.toList());
     }
 
-    public static List<Distribution> getAsList() { return Arrays.asList(values()); }
+    public static List<Distribution> getAsList() {
+        return Arrays.asList(values());
+    }
 
     public static List<Distribution> getDistributionsBasedOnOpenJDK() {
         return Arrays.stream(values())
-                     .filter(distribution -> Distribution.NONE != distribution)
-                     .filter(distribution -> Distribution.NOT_FOUND != distribution)
-                     .filter(distribution -> Distribution.GRAALVM_CE11 != distribution)
-                     .filter(distribution -> Distribution.GRAALVM_CE8 != distribution)
-                     .filter(distribution -> Distribution.MANDREL != distribution)
-                     .filter(distribution -> Distribution.LIBERICA_NATIVE != distribution)
-                     .collect(Collectors.toList());
+                .filter(distribution -> Distribution.NONE != distribution)
+                .filter(distribution -> Distribution.NOT_FOUND != distribution)
+                .filter(distribution -> Distribution.GRAALVM_CE17 != distribution)
+                .filter(distribution -> Distribution.GRAALVM_CE11 != distribution)
+                .filter(distribution -> Distribution.GRAALVM_CE8 != distribution)
+                .filter(distribution -> Distribution.MANDREL != distribution)
+                .filter(distribution -> Distribution.LIBERICA_NATIVE != distribution)
+                .collect(Collectors.toList());
     }
 
     public static List<Distribution> getDistributionsBasedOnGraalVm() {
         return Arrays.stream(values())
-                     .filter(distribution -> Distribution.NONE == distribution)
-                     .filter(distribution -> Distribution.NOT_FOUND == distribution)
-                     .filter(distribution -> Distribution.GRAALVM_CE11 == distribution)
-                     .filter(distribution -> Distribution.GRAALVM_CE8 == distribution)
-                     .filter(distribution -> Distribution.MANDREL == distribution)
-                     .filter(distribution -> Distribution.LIBERICA_NATIVE == distribution)
-                     .collect(Collectors.toList());
+                .filter(distribution -> Distribution.NONE == distribution)
+                .filter(distribution -> Distribution.NOT_FOUND == distribution)
+                .filter(distribution -> Distribution.GRAALVM_CE17 == distribution)
+                .filter(distribution -> Distribution.GRAALVM_CE11 == distribution)
+                .filter(distribution -> Distribution.GRAALVM_CE8 == distribution)
+                .filter(distribution -> Distribution.MANDREL == distribution)
+                .filter(distribution -> Distribution.LIBERICA_NATIVE == distribution)
+                .collect(Collectors.toList());
     }
 }
