@@ -34,13 +34,17 @@ public enum Distribution implements ApiFeature {
     GRAALVM_CE8("Graal VM CE 8", "graalvm_ce8"),
     GRAALVM_CE11("Graal VM CE 11", "graalvm_ce11"),
     GRAALVM_CE17("Graal VM CE 17", "graalvm_ce17"),
+    JETBRAINS("Jetbrains", "jetbrains"),
     LIBERICA("Liberica", "liberica"),
     LIBERICA_NATIVE("Liberica Native", "liberica_native"),
     MANDREL("Mandrel", "mandrel"),
+    MICROSOFT("Microsoft", "microsoft"),
     OJDK_BUILD("OJDKBuild", "ojdk_build"),
+    OPENLOGIC("OpenLogic", "openlogic"),
     ORACLE("Oracle", "oracle"),
     ORACLE_OPEN_JDK("Oracle OpenJDK", "oracle_openjdk"),
     RED_HAT("Red Hat", "redhat"),
+    SEMERU("Semeru", "semeru"),
     SAP_MACHINE("SAP Machine", "sapmachine"),
     TRAVA("Trava", "trava"),
     ZULU("Zulu", "zulu"),
@@ -135,6 +139,10 @@ public enum Distribution implements ApiFeature {
             case "LIBERICA":
             case "Liberica":
                 return LIBERICA;
+            case "jetbrains":
+            case "JetBrains":
+            case "JETBRAINS":
+                return JETBRAINS;
             case "liberica_native":
             case "LIBERICA_NATIVE":
             case "libericaNative":
@@ -147,11 +155,26 @@ public enum Distribution implements ApiFeature {
             case "MANDREL":
             case "Mandrel":
                 return MANDREL;
+            case "microsoft":
+            case "Microsoft":
+            case "MICROSOFT":
+            case "Microsoft OpenJDK":
+            case "Microsoft Build of OpenJDK":
+                return MICROSOFT;
             case "ojdk_build":
             case "OJDK_BUILD":
             case "ojdkbuild":
             case "OJDKBuild":
                 return OJDK_BUILD;
+            case "openlogic":
+            case "OPENLOGIC":
+            case "OpenLogic":
+            case "open_logic":
+            case "OPEN_LOGIC":
+            case "Open Logic":
+            case "OPEN LOGIC":
+            case "open logic":
+                return OPENLOGIC;
             case "oracle_open_jdk":
             case "ORACLE_OPEN_JDK":
             case "oracle_openjdk":
@@ -199,6 +222,10 @@ public enum Distribution implements ApiFeature {
             case "SAP-Machine":
             case "SAP-MACHINE":
                 return SAP_MACHINE;
+            case "semeru":
+            case "Semeru":
+            case "SEMERU":
+                return SEMERU;
             case "trava":
             case "TRAVA":
                 return TRAVA;
