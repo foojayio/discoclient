@@ -48,6 +48,7 @@ public enum Distribution implements ApiFeature {
     SAP_MACHINE("SAP Machine", "sapmachine"),
     TRAVA("Trava", "trava"),
     ZULU("Zulu", "zulu"),
+    ZULU_PRIME("ZuluPrime", "zulu_prime"),
     NONE("-", ""),
     NOT_FOUND("", "");
 
@@ -233,6 +234,19 @@ public enum Distribution implements ApiFeature {
             case "ZULU":
             case "Zulu":
                 return ZULU;
+            case "zing":
+            case "ZING":
+            case "Zing":
+            case "zuluprime":
+            case "ZULUPRIME":
+            case "ZuluPrime":
+            case "zulu_prime":
+            case "ZULU_PRIME":
+            case "Zulu_Prime":
+            case "zulu prime":
+            case "ZULU PRIME":
+            case "Zulu Prime":
+                return ZULU_PRIME;
             default:
                 return NOT_FOUND;
         }
