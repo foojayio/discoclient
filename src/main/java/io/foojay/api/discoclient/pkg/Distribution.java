@@ -46,6 +46,7 @@ public enum Distribution implements ApiFeature {
     RED_HAT("Red Hat", "redhat"),
     SEMERU("Semeru", "semeru"),
     SAP_MACHINE("SAP Machine", "sapmachine"),
+    TEMURIN("Temurin", "temurin"),
     TRAVA("Trava", "trava"),
     ZULU("Zulu", "zulu"),
     ZULU_PRIME("ZuluPrime", "zulu_prime"),
@@ -227,6 +228,10 @@ public enum Distribution implements ApiFeature {
             case "Semeru":
             case "SEMERU":
                 return SEMERU;
+            case "temurin":
+            case "Temurin":
+            case "TEMURIN":
+                return TEMURIN;
             case "trava":
             case "TRAVA":
                 return TRAVA;
