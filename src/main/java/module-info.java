@@ -8,7 +8,7 @@ module io.foojay.api.discoclient {
     // 3rd party
     requires org.apache.logging.log4j;
     requires org.apache.logging.log4j.slf4j;
-    requires slf4j.api;
+    requires org.slf4j;
     requires com.google.gson;
 
     exports io.foojay.api.discoclient;
