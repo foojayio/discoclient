@@ -124,7 +124,7 @@
 			"ui_string":"Oracle",
 			"api_string":"oracle",
 			"synonyms": ["oracle","ORACLE","Oracle"],
-			"scopes": ["public","build_of_open_jdk","not_directly_downloadable"]
+			"scopes": ["public","build_of_open_jdk","directly_downloadable","not_directly_downloadable"]
 		},
 		{
 			"name":"ORACLE_OPEN_JDK",

@@ -195,9 +195,8 @@ public class VersionNumber implements Comparable<VersionNumber> {
      * @param text           Text to parse
      * @param resultToMatch  The result that should be taken for parsing if there are more than 1
      * @return Returns a version number parsed from the given text
-     * @throws IllegalArgumentException
      */
-    public static VersionNumber fromText(final String text, final int resultToMatch) throws IllegalArgumentException {
+    public static VersionNumber fromText(final String text, final int resultToMatch) {
         if (null == text || text.isEmpty()) {
             return new VersionNumber();
         }
@@ -391,12 +390,12 @@ public class VersionNumber implements Comparable<VersionNumber> {
 
     /**
      * Returns the numbers that are available in the version number
-     * e.g. Feature                      -> 1
-     *      Feature.Interim              -> 2
-     *      Feature.Interim.Update       -> 3
-     *      Feature.Interim.Update.Patch -> 4
-     *      Feature.Interim.Update.Patch.Fifth       -> 5
-     *      Feature.Interim.Update.Patch.Fifth.Sixth -> 6
+     * e.g. Feature                                  = 1
+     *      Feature.Interim                          = 2
+     *      Feature.Interim.Update                   = 3
+     *      Feature.Interim.Update.Patch             = 4
+     *      Feature.Interim.Update.Patch.Fifth       = 5
+     *      Feature.Interim.Update.Patch.Fifth.Sixth = 6
      * @return the numbers that are available in the version number
      */
     public int numbersAvailable() {
@@ -425,7 +424,7 @@ public class VersionNumber implements Comparable<VersionNumber> {
      * Returns 0 if given version number is equal to this. But with just a number like 11, it will
      * also return 0 for values like 11.0.2, 11.4.0 etc. This is used in the DiscoService to make sure
      * to filter results for version numbers.
-     * @param otherVersionNumber
+     * @param otherVersionNumber VersionNumber to compare with
      * @return 0 if given version number is equel to this. But also returns 0 if only feature number is equal to given feature number
      */
     public int compareForFilterTo(final VersionNumber otherVersionNumber) {

@@ -20,47 +20,49 @@ import java.util.regex.Pattern;
 
 
 public class Constants {
-    public static final String  NAME                      = "discoclient";
+    public static final String  NAME                                = "discoclient";
 
-    public static final String  DISCO_API_BASE_URL        = "https://api.foojay.io";
+    public static final String  PROPERTY_KEY_DISCO_URL              = "url";
+    public static final String  PROPERTY_KEY_DISTRIBUTION_JSON_URL  = "distro_url";
 
-    public static final String  DISTRIBUTION_JSON         = "distributions.json";
+    public static final String  DISCO_API_BASE_URL                  = "https://api.foojay.io";
+    public static final String  DISTRIBUTION_JSON_URL               = "https://github.com/foojayio/distributions/raw/main/distributions.json";
 
-    public static final String  PROPERTY_KEY_DISCO_URL    = "url";
+    public static final String  DISTRIBUTION_JSON                   = "distributions.json";
 
-    public static final Pattern POSITIVE_INTEGER_PATTERN  = Pattern.compile("\\d+");
+    public static final Pattern POSITIVE_INTEGER_PATTERN            = Pattern.compile("\\d+");
 
-    public static final String  PACKAGES_PATH             = "/disco/v2.0/packages";
-    public static final String  EPHEMERAL_IDS_PATH        = "/disco/v2.0/ephemeral_ids";
-    public static final String  MAJOR_VERSIONS_PATH       = "/disco/v2.0/major_versions";
-    public static final String  DISTRIBUTIONS_PATH        = "/disco/v2.0/distributions";
+    public static final String  PACKAGES_PATH                       = "/disco/v2.0/packages";
+    public static final String  EPHEMERAL_IDS_PATH                  = "/disco/v2.0/ephemeral_ids";
+    public static final String  MAJOR_VERSIONS_PATH                 = "/disco/v2.0/major_versions";
+    public static final String  DISTRIBUTIONS_PATH                  = "/disco/v2.0/distributions";
 
-    public static final String  API_DISTRIBUTION          = "distro";
-    public static final String  API_VERSION               = "version";
-    public static final String  API_VERSION_BY_DEFINITION = "version_by_definition";
-    public static final String  API_ARCHITECTURE          = "architecture";
-    public static final String  API_ARCHIVE_TYPE          = "archive_type";
-    public static final String  API_PACKAGE_TYPE          = "package_type";
-    public static final String  API_OPERATING_SYSTEM      = "operating_system";
-    public static final String  API_LIBC_TYPE             = "libc_type";
-    public static final String  API_RELEASE_STATUS        = "release_status";
-    public static final String  API_SUPPORT_TERM          = "term_of_support";
-    public static final String  API_BITNESS               = "bitness";
-    public static final String  API_JAVAFX_BUNDLED        = "javafx_bundled";
-    public static final String  API_DIRECTLY_DOWNLOADABLE = "directly_downloadable";
-    public static final String  API_LATEST                = "latest";
-    public static final String  API_DISCOVERY_SCOPE_ID    = "discovery_scope_id";
-    public static final String  API_MATCH                 = "match";
-    public static final String  API_FEATURE               = "feature";
+    public static final String  API_DISTRIBUTION                    = "distro";
+    public static final String  API_VERSION                         = "version";
+    public static final String  API_VERSION_BY_DEFINITION           = "version_by_definition";
+    public static final String  API_ARCHITECTURE                    = "architecture";
+    public static final String  API_ARCHIVE_TYPE                    = "archive_type";
+    public static final String  API_PACKAGE_TYPE                    = "package_type";
+    public static final String  API_OPERATING_SYSTEM                = "operating_system";
+    public static final String  API_LIBC_TYPE                       = "libc_type";
+    public static final String  API_RELEASE_STATUS                  = "release_status";
+    public static final String  API_SUPPORT_TERM                    = "term_of_support";
+    public static final String  API_BITNESS                         = "bitness";
+    public static final String  API_JAVAFX_BUNDLED                  = "javafx_bundled";
+    public static final String  API_DIRECTLY_DOWNLOADABLE           = "directly_downloadable";
+    public static final String  API_LATEST                          = "latest";
+    public static final String  API_DISCOVERY_SCOPE_ID              = "discovery_scope_id";
+    public static final String  API_MATCH                           = "match";
+    public static final String  API_FEATURE                         = "feature";
 
-    public static final String  SQUARE_BRACKET_OPEN       = "[";
-    public static final String  SQUARE_BRACKET_CLOSE      = "]";
-    public static final String  CURLY_BRACKET_OPEN        = "{";
-    public static final String  CURLY_BRACKET_CLOSE       = "}";
-    public static final String  INDENTED_QUOTES           = "  \"";
-    public static final String  QUOTES                    = "\"";
-    public static final String  COLON                     = ":";
-    public static final String  COMMA                     = ",";
-    public static final String  NEW_LINE                  = "\n";
-    public static final String  COMMA_NEW_LINE            = ",\n";
+    public static final String  SQUARE_BRACKET_OPEN                 = "[";
+    public static final String  SQUARE_BRACKET_CLOSE                = "]";
+    public static final String  CURLY_BRACKET_OPEN                  = "{";
+    public static final String  CURLY_BRACKET_CLOSE                 = "}";
+    public static final String  INDENTED_QUOTES                     = "  \"";
+    public static final String  QUOTES                              = "\"";
+    public static final String  COLON                               = ":";
+    public static final String  COMMA                               = ",";
+    public static final String  NEW_LINE                            = "\n";
+    public static final String  COMMA_NEW_LINE                      = ",\n";
 }

@@ -50,10 +50,8 @@ import io.foojay.api.discoclient.util.ReadableConsumerByteChannel;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.net.URLConnection;
-import java.net.URLEncoder;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.util.ArrayList;
@@ -81,14 +79,12 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
-import static io.foojay.api.discoclient.util.Constants.COMMA;
-import static io.foojay.api.discoclient.util.Constants.QUOTES;
+import static io.foojay.api.discoclient.util.Constants.PROPERTY_KEY_DISTRIBUTION_JSON_URL;
 
 
 public class DiscoClient {
     public  static final ConcurrentHashMap<String, List<Scope>> SCOPE_LOOKUP  = new ConcurrentHashMap<>();
     private static final Map<String, Distribution>              DISTRIBUTIONS = new ConcurrentHashMap<>();
-    private static final String                                 DISTRO_URL    = "https://github.com/foojay2020/distributions/raw/main/distributions.json";
     private        final Map<String, List<EvtObserver>>         observers     = new ConcurrentHashMap<>();
     private static       AtomicBoolean                          initialized   = new AtomicBoolean(false);
     private              String                                 userAgent     = "";
@@ -107,7 +103,7 @@ public class DiscoClient {
         Helper.preloadDistributions().thenAccept(distros -> {
             DISTRIBUTIONS.putAll(distros);
             DISTRIBUTIONS.entrySet().stream().forEach(entry -> SCOPE_LOOKUP.put(entry.getKey(), entry.getValue().getScopes()));
-            Helper.getAsync(DISTRO_URL, "").thenAccept(response -> {
+            Helper.getAsync(PropertyManager.INSTANCE.getString(PROPERTY_KEY_DISTRIBUTION_JSON_URL), "").thenAccept(response -> {
                 if (null != response) {
                     if (response.statusCode() == 200) {
                         String                    jsonText           = response.body();
@@ -125,7 +121,6 @@ public class DiscoClient {
             });
         });
     }
-
 
     public boolean isInitialzed() { return initialized.get(); }
 

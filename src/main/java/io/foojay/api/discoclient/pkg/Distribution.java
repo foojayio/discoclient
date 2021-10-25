@@ -27,16 +27,16 @@ import java.util.stream.Collectors;
 
 
 public class Distribution {
-    public static final String       FIELD_NAME       = "name";
-    public static final String       FIELD_UI_STRING  = "ui_string";
-    public static final String       FIELD_API_STRING = "api_string";
-    public static final String       FIELD_SYNONYMS   = "synonyms";
-    public static final String       FIELD_SCOPES     = "scopes";
-    private final       String       name;
-    private final       String       uiString;
-    private final       String       apiString;
-    private final       List<String> synonyms;
-    private final       List<Scope>  scopes;
+    public  static final String       FIELD_NAME       = "name";
+    public  static final String       FIELD_UI_STRING  = "ui_string";
+    public  static final String       FIELD_API_STRING = "api_string";
+    public  static final String       FIELD_SYNONYMS   = "synonyms";
+    public  static final String       FIELD_SCOPES     = "scopes";
+    private        final String       name;
+    private        final String       uiString;
+    private        final String       apiString;
+    private        final List<String> synonyms;
+    private        final List<Scope>  scopes;
 
 
     public Distribution(final String name, final String uiString, final String apiString) {

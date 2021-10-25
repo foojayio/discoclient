@@ -39,14 +39,17 @@ import io.foojay.api.discoclient.pkg.VersionNumber;
 import io.foojay.api.discoclient.util.Helper;
 import org.junit.jupiter.api.Test;
 
+import java.net.http.HttpResponse;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
+import static io.foojay.api.discoclient.util.Constants.PROPERTY_KEY_DISTRIBUTION_JSON_URL;
 import static io.foojay.api.discoclient.util.Constants.QUOTES;
 
 
@@ -59,13 +62,33 @@ public class ClientTest {
             try { Thread.sleep(10); } catch (InterruptedException e) {}
         }
         Map<String, Distribution> distributions = discoClient.getDistros();
-        assert distributions.size() == 23;
+        assert distributions.size() == 26;
 
         Optional<Distribution> optionalDistro  = distributions.values().stream().filter(d -> d.getFromText("zulu") != null).findFirst();
         assert optionalDistro.isPresent();
         if (optionalDistro.isPresent()) {
             assert optionalDistro.get().getName().equals("ZULU");
         }
+    }
+
+    @Test
+    public void preloadDistributionsTest() {
+        Map<String, Distribution> distributions = new ConcurrentHashMap<>();
+        Helper.getAsync(PropertyManager.INSTANCE.getString(PROPERTY_KEY_DISTRIBUTION_JSON_URL), "").thenAccept(response -> {
+            if (null != response) {
+                if (response.statusCode() == 200) {
+                    String                    jsonText           = response.body();
+                    Map<String, Distribution> distributionsFound = new ConcurrentHashMap<>();
+                    if (!jsonText.isEmpty()) {
+                        distributionsFound.putAll(Helper.getDistributionsFromJsonText(jsonText));
+                    }
+                    if (!distributionsFound.isEmpty()) {
+                        distributions.putAll(distributionsFound);
+                    }
+                }
+            }
+            assert distributions.size() == 26;
+        }).join();
     }
 
     @Test
