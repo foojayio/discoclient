@@ -3,12 +3,8 @@ module io.foojay.api.discoclient {
     requires java.base;
     requires java.net.http;
     requires java.logging;
-    requires java.validation;
 
     // 3rd party
-    requires org.apache.logging.log4j;
-    requires org.apache.logging.log4j.slf4j;
-    requires slf4j.api;
     requires com.google.gson;
 
     exports io.foojay.api.discoclient;

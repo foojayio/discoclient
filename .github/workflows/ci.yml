@@ -1,22 +1,46 @@
-name: build
+---
+name: Java CI
 
-on: [push, pull_request]
+on: [push]
 
 jobs:
-  build:
-
-    runs-on: [ ubuntu-latest ]
+  test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-18.04]
+        java: [11.0.13]
+      fail-fast: false
+      max-parallel: 4
+    name: Test JDK ${{ matrix.java }}, ${{ matrix.os }}
 
     steps:
       - uses: actions/checkout@v2
-      - name: Set up JDK 11
+      - name: Set up JDK
         uses: actions/setup-java@v1
         with:
-          java-version: 11.0.10
-          architecture: x64
-      - name: Build with Maven
-        run: mvn clean install
-      - uses: actions/upload-artifact@v2
+          java-version: ${{ matrix.java }}
+      - name: Import GPG Key
+        id: import_gpg
+        uses: crazy-max/ghaction-import-gpg@v3
         with:
-          name: discoclient.jar
-          path: './target/discoclient-1.0.jar'
+          gpg-private-key: ${{ secrets.GPG_KEY }}
+          passphrase: ${{ secrets.GPG_PASSPHRASE }}
+        env:
+          GPG_PRIVATE_KEY: ${{ secrets.GPG_KEY }}
+          PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+      - name: Build with Gradle
+        run: ./gradlew clean build
+        env:
+          OSSRH_USERNAME: ${{ secrets.OSSRH_USERNAME }}
+          OSSRH_PASSWORD: ${{ secrets.OSSRH_PASSWORD }}
+          GH_USER: ${{ secrets.GH_USER }}
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+          GPG_PRIVATE_KEY: ${{ secrets.GPG_KEY }}
+          PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+      - name: Upload artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: DiscoClient
+          path: ./build/libs/**
+...

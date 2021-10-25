@@ -20,9 +20,9 @@ import java.util.Arrays;
 import java.util.List;
 
 
-public enum PackageType implements ApiFeature {
-    JDK("JDK", "jdk"),
-    JRE("JRE", "jre"),
+public enum Match implements ApiFeature {
+    ANY("Any", "any"),
+    ALL("All", "all"),
     NONE("-", ""),
     NOT_FOUND("", "");
 
@@ -30,7 +30,7 @@ public enum PackageType implements ApiFeature {
     private final String apiString;
 
 
-    PackageType(final String uiString, final String apiString) {
+    Match(final String uiString, final String apiString) {
         this.uiString  = uiString;
         this.apiString = apiString;
     }
@@ -40,33 +40,29 @@ public enum PackageType implements ApiFeature {
 
     @Override public String getApiString() { return apiString; }
 
-    @Override public PackageType getDefault() { return PackageType.NONE; }
+    @Override public Match getDefault() { return Match.ANY; }
 
-    @Override public PackageType getNotFound() { return PackageType.NOT_FOUND; }
+    @Override public Match getNotFound() { return Match.ANY; }
 
-    @Override public PackageType[] getAll() { return values(); }
+    @Override public Match[] getAll() { return values(); }
 
-    public static PackageType fromText(final String text) {
-        if (null == text) { return NOT_FOUND; }
+    public static Match fromText(final String text) {
+        if (null == text) { return ANY; }
         switch (text) {
-            case "-jdk":
-            case "JDK":
-            case "jdk":
-            case "jdk+fx":
-            case "JDK+FX":
-                return JDK;
-            case "-jre":
-            case "JRE":
-            case "jre":
-            case "jre+fx":
-            case "JRE+FX":
-                return JRE;
+            case "any":
+            case "ANY":
+            case "Any":
+                return ANY;
+            case "all":
+            case "ALL":
+            case "All":
+                return ALL;
             default:
-                return NOT_FOUND;
+                return ANY;
         }
     }
 
-    public static List<PackageType> getAsList() { return Arrays.asList(values()); }
+    public static List<Match> getAsList() { return Arrays.asList(values()); }
 
     @Override public String toString() { return uiString; }
 }

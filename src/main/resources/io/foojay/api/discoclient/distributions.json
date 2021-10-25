@@ -1,0 +1,186 @@
+{
+	"distributions": [
+		{
+			"name":"AOJ",
+			"ui_string":"AOJ",
+			"api_string":"aoj",
+			"synonyms": ["aoj","AOJ"],
+			"scopes": ["public","build_of_open_jdk","directly_downloadable"]
+		},
+		{
+			"name":"AOJ_OPENJ9",
+			"ui_string":"AOJ OpenJ9",
+			"api_string":"aoj_openj9",
+			"synonyms": ["aoj_openj9","AOJ_OpenJ9","AOJ_OPENJ9","AOJ OpenJ9","AOJ OPENJ9","aoj openj9"],
+			"scopes": ["public","directly_downloadable"]
+		},
+		{
+			"name":"BISHENG",
+			"ui_string":"Bi Sheng",
+			"api_string":"bisheng",
+			"synonyms": ["bisheng", "BISHENG", "BiSheng", "bi_sheng", "BI_SHENG", "bi-sheng", "BI-SHENG", "bi sheng", "BI SHENG", "Bi Sheng"],
+			"scopes": ["public","build_of_open_jdk","directly_downloadable"]
+		},
+		{
+			"name":"CORRETTO",
+			"ui_string":"Corretto",
+			"api_string":"corretto",
+			"synonyms": ["corretto","CORRETTO","Corretto"],
+			"scopes": ["public","build_of_open_jdk","directly_downloadable"]
+		},
+		{
+			"name":"DRAGONWELL",
+			"ui_string":"Dragonwell",
+			"api_string":"dragonwell",
+			"synonyms": ["dragonwell","DRAGONWELL","Dragonwell"],
+			"scopes": ["public","build_of_open_jdk","directly_downloadable"]
+		},
+		{
+			"name":"GRAALVM_CE8",
+			"ui_string":"Graal VM CE 8",
+			"api_string":"graalvm_ce8",
+			"synonyms": ["graalvm_ce8","graalvmce8","GraalVM CE 8","GraalVMCE8","GraalVM_CE8"],
+			"scopes": ["public","directly_downloadable"]
+		},
+		{
+			"name":"GRAALVM_CE11",
+			"ui_string":"Graal VM CE 11",
+			"api_string":"graalvm_ce11",
+			"synonyms": ["graalvm_ce11","graalvmce11","GraalVM CE 11","GraalVMCE11","GraalVM_CE11"],
+			"scopes": ["public","directly_downloadable"]
+		},
+		{
+			"name":"GRAALVM_CE16",
+			"ui_string":"Graal VM CE 16",
+			"api_string":"graalvm_ce16",
+			"synonyms": ["graalvm_ce16","graalvmce16","GraalVM CE 16","GraalVMCE16","GraalVM_CE16"],
+			"scopes": ["public","directly_downloadable"]
+		},
+		{
+			"name":"GRAALVM_CE17",
+			"ui_string":"Graal VM CE 17",
+			"api_string":"graalvm_ce17",
+			"synonyms": ["graalvm_ce17","graalvmce17","GraalVM CE 17","GraalVMCE17","GraalVM_CE17"],
+			"scopes": ["public","directly_downloadable"]
+		},
+		{
+			"name":"JETBRAINS",
+			"ui_string":"JetBrains",
+			"api_string":"jetbrains",
+			"synonyms": ["jetbrains","JETBRAINS","JetBrains"],
+			"scopes": ["public","build_of_open_jdk","directly_downloadable"]
+		},
+		{
+			"name":"KONA",
+			"ui_string":"Kona",
+			"api_string":"kona",
+			"synonyms": ["kona","KONA","Kona"],
+			"scopes": ["public","build_of_open_jdk","directly_downloadable"]
+		},
+		{
+			"name":"LIBERICA",
+			"ui_string":"Liberica",
+			"api_string":"liberica",
+			"synonyms": ["liberica","LIBERICA","Liberica"],
+			"scopes": ["public","build_of_open_jdk","directly_downloadable"]
+		},
+		{
+			"name":"LIBERICA_NATIVE",
+			"ui_string":"Liberica Native",
+			"api_string":"liberica_native",
+			"synonyms": ["liberica_native","LIBERICA_NATIVE","libericaNative","LibericaNative","liberica native","LIBERICA NATIVE","Liberica Native"],
+			"scopes": ["public","directly_downloadable"]
+		},
+		{
+			"name":"MANDREL",
+			"ui_string":"Mandrel",
+			"api_string":"mandrel",
+			"synonyms": ["mandrel","MANDREL","Mandrel"],
+			"scopes": ["public","directly_downloadable"]
+		},
+		{
+			"name":"MICROSOFT",
+			"ui_string":"Microsoft",
+			"api_string":"microsoft",
+			"synonyms": ["microsoft","Microsoft","MICROSOFT","Microsoft OpenJDK","Microsoft Build of OpenJDK"],
+			"scopes": ["public","build_of_open_jdk","directly_downloadable"]
+		},
+		{
+			"name":"OJDK_BUILD",
+			"ui_string":"OJDKBuild",
+			"api_string":"ojdk_build",
+			"synonyms": ["ojdk_build","OJDK_BUILD","OJDK Build","ojdk build","ojdkbuild","OJDKBuild"],
+			"scopes": ["public","build_of_open_jdk","directly_downloadable"]
+		},
+		{
+			"name":"OPEN_LOGIC",
+			"ui_string":"OpenLogic",
+			"api_string":"openlogic",
+			"synonyms": ["openlogic","OPENLOGIC","OpenLogic","open_logic","OPEN_LOGIC","Open Logic","OPEN LOGIC","open logic"],
+			"scopes": ["public","build_of_open_jdk","directly_downloadable"]
+		},
+		{
+			"name":"ORACLE",
+			"ui_string":"Oracle",
+			"api_string":"oracle",
+			"synonyms": ["oracle","ORACLE","Oracle"],
+			"scopes": ["public","build_of_open_jdk","directly_downloadable","not_directly_downloadable"]
+		},
+		{
+			"name":"ORACLE_OPEN_JDK",
+			"ui_string":"Oracle OpenJDK",
+			"api_string":"oracle_open_jdk",
+			"synonyms": ["oracle_open_jdk","ORACLE_OPEN_JDK","oracle_openjdk","ORACLE_OPENJDK","Oracle_OpenJDK","Oracle OpenJDK","oracle openjdk","ORACLE OPENJDK","open_jdk","openjdk","OpenJDK","Open JDK","OPEN_JDK","open-jdk","OPEN-JDK","Oracle-OpenJDK","oracle-openjdk","ORACLE-OPENJDK","oracle-open-jdk","ORACLE-OPEN-JDK"],
+			"scopes": ["public","build_of_open_jdk","directly_downloadable"]
+		},
+		{
+			"name":"RED_HAT",
+			"ui_string":"Red Hat",
+			"api_string":"redhat",
+			"synonyms": ["RedHat","redhat","REDHAT","Red Hat","red hat","RED HAT","Red_Hat","red_hat","red-hat","Red-Hat","RED-HAT"],
+			"scopes": ["public","build_of_open_jdk","not_directly_downloadable"]
+		},
+		{
+			"name":"SAP_MACHINE",
+			"ui_string":"SAP Machine",
+			"api_string":"sap_machine",
+			"synonyms": ["sap_machine","sapmachine","SAPMACHINE","SAP_MACHINE","SAPMachine","SAP Machine","sap-machine","SAP-Machine","SAP-MACHINE"],
+			"scopes": ["public","build_of_open_jdk","directly_downloadable"]
+		},
+		{
+			"name":"SEMERU",
+			"ui_string":"Semeru",
+			"api_string":"semeru",
+			"synonyms": ["semeru", "Semeru", "SEMERU"],
+			"scopes": ["public","build_of_open_jdk","directly_downloadable"]
+		},
+		{
+			"name":"TEMURIN",
+			"ui_string":"Temurin",
+			"api_string":"temurin",
+			"synonyms": ["temurin","TEMURIN","Temurin"],
+			"scopes": ["public","build_of_open_jdk","directly_downloadable"]
+		},
+		{
+			"name":"TRAVA",
+			"ui_string":"Trava",
+			"api_string":"trava",
+			"synonyms": ["trava","TRAVA","Trava","trava_openjdk","TRAVA_OPENJDK","trava openjdk","TRAVA OPENJDK"],
+			"scopes": ["public","build_of_open_jdk","directly_downloadable"]
+		},
+		{
+			"name":"ZULU",
+			"ui_string":"Zulu",
+			"api_string":"zulu",
+			"synonyms": ["zulu","ZULU","Zulu","zulucore","ZULUCORE","ZuluCore","zulu_core","ZULU_CORE","Zulu_Core","zulu core","ZULU CORE","Zulu Core"],
+			"scopes": ["public","build_of_open_jdk","directly_downloadable"]
+		},
+		{
+			"name":"ZULU_PRIME",
+			"ui_string":"Zulu Prime",
+			"api_string":"zulu_prime",
+			"synonyms": ["zing","ZING","Zing","prime","PRIME","Prime","zuluprime","ZULUPRIME","ZuluPrime","zulu_prime","ZULU_PRIME","Zulu_Prime","zulu prime","ZULU PRIME","Zulu Prime"],
+			"scopes": ["public","build_of_open_jdk","directly_downloadable"]
+		}
+	]
+}

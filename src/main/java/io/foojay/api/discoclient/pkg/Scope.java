@@ -1,22 +1,17 @@
 /*
- * Copyright (c) 2021, Azul
- * All rights reserved.
+ * Copyright (c) 2021 by Gerrit Grunwald
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- * - Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
- * - Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer
- *   in the documentation and/or other materials provided with the distribution.
- * - Neither the name of Azul nor the names of its contributors may be used to endorse or promote products derived
- *   from this software without specific prior written permission.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING,
- * BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
- * IN NO EVENT SHALL AZUL BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY,
- * OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
- * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
- * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package io.foojay.api.discoclient.pkg;
@@ -30,6 +25,9 @@ public enum Scope implements ApiFeature {
     DIRECTLY_DOWNLOADABLE("Directly downloadable", "directly_downloadable"),
     NOT_DIRECTLY_DOWNLOADABLE("Not directly downloadable", "not_directly_downloadable"),
     BUILD_OF_OPEN_JDK("Build of OpenJDK", "build_of_openjdk"),
+    BUILD_OF_GRAALVM("Build of GraalVM", "build_of_graalvm"),
+    FREE_TO_USE_IN_PRODUCTION("Free to use in production", "free_to_use_in_production"),
+    LICENSE_NEEDED_FOR_PRODUCTION("License needed for production", "license_needed_for_production"),
     NONE("-", ""),
     NOT_FOUND("", "");
 
@@ -68,15 +66,28 @@ public enum Scope implements ApiFeature {
             case "no_direct_download":
             case "NO_DIRECT_DOWNLOAD":
                 return NOT_DIRECTLY_DOWNLOADABLE;
-            case "build_of_openjdk":
-            case "BUILD_OF_OPENJDK":
             case "build_of_open_jdk":
             case "BUILD_OF_OPEN_JDK":
+            case "build_of_openjdk":
+            case "BUILD_OF_OPENJDK":
                 return BUILD_OF_OPEN_JDK;
+            case "build_of_graalvm":
+            case "BUILD_OF_GRAALVM":
+                return BUILD_OF_GRAALVM;
+            case "free":
+            case "free_to_use":
+            case "free_to_use_in_production":
+                return FREE_TO_USE_IN_PRODUCTION;
+            case "license":
+            case "license_needed":
+            case "license_needed_for_production":
+                return LICENSE_NEEDED_FOR_PRODUCTION;
             default:
                 return NOT_FOUND;
         }
     }
 
     public static List<Scope> getAsList() { return Arrays.asList(values()); }
+
+    @Override public String toString() { return uiString; }
 }
