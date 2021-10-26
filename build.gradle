@@ -96,9 +96,9 @@ signing {
 publishing {
     publications {
         mavenCustom(MavenPublication) {
-            group = 'io.foojay.api'
+            group      = 'io.foojay.api'
             artifactId = 'discoclient'
-            version = "${version}"
+            version    = "${version}"
 
             from components.java
             artifact sourcesJar
@@ -113,26 +113,26 @@ publishing {
             }
 
             pom {
-                name = 'discoclient'
+                name        = 'discoclient'
                 description = 'The DiscoClient is a library to access the foojay discovery api service in a more convenient way.'
-                url = "https://github.com/foojayio/discoclient/wiki"
+                url         = "https://github.com/foojayio/discoclient/wiki"
                 licenses {
                     license {
                         name = "The Apache License, Version 2.0"
-                        url = "http://www.apache.org/licenses/LICENSE-2.0.txt"
+                        url  = "http://www.apache.org/licenses/LICENSE-2.0.txt"
                     }
                 }
                 developers {
                     developer {
-                        id = "HanSolo"
-                        name = "Gerrit Grunwald"
+                        id    = "HanSolo"
+                        name  = "Gerrit Grunwald"
                         email = "han.solo@mac.com"
                     }
                 }
                 scm {
-                    connection = "scm:git:https://foojayio/discoclient"
+                    connection          = "scm:git:https://foojayio/discoclient"
                     developerConnection = "scm:git:https://foojayio/discoclient"
-                    url = "https://github.com/foojayio/discoclient"
+                    url                 = "https://github.com/foojayio/discoclient"
                 }
             }
         }
@@ -141,7 +141,7 @@ publishing {
     repositories {
         maven {
             name = "OSSRH"
-            url = 'https://oss.sonatype.org/service/local/staging/deploy/maven2'
+            url  = 'https://s01.oss.sonatype.org/service/local/staging/deploy/maven2'
             credentials {
                 username = null == ciOssrhUsername ? ossrhUsername : ciOssrhUsername
                 password = null == ciOssrhPassword ? ossrhPassword : ciOssrhPassword
@@ -149,7 +149,7 @@ publishing {
         }
         maven {
             name = "GitHubPackages"
-            url = "https://maven.pkg.github.com/foojayio/discoclient"
+            url  = "https://maven.pkg.github.com/foojayio/discoclient"
             credentials {
                 username = null == ciGHUser  ? ghUser  : ciGHUser
                 password = null == ciGHToken ? ghToken : ciGHToken
