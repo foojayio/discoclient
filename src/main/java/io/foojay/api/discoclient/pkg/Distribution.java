@@ -32,36 +32,41 @@ public class Distribution {
     public  static final String       FIELD_API_STRING = "api_string";
     public  static final String       FIELD_SYNONYMS   = "synonyms";
     public  static final String       FIELD_SCOPES     = "scopes";
+    public  static final String       FIELD_MAINTAINED = "maintained";
     private        final String       name;
     private        final String       uiString;
     private        final String       apiString;
     private        final List<String> synonyms;
     private        final List<Scope>  scopes;
+    private        final boolean      maintained;
 
 
     public Distribution(final String name, final String uiString, final String apiString) {
-        this(name, uiString, apiString, List.of(), List.of());
+        this(name, uiString, apiString, List.of(), List.of(), true);
     }
     public Distribution(final String name, final String uiString, final String apiString, final String... synonyms) {
-        this(name, uiString, apiString, Arrays.asList(synonyms), List.of());
+        this(name, uiString, apiString, Arrays.asList(synonyms), List.of(), true);
     }
-    public Distribution(final String name, final String uiString, final String apiString, final List<String> synonyms, final List<Scope> scopes) {
-        this.name      = name;
-        this.uiString  = uiString;
-        this.apiString = apiString;
-        this.synonyms  = new ArrayList<>(synonyms);
-        this.scopes    = new ArrayList<>(scopes);
+    public Distribution(final String name, final String uiString, final String apiString, final List<String> synonyms, final List<Scope> scopes, final boolean maintained) {
+        this.name       = name;
+        this.uiString   = uiString;
+        this.apiString  = apiString;
+        this.synonyms   = new ArrayList<>(synonyms);
+        this.scopes     = new ArrayList<>(scopes);
+        this.maintained = maintained;
     }
     public Distribution(final String jsonText) {
         if (null == jsonText || jsonText.isEmpty()) { throw new IllegalArgumentException("Json text cannot be null or empty"); }
         final Gson       gson = new Gson();
         final JsonObject json = gson.fromJson(jsonText, JsonObject.class);
 
-        this.name      = json.get(FIELD_NAME).getAsString();
-        this.uiString  = json.get(FIELD_UI_STRING).getAsString();
-        this.apiString = json.get(FIELD_API_STRING).getAsString();
-        this.synonyms  = new ArrayList<>();
-        this.scopes    = new ArrayList<>();
+        this.name       = json.has(FIELD_NAME)       ? json.get(FIELD_NAME).getAsString()        : "";
+        this.uiString   = json.has(FIELD_UI_STRING)  ? json.get(FIELD_UI_STRING).getAsString()   : "";
+        this.apiString  = json.has(FIELD_API_STRING) ? json.get(FIELD_API_STRING).getAsString()  : "";
+        this.synonyms   = new ArrayList<>();
+        this.scopes     = new ArrayList<>();
+        this.maintained = json.has(FIELD_MAINTAINED) ? json.get(FIELD_MAINTAINED).getAsBoolean() : true;
+
 
         if (json.has(FIELD_SYNONYMS)) {
             JsonArray synonyms = json.get(FIELD_SYNONYMS).getAsJsonArray();
@@ -87,6 +92,8 @@ public class Distribution {
 
     public List<Scope> getScopes() { return scopes; }
 
+    public boolean isMaintained() { return maintained; }
+
     public Distribution getFromText(final String text) {
         return synonyms.contains(text) ? Distribution.this : null;
     }
@@ -96,6 +103,7 @@ public class Distribution {
                                   .append("\"").append(FIELD_NAME).append("\":\"").append(name).append("\"").append(",")
                                   .append("\"").append(FIELD_UI_STRING).append("\":\"").append(uiString).append("\"").append(",")
                                   .append("\"").append(FIELD_API_STRING).append("\":\"").append(apiString).append("\"").append(",")
+                                  .append("\"").append(FIELD_MAINTAINED).append("\":").append(maintained).append(",")
                                   .append("\"").append(FIELD_SYNONYMS).append("\":").append(synonyms.stream().collect(Collectors.joining("\",\"", "[\"", "\"]"))).append(",")
                                   .append("\"").append(FIELD_SCOPES).append("\":").append(scopes.stream().map(scope -> scope.getApiString()).collect(Collectors.joining("\",\"", "[\"", "\"]")))
                                   .append("}")
