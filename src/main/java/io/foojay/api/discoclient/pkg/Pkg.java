@@ -45,12 +45,14 @@ public class Pkg {
     public   static final String          FIELD_OPERATING_SYSTEM       = "operating_system";
     public   static final String          FIELD_LIB_C_TYPE             = "lib_c_type";
     public   static final String          FIELD_ARCHITECTURE           = "architecture";
+    public   static final String          FIELD_BITNESS                = "bitness";
     public   static final String          FIELD_PACKAGE_TYPE           = "package_type";
     public   static final String          FIELD_JAVAFX_BUNDLED         = "javafx_bundled";
     public   static final String          FIELD_DIRECTLY_DOWNLOADABLE  = "directly_downloadable";
     public   static final String          FIELD_FILENAME               = "filename";
     public   static final String          FIELD_EPHEMERAL_ID           = "ephemeral_id";
     public   static final String          FIELD_FREE_USE_IN_PROD       = "free_use_in_production";
+    public   static final String          FIELD_FPU                    = "fpu";
     private               String          id;
     private               String          ephemeralId;
     private               Distribution    distribution;
@@ -69,6 +71,7 @@ public class Pkg {
     private               Boolean         directlyDownloadable;
     private               String          fileName;
     private               Boolean         freeUseInProduction;
+    private               FPU             fpu;
 
 
     public Pkg(final String packageJson) {
@@ -96,6 +99,7 @@ public class Pkg {
         this.fileName             = json.has(FIELD_FILENAME)               ? json.get(FIELD_FILENAME).getAsString()                                          : "";
         this.ephemeralId          = json.has(FIELD_EPHEMERAL_ID)           ? json.get(FIELD_EPHEMERAL_ID).getAsString()                                      : "";
         this.freeUseInProduction  = json.has(FIELD_FREE_USE_IN_PROD)       ? json.get(FIELD_FREE_USE_IN_PROD).getAsBoolean()                                 : Boolean.TRUE;
+        this.fpu                  = json.has(FIELD_FPU)                    ? FPU.fromText(json.get(FIELD_FPU).getAsString())                                 : FPU.NOT_FOUND;
     }
 
 
@@ -147,6 +151,8 @@ public class Pkg {
 
     public Boolean getFreeUseInProduction() { return freeUseInProduction; }
 
+    public FPU getFpu() { return fpu; }
+
     @Override public boolean equals(final Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
@@ -168,6 +174,7 @@ public class Pkg {
                                   .append(INDENTED_QUOTES).append(FIELD_DISTRIBUTION_VERSION).append(QUOTES).append(COLON).append(QUOTES).append(distributionVersion).append(QUOTES).append(COMMA_NEW_LINE)
                                   .append(INDENTED_QUOTES).append(FIELD_LATEST_BUILD_AVAILABLE).append(QUOTES).append(COLON).append(latestBuildAvailable).append(COMMA_NEW_LINE)
                                   .append(INDENTED_QUOTES).append(FIELD_ARCHITECTURE).append(QUOTES).append(COLON).append(QUOTES).append(architecture.name()).append(QUOTES).append(COMMA_NEW_LINE)
+                                  .append(INDENTED_QUOTES).append(FIELD_BITNESS).append(QUOTES).append(COLON).append(architecture.getBitness().getAsInt()).append(COMMA_NEW_LINE)
                                   .append(INDENTED_QUOTES).append(FIELD_OPERATING_SYSTEM).append(QUOTES).append(COLON).append(QUOTES).append(operatingSystem.name()).append(QUOTES).append(COMMA_NEW_LINE)
                                   .append(INDENTED_QUOTES).append(FIELD_PACKAGE_TYPE).append(QUOTES).append(COLON).append(QUOTES).append(packageType.name()).append(QUOTES).append(COMMA_NEW_LINE)
                                   .append(INDENTED_QUOTES).append(FIELD_RELEASE_STATUS).append(QUOTES).append(COLON).append(QUOTES).append(releaseStatus.name()).append(QUOTES).append(COMMA_NEW_LINE)
@@ -176,7 +183,8 @@ public class Pkg {
                                   .append(INDENTED_QUOTES).append(FIELD_JAVAFX_BUNDLED).append(QUOTES).append(COLON).append(javafxBundled).append(COMMA_NEW_LINE)
                                   .append(INDENTED_QUOTES).append(FIELD_FILENAME).append(QUOTES).append(COLON).append(QUOTES).append(fileName).append(QUOTES).append(COMMA_NEW_LINE)
                                   .append(INDENTED_QUOTES).append(FIELD_EPHEMERAL_ID).append(QUOTES).append(COLON).append(QUOTES).append(ephemeralId).append(QUOTES).append(COMMA_NEW_LINE)
-                                  .append(INDENTED_QUOTES).append(FIELD_FREE_USE_IN_PROD).append(QUOTES).append(COLON).append(freeUseInProduction).append(NEW_LINE)
+                                  .append(INDENTED_QUOTES).append(FIELD_FREE_USE_IN_PROD).append(QUOTES).append(COLON).append(freeUseInProduction).append(COMMA_NEW_LINE)
+                                  .append(INDENTED_QUOTES).append(FIELD_FPU).append(QUOTES).append(COLON).append(QUOTES).append(fpu.name()).append(QUOTES).append(NEW_LINE)
                                   .append(CURLY_BRACKET_CLOSE)
                                   .toString();
     }
