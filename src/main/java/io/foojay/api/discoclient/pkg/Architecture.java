@@ -21,10 +21,11 @@ import java.util.List;
 
 
 public enum Architecture implements ApiFeature {
-    AARCH64("AARCH64", "aarch64", Bitness.BIT_64),
+    AARCH32("AARCH32", "aarch32", Bitness.BIT_32),
     ARM("ARM", "arm", Bitness.BIT_32),
     ARMEL("ARMEL", "armel", Bitness.BIT_32),
     ARMHF("ARMHF", "armhf", Bitness.BIT_32),
+    AARCH64("AARCH64", "aarch64", Bitness.BIT_64),
     ARM64("ARM64", "arm64", Bitness.BIT_64),
     MIPSEL("MIPS EL", "mipsel", Bitness.BIT_32),
     MIPS("MIPS", "mips", Bitness.BIT_32),
@@ -78,6 +79,12 @@ public enum Architecture implements ApiFeature {
             case "AARCH32":
             case "arm32":
             case "ARM32":
+            case "armv6":
+            case "ARMV6":
+            case "armv7l":
+            case "ARMV7L":
+            case "armv7":
+            case "ARMV7":
             case "arm":
             case "ARM":
                 return ARM;
@@ -89,6 +96,8 @@ public enum Architecture implements ApiFeature {
                 return ARMHF;
             case "arm64":
             case "ARM64":
+            case "armv8":
+            case "ARMV8":
                 return ARM64;
             case "mipsel":
             case "MIPSEL":

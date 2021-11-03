@@ -48,8 +48,10 @@ import io.foojay.api.discoclient.util.OutputFormat;
 import io.foojay.api.discoclient.util.PkgInfo;
 import io.foojay.api.discoclient.util.ReadableConsumerByteChannel;
 
+import java.io.BufferedReader;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.channels.Channels;
@@ -83,11 +85,14 @@ import static io.foojay.api.discoclient.util.Constants.PROPERTY_KEY_DISTRIBUTION
 
 
 public class DiscoClient {
-    public  static final ConcurrentHashMap<String, List<Scope>> SCOPE_LOOKUP  = new ConcurrentHashMap<>();
-    private static final Map<String, Distribution>              DISTRIBUTIONS = new ConcurrentHashMap<>();
-    private        final Map<String, List<EvtObserver>>         observers     = new ConcurrentHashMap<>();
-    private static       AtomicBoolean                          initialized   = new AtomicBoolean(false);
-    private              String                                 userAgent     = "";
+    public static final  ConcurrentHashMap<String, List<Scope>> SCOPE_LOOKUP         = new ConcurrentHashMap<>();
+    private static final Map<String, Distribution>              DISTRIBUTIONS        = new ConcurrentHashMap<>();
+    private static final String[]                               DETECT_ALPINE_CMDS   = { "/bin/sh", "-c", "cat /etc/os-release | grep 'NAME=' | grep -ic 'Alpine'" };
+    private static final String[]                               UX_DETECT_ARCH_CMDS  = { "/bin/sh", "-c", "uname -m" };
+    private static final String[]                               WIN_DETECT_ARCH_CMDS = { "/bin/sh", "-c", "uname -m" };
+    private final        Map<String, List<EvtObserver>>         observers            = new ConcurrentHashMap<>();
+    private static       AtomicBoolean                          initialized          = new AtomicBoolean(false);
+    private              String                                 userAgent            = "";
 
 
     public DiscoClient() {
@@ -1092,37 +1097,53 @@ public class DiscoClient {
     }
 
 
-    public final List<Pkg> updateAvailableFor(final Distribution distribution, final SemVer semVer, final Architecture architecture, final Boolean javafxBundled) {
-        return updateAvailableFor(distribution, semVer, architecture, javafxBundled, Boolean.TRUE);
+    public final List<Pkg> updateAvailableFor(final Distribution distribution, final SemVer semver, final Boolean javafxBundled) {
+        return updateAvailableFor(distribution, semver, getOperatingSystem(), getArchitecture(), javafxBundled, Boolean.TRUE);
     }
-    public final List<Pkg> updateAvailableFor(final Distribution distribution, final SemVer semVer, final Architecture architecture, final Boolean javafxBundled, final Boolean directlyDownloadable) {
-        List<Pkg> pkgs = getPkgs(null == distribution ? null : List.of(distribution), semVer.getVersionNumber(), Latest.AVAILABLE, getOperatingSystem(), LibCType.NONE, architecture, Bitness.NONE, ArchiveType.NONE, PackageType.JDK, javafxBundled,
-                                 directlyDownloadable, List.of(ReleaseStatus.EA, ReleaseStatus.GA), TermOfSupport.NONE, List.of(Scope.PUBLIC), Match.ANY);
+    public final List<Pkg> updateAvailableFor(final Distribution distribution, final SemVer semver, final Architecture architecture, final Boolean javafxBundled) {
+        return updateAvailableFor(distribution, semver, getOperatingSystem(), architecture, javafxBundled, Boolean.TRUE);
+    }
+    public final List<Pkg> updateAvailableFor(final Distribution distribution, final SemVer semver, final Architecture architecture, final Boolean javafxBundled, final Boolean directlyDownloadable) {
+        return updateAvailableFor(distribution, semver, getOperatingSystem(), architecture, javafxBundled, directlyDownloadable);
+    }
+    public final List<Pkg> updateAvailableFor(final Distribution distribution, final SemVer semver, final OperatingSystem operatingSystem, final Architecture architecture, final Boolean javafxBundled, final Boolean directlyDownloadable) {
         List<Pkg> updatesFound = new ArrayList<>();
-        Collections.sort(pkgs, Comparator.comparing(Pkg::getJavaVersion).reversed());
-        if (pkgs.isEmpty()) {
-            return updatesFound;
-        } else {
-            Pkg firstEntry = pkgs.get(0);
-            SemVer semVerFound = firstEntry.getJavaVersion();
-            if (ReleaseStatus.EA == semVerFound.getReleaseStatus()) {
-                if (semVerFound.compareTo(semVer) > 0) {
-                    updatesFound = pkgs.stream().filter(pkg -> pkg.getJavaVersion().compareTo(semVerFound) == 0).collect(Collectors.toList());
-                }
+        try {
+            List<Pkg> pkgs = getPkgs(null == distribution ? null : List.of(distribution), semver.getVersionNumber(), Latest.AVAILABLE, operatingSystem, LibCType.NONE, architecture, Bitness.NONE, ArchiveType.NONE, PackageType.JDK, javafxBundled, directlyDownloadable, List.of(ReleaseStatus.EA, ReleaseStatus.GA), TermOfSupport.NONE, List.of(Scope.PUBLIC), Match.ANY);
+            Collections.sort(pkgs, Comparator.comparing(Pkg::getJavaVersion).reversed());
+            if (pkgs.isEmpty()) {
+                return updatesFound;
             } else {
-                if (semVerFound.compareToIgnoreBuild(semVer) > 0) {
-                    updatesFound = pkgs.stream().filter(pkg -> pkg.getJavaVersion().compareToIgnoreBuild(semVerFound) == 0).collect(Collectors.toList());
+                Pkg    firstEntry  = pkgs.get(0);
+                SemVer semVerFound = firstEntry.getJavaVersion();
+                if (ReleaseStatus.EA == semVerFound.getReleaseStatus()) {
+                    if (semVerFound.compareTo(semver) > 0) {
+                        updatesFound = pkgs.stream().filter(pkg -> pkg.getJavaVersion().compareTo(semVerFound) == 0).collect(Collectors.toList());
+                    }
+                } else {
+                    if (semVerFound.compareToIgnoreBuild(semver) > 0) {
+                        updatesFound = pkgs.stream().filter(pkg -> pkg.getJavaVersion().compareToIgnoreBuild(semVerFound) == 0).collect(Collectors.toList());
+                    }
                 }
+                return updatesFound;
             }
-            return updatesFound;
+        } catch (RuntimeException e) {
+            System.out.println("Error getting updates for " + distribution.getName() + ": " + e);
         }
+        return updatesFound;
     }
 
-    public final CompletableFuture<List<Pkg>> updateAvailableForAsync(final Distribution distribution, final SemVer semVer, final Architecture architecture, final Boolean javafxBundled) {
-        return updateAvailableForAsync(distribution, semVer, architecture, javafxBundled, Boolean.TRUE);
+    public final CompletableFuture<List<Pkg>> updateAvailableForAsync(final Distribution distribution, final SemVer semver, final Boolean javafxBundled) {
+        return updateAvailableForAsync(distribution, semver, getOperatingSystem(), getArchitecture(), javafxBundled, Boolean.TRUE);
     }
-    public final CompletableFuture<List<Pkg>> updateAvailableForAsync(final Distribution distribution, final SemVer semVer, final Architecture architecture, final Boolean javafxBundled, final Boolean directlyDownloadable) {
-        return getPkgsAsync(null == distribution ? null : List.of(distribution), semVer.getVersionNumber(), Latest.AVAILABLE, getOperatingSystem(), LibCType.NONE, architecture, Bitness.NONE, ArchiveType.NONE, PackageType.JDK, javafxBundled,
+    public final CompletableFuture<List<Pkg>> updateAvailableForAsync(final Distribution distribution, final SemVer semver, final Architecture architecture, final Boolean javafxBundled) {
+        return updateAvailableForAsync(distribution, semver, getOperatingSystem(), architecture, javafxBundled, Boolean.TRUE);
+    }
+    public final CompletableFuture<List<Pkg>> updateAvailableForAsync(final Distribution distribution, final SemVer semver, final Architecture architecture, final Boolean javafxBundled, final Boolean directlyDownloadable) {
+        return updateAvailableForAsync(distribution, semver, getOperatingSystem(), architecture, javafxBundled, directlyDownloadable);
+    }
+    public final CompletableFuture<List<Pkg>> updateAvailableForAsync(final Distribution distribution, final SemVer semver, final OperatingSystem operatingSystem, final Architecture architecture, final Boolean javafxBundled, final Boolean directlyDownloadable) {
+        return getPkgsAsync(null == distribution ? null : List.of(distribution), semver.getVersionNumber(), Latest.AVAILABLE, operatingSystem, LibCType.NONE, architecture, Bitness.NONE, ArchiveType.NONE, PackageType.JDK, javafxBundled,
                             directlyDownloadable, List.of(ReleaseStatus.EA, ReleaseStatus.GA), TermOfSupport.NONE, List.of(Scope.PUBLIC), Match.ANY).thenApplyAsync(pkgs -> {
             Collections.sort(pkgs, Comparator.comparing(Pkg::getJavaVersion).reversed());
 
@@ -1133,11 +1154,11 @@ public class DiscoClient {
                 Pkg    firstEntry  = pkgs.get(0);
                 SemVer semVerFound = firstEntry.getJavaVersion();
                 if (ReleaseStatus.EA == semVerFound.getReleaseStatus()) {
-                    if (semVerFound.compareTo(semVer) > 0) {
+                    if (semVerFound.compareTo(semver) > 0) {
                         updatesFound = pkgs.stream().filter(pkg -> pkg.getJavaVersion().compareTo(semVerFound) == 0).collect(Collectors.toList());
                     }
                 } else {
-                    if (semVerFound.compareToIgnoreBuild(semVer) > 0) {
+                    if (semVerFound.compareToIgnoreBuild(semver) > 0) {
                         updatesFound = pkgs.stream().filter(pkg -> pkg.getJavaVersion().compareToIgnoreBuild(semVerFound) == 0).collect(Collectors.toList());
                     }
                 }
@@ -1578,7 +1599,6 @@ public class DiscoClient {
         this.userAgent = userAgent;
     }
 
-
     public static final OperatingSystem getOperatingSystem() {
         String os = System.getProperty("os.name").toLowerCase();
         if (os.indexOf("win") >= 0) {
@@ -1586,13 +1606,34 @@ public class DiscoClient {
         } else if (os.indexOf("mac") >= 0) {
             return OperatingSystem.MACOS;
         } else if (os.indexOf("nix") >= 0 || os.indexOf("nux") >= 0) {
-            return OperatingSystem.LINUX;
+            try {
+                ProcessBuilder processBuilder = new ProcessBuilder(DETECT_ALPINE_CMDS);
+                Process        process        = processBuilder.start();
+                String         result         = new BufferedReader(new InputStreamReader(process.getInputStream())).lines().collect(Collectors.joining("\n"));
+                return null == result ? OperatingSystem.LINUX : result.equals("1") ? OperatingSystem.ALPINE_LINUX : OperatingSystem.LINUX;
+            } catch (IOException e) {
+                e.printStackTrace();
+                return OperatingSystem.LINUX;
+            }
         } else if (os.indexOf("sunos") >= 0) {
             return OperatingSystem.SOLARIS;
         } else {
             return OperatingSystem.NONE;
         }
     }
+
+    public static Architecture getArchitecture() {
+        try {
+            ProcessBuilder processBuilder = OperatingSystem.WINDOWS == getOperatingSystem() ? new ProcessBuilder(WIN_DETECT_ARCH_CMDS) : new ProcessBuilder(UX_DETECT_ARCH_CMDS);
+            Process        process        = processBuilder.start();
+            String         result         = new BufferedReader(new InputStreamReader(process.getInputStream())).lines().collect(Collectors.joining("\n"));
+            return Architecture.fromText(result);
+        } catch (IOException e) {
+            e.printStackTrace();
+            return Architecture.NOT_FOUND;
+        }
+    }
+
 
     public final List<ArchiveType> getArchiveTypes(final OperatingSystem os) {
         switch (os) {
