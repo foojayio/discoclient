@@ -353,6 +353,19 @@ public class SemVer implements Comparable<SemVer> {
         return d;
     }
 
+    public boolean isSmallerThan(final SemVer semver) {
+        return compareTo(semver) < 0;
+    }
+    public boolean isSmallerOrEqualThan(final SemVer semver) {
+        return compareTo(semver) <= 0;
+    }
+    public boolean isLargerOrEqualThan(final SemVer semver) {
+        return compareTo(semver) >= 0;
+    }
+    public boolean isLargerThan(final SemVer semVer) {
+        return compareTo(semVer) > 0;
+    }
+
     public int compareToIgnoreBuild(final SemVer semVer) {
         int d;
         d = compareSegment(getFeature(), semVer.getFeature());

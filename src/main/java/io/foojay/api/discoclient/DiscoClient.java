@@ -1420,11 +1420,21 @@ public class DiscoClient {
 
 
     public final String getPkgDirectDownloadUri(final String pkgId) {
+        if (null == pkgId || pkgId.isEmpty()) { throw new IllegalArgumentException("Package ID not valid"); }
         final Pkg pkg = getPkg(pkgId);
-        return getPkgInfoByEphemeralId(pkg.getEphemeralId(), pkg.getJavaVersion()).getDirectDownloadUri();
+        if (PropertyManager.INSTANCE.getApiVersion().equals(API_VERSION_V2)) {
+            return getPkgInfoByEphemeralId(pkg.getEphemeralId(), pkg.getJavaVersion()).getDirectDownloadUri();
+        } else {
+            return getPkgInfoByPkgId(pkgId, pkg.getJavaVersion()).getDirectDownloadUri();
+        }
     }
     public final CompletableFuture<String> getPkgDirectDownloadUriAsync(final String pkgId) {
-        return getPkgAsync(pkgId).thenApply(pkg -> getPkgInfoByEphemeralIdAsync(pkg.getEphemeralId(), pkg.getJavaVersion()).thenApply(pkgInfo -> pkgInfo.getDirectDownloadUri())).join();
+        if (null == pkgId || pkgId.isEmpty()) { throw new IllegalArgumentException("Package ID not valid"); }
+        if (PropertyManager.INSTANCE.getApiVersion().equals(API_VERSION_V2)) {
+            return getPkgAsync(pkgId).thenApply(pkg -> getPkgInfoByEphemeralIdAsync(pkg.getEphemeralId(), pkg.getJavaVersion()).thenApply(pkgInfo -> pkgInfo.getDirectDownloadUri())).join();
+        } else {
+            return getPkgAsync(pkgId).thenApply(pkg -> getPkgInfoByPkgIdAsync(pkgId, pkg.getJavaVersion()).thenApply(pkgInfo -> pkgInfo.getDirectDownloadUri())).join();
+        }
     }
 
 
