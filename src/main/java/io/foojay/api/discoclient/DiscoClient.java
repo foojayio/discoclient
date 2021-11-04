@@ -1439,15 +1439,26 @@ public class DiscoClient {
 
 
     public final String getPkgDownloadSiteUri(final String pkgId) {
+        if (null == pkgId || pkgId.isEmpty()) { throw new IllegalArgumentException("Package ID not valid"); }
         final Pkg pkg = getPkg(pkgId);
-        return getPkgInfoByEphemeralId(pkg.getEphemeralId(), pkg.getJavaVersion()).getDownloadSiteUri();
+        if (PropertyManager.INSTANCE.getApiVersion().equals(API_VERSION_V2)) {
+            return getPkgInfoByEphemeralId(pkg.getEphemeralId(), pkg.getJavaVersion()).getDownloadSiteUri();
+        } else {
+            return getPkgInfoByPkgId(pkgId, pkg.getJavaVersion()).getDownloadSiteUri();
+        }
     }
     public final CompletableFuture<String> getPkgDownloadSiteUriAsync(final String pkgId) {
-        return getPkgAsync(pkgId).thenApply(pkg -> getPkgInfoByEphemeralIdAsync(pkg.getEphemeralId(), pkg.getJavaVersion()).thenApply(pkgInfo -> pkgInfo.getDownloadSiteUri())).join();
+        if (null == pkgId || pkgId.isEmpty()) { throw new IllegalArgumentException("Package ID not valid"); }
+        if (PropertyManager.INSTANCE.getApiVersion().equals(API_VERSION_V2)) {
+            return getPkgAsync(pkgId).thenApply(pkg -> getPkgInfoByEphemeralIdAsync(pkg.getEphemeralId(), pkg.getJavaVersion()).thenApply(pkgInfo -> pkgInfo.getDownloadSiteUri())).join();
+        } else {
+            return getPkgAsync(pkgId).thenApply(pkg -> getPkgInfoByPkgIdAsync(pkgId, pkg.getJavaVersion()).thenApply(pkgInfo -> pkgInfo.getDownloadSiteUri())).join();
+        }
     }
 
 
     public PkgInfo getPkgInfoByEphemeralId(final String ephemeralId, final SemVer javaVersion) {
+        if (null == ephemeralId || ephemeralId.isEmpty() || null == javaVersion) { throw new IllegalArgumentException("ephemeralId or javaVersion cannot be null"); }
         StringBuilder queryBuilder = new StringBuilder().append(PropertyManager.INSTANCE.getString(Constants.PROPERTY_KEY_DISCO_URL))
                                                         .append(PropertyManager.INSTANCE.getEphemeralIdsPath())
                                                         .append("/")
@@ -1474,6 +1485,7 @@ public class DiscoClient {
         return null;
     }
     public CompletableFuture<PkgInfo> getPkgInfoByEphemeralIdAsync(final String ephemeralId, final SemVer javaVersion) {
+        if (null == ephemeralId || ephemeralId.isEmpty() || null == javaVersion) { throw new IllegalArgumentException("ephemeralId or javaVersion cannot be null"); }
         StringBuilder queryBuilder = new StringBuilder().append(PropertyManager.INSTANCE.getString(Constants.PROPERTY_KEY_DISCO_URL))
                                                         .append(PropertyManager.INSTANCE.getEphemeralIdsPath())
                                                         .append("/")
@@ -1501,6 +1513,7 @@ public class DiscoClient {
     }
 
     public PkgInfo getPkgInfoByPkgId(final String pkgId, final SemVer javaVersion) {
+        if (null == pkgId || pkgId.isEmpty() || null == javaVersion) { throw new IllegalArgumentException("pkgId or javaVersion cannot be null"); }
         StringBuilder queryBuilder = new StringBuilder().append(PropertyManager.INSTANCE.getString(Constants.PROPERTY_KEY_DISCO_URL))
                                                         .append(PropertyManager.INSTANCE.getIdsPath())
                                                         .append("/")
@@ -1527,6 +1540,7 @@ public class DiscoClient {
         return null;
     }
     public CompletableFuture<PkgInfo> getPkgInfoByPkgIdAsync(final String pkgId, final SemVer javaVersion) {
+        if (null == pkgId || pkgId.isEmpty() || null == javaVersion) { throw new IllegalArgumentException("pkgId or javaVersion cannot be null"); }
         StringBuilder queryBuilder = new StringBuilder().append(PropertyManager.INSTANCE.getString(Constants.PROPERTY_KEY_DISCO_URL))
                                                         .append(PropertyManager.INSTANCE.getIdsPath())
                                                         .append("/")
@@ -1555,6 +1569,8 @@ public class DiscoClient {
 
 
     public final Future<?> downloadPkg(final String pkgId, final String targetFileName) throws InterruptedException {
+        if (null == pkgId || pkgId.isEmpty()) { throw new IllegalArgumentException("pkgId cannot be null or empty"); }
+        if (null == targetFileName || targetFileName.isEmpty()) { throw new IllegalArgumentException("targetFileName cannot be null or empty"); }
         Pkg pkg = getPkg(pkgId);
         if (null == pkg) {
             return null;
@@ -1569,7 +1585,11 @@ public class DiscoClient {
             }
         }
     }
+
     public final Future<?> downloadPkg(final String ephemeralId, final SemVer javaVersion, final String targetFileName) throws InterruptedException {
+        if (null == ephemeralId || ephemeralId.isEmpty()) { throw new IllegalArgumentException("ephemeralId cannot be null or empty"); }
+        if (null == javaVersion) { throw new IllegalArgumentException("javaVersion cannot be null"); }
+        if (null == targetFileName || targetFileName.isEmpty()) { throw new IllegalArgumentException("targetFileName cannot be null or empty"); }
         final String              url      = getPkgInfoByEphemeralId(ephemeralId, javaVersion).getDirectDownloadUri();
         final FutureTask<Boolean> task     = createDownloadTask(targetFileName, url);
         final ExecutorService     executor = Executors.newSingleThreadExecutor();
@@ -1579,6 +1599,8 @@ public class DiscoClient {
         return future;
     }
     public final Future<?> downloadPkg(final PkgInfo pkgInfo, final String targetFileName) throws InterruptedException {
+        if (null == pkgInfo) { throw new IllegalArgumentException("pkgInfo cannot be null"); }
+        if (null == targetFileName || targetFileName.isEmpty()) { throw new IllegalArgumentException("targetFileName cannot be null or empty"); }
         final FutureTask<Boolean> task     = createDownloadTask(targetFileName, pkgInfo.getDirectDownloadUri());
         final ExecutorService     executor = Executors.newSingleThreadExecutor();
         final Future<?>           future   = executor.submit(task);
