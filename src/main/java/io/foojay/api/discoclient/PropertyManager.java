@@ -28,9 +28,12 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Properties;
 
+import static io.foojay.api.discoclient.util.Constants.API_VERSION_V2;
+import static io.foojay.api.discoclient.util.Constants.API_VERSION_V3;
 import static io.foojay.api.discoclient.util.Constants.DISCO_API_BASE_URL;
 import static io.foojay.api.discoclient.util.Constants.DISTRIBUTION_JSON_URL;
 import static io.foojay.api.discoclient.util.Constants.PROPERTY_KEY_DISCO_URL;
+import static io.foojay.api.discoclient.util.Constants.PROPERTY_KEY_DISCO_VERSION;
 import static io.foojay.api.discoclient.util.Constants.PROPERTY_KEY_DISTRIBUTION_JSON_URL;
 
 
@@ -86,12 +89,42 @@ public enum PropertyManager {
 
     public long getLong(final String key) { return Long.parseLong(properties.getOrDefault(key, "0").toString()); }
 
+    public String getApiVersion() {
+        return properties.getOrDefault(PROPERTY_KEY_DISCO_VERSION, API_VERSION_V2).toString();
+    }
+
+    public String getPackagesPath() {
+        String apiVersion = getApiVersion();
+        return new StringBuilder().append("/disco/v").append(apiVersion).append("/packages").toString();
+    }
+
+    public String getEphemeralIdsPath() {
+        String apiVersion = getApiVersion();
+        return new StringBuilder().append("/disco/v").append(apiVersion).append("/ephemeral_ids").toString();
+    }
+
+    public String getMajorVersionsPath() {
+        String apiVersion = getApiVersion();
+        return new StringBuilder().append("/disco/v").append(apiVersion).append("/major_versions").toString();
+    }
+
+    public String getIdsPath() {
+        String apiVersion = getApiVersion();
+        return new StringBuilder().append("/disco/v").append(apiVersion).append("/ids").toString();
+    }
+
+    public String getDistributionsPath() {
+        String apiVersion = getApiVersion();
+        return new StringBuilder().append("/disco/v").append(apiVersion).append("/distributions").toString();
+    }
+
 
     // ******************** Properties ****************************************
     private void createProperties(Properties properties) {
         final String propFilePath = new StringBuilder(System.getProperty("user.home")).append(File.separator).append(PROPERTIES_FILE_NAME).toString();
         try (OutputStream output = new FileOutputStream(propFilePath)) {
             properties.put(PROPERTY_KEY_DISCO_URL, DISCO_API_BASE_URL);
+            properties.put(PROPERTY_KEY_DISCO_VERSION, API_VERSION_V2);
             properties.put(PROPERTY_KEY_DISTRIBUTION_JSON_URL, DISTRIBUTION_JSON_URL);
             properties.store(output, null);
         } catch (IOException ex) {

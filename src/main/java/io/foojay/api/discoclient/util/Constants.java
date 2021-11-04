@@ -23,19 +23,17 @@ public class Constants {
     public static final String  NAME                                = "discoclient";
 
     public static final String  PROPERTY_KEY_DISCO_URL              = "url";
+    public static final String  PROPERTY_KEY_DISCO_VERSION          = "api_version";
     public static final String  PROPERTY_KEY_DISTRIBUTION_JSON_URL  = "distro_url";
 
     public static final String  DISCO_API_BASE_URL                  = "https://api.foojay.io";
+    public static final String  API_VERSION_V2                      = "2.0";
+    public static final String  API_VERSION_V3                      = "3.0";
     public static final String  DISTRIBUTION_JSON_URL               = "https://github.com/foojayio/distributions/raw/main/distributions.json";
 
     public static final String  DISTRIBUTION_JSON                   = "distributions.json";
 
     public static final Pattern POSITIVE_INTEGER_PATTERN            = Pattern.compile("\\d+");
-
-    public static final String  PACKAGES_PATH                       = "/disco/v2.0/packages";
-    public static final String  EPHEMERAL_IDS_PATH                  = "/disco/v2.0/ephemeral_ids";
-    public static final String  MAJOR_VERSIONS_PATH                 = "/disco/v2.0/major_versions";
-    public static final String  DISTRIBUTIONS_PATH                  = "/disco/v2.0/distributions";
 
     public static final String  API_DISTRIBUTION                    = "distro";
     public static final String  API_VERSION                         = "version";

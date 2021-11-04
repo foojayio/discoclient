@@ -81,6 +81,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
+import static io.foojay.api.discoclient.util.Constants.API_VERSION_V2;
 import static io.foojay.api.discoclient.util.Constants.PROPERTY_KEY_DISTRIBUTION_JSON_URL;
 
 
@@ -132,7 +133,7 @@ public class DiscoClient {
 
     public Queue<Pkg> getAllPackages() {
         StringBuilder queryBuilder = new StringBuilder().append(PropertyManager.INSTANCE.getString(Constants.PROPERTY_KEY_DISCO_URL))
-                                                        .append(Constants.PACKAGES_PATH)
+                                                        .append(PropertyManager.INSTANCE.getPackagesPath())
                                                         .append("?release_status=ea")
                                                         .append("&release_status=ga");
 
@@ -159,7 +160,7 @@ public class DiscoClient {
     }
     public CompletableFuture<Queue<Pkg>> getAllPackagesAsync() {
         StringBuilder queryBuilder = new StringBuilder().append(PropertyManager.INSTANCE.getString(Constants.PROPERTY_KEY_DISCO_URL))
-                                                        .append(Constants.PACKAGES_PATH)
+                                                        .append(PropertyManager.INSTANCE.getPackagesPath())
                                                         .append("?release_status=ea")
                                                         .append("&release_status=ga");
         String query = queryBuilder.toString();
@@ -192,7 +193,7 @@ public class DiscoClient {
                              final Boolean javafxBundled, final Boolean directlyDownloadable, final List<ReleaseStatus> releaseStatus, final TermOfSupport termOfSupport, final List<String> ftrs, final List<Scope> scopes, final Match match) {
 
         StringBuilder queryBuilder = new StringBuilder().append(PropertyManager.INSTANCE.getString(Constants.PROPERTY_KEY_DISCO_URL))
-                                                        .append(Constants.PACKAGES_PATH);
+                                                        .append(PropertyManager.INSTANCE.getPackagesPath());
         final int initialLength = queryBuilder.length();
 
         if (null != distributions && !distributions.isEmpty()) {
@@ -338,7 +339,7 @@ public class DiscoClient {
                                                  final Boolean javafxBundled, final Boolean directlyDownloadable, final List<ReleaseStatus> releaseStatus, final TermOfSupport termOfSupport, final List<String> ftrs, final List<Scope> scopes, final Match match) {
 
     StringBuilder queryBuilder = new StringBuilder().append(PropertyManager.INSTANCE.getString(Constants.PROPERTY_KEY_DISCO_URL))
-                                                    .append(Constants.PACKAGES_PATH);
+                                                    .append(PropertyManager.INSTANCE.getPackagesPath());
     final int initialLength = queryBuilder.length();
 
     if (null != distributions && !distributions.isEmpty()) {
@@ -489,7 +490,7 @@ public class DiscoClient {
 
     public List<Pkg> getPkgsForFeatureVersion(final List<Distribution> distributions, final int featureVersion, final List<ReleaseStatus> releaseStatus, final Boolean directlyDownloadable, final List<Scope> scopes, final Match match) {
         StringBuilder queryBuilder = new StringBuilder().append(PropertyManager.INSTANCE.getString(Constants.PROPERTY_KEY_DISCO_URL))
-                                                        .append(Constants.PACKAGES_PATH);
+                                                        .append(PropertyManager.INSTANCE.getPackagesPath());
         final int initialLength = queryBuilder.length();
         if (featureVersion <= 6) { throw new IllegalArgumentException("Feature version has to be larger or equal to 6"); }
 
@@ -556,7 +557,7 @@ public class DiscoClient {
     }
     public CompletableFuture<List<Pkg>> getPkgsForFeatureVersionAsync(final List<Distribution> distributions, final int featureVersion, final List<ReleaseStatus> releaseStatus, final Boolean directlyDownloadable, final List<Scope> scopes, final Match match) {
         StringBuilder queryBuilder = new StringBuilder().append(PropertyManager.INSTANCE.getString(Constants.PROPERTY_KEY_DISCO_URL))
-                                                        .append(Constants.PACKAGES_PATH);
+                                                        .append(PropertyManager.INSTANCE.getPackagesPath());
         final int initialLength = queryBuilder.length();
         if (featureVersion <= 6) { throw new IllegalArgumentException("Feature version has to be larger or equal to 6"); }
 
@@ -621,7 +622,7 @@ public class DiscoClient {
 
     public final MajorVersion getMajorVersion(final String parameter) {
         StringBuilder queryBuilder = new StringBuilder().append(PropertyManager.INSTANCE.getString(Constants.PROPERTY_KEY_DISCO_URL))
-                                                        .append(Constants.MAJOR_VERSIONS_PATH);
+                                                        .append(PropertyManager.INSTANCE.getMajorVersionsPath());
         if (null != parameter || !parameter.isEmpty()) {
             queryBuilder.append("/").append(parameter);
         }
@@ -649,7 +650,7 @@ public class DiscoClient {
     }
     public final CompletableFuture<MajorVersion> getMajorVersionAsync(final String parameter) {
         StringBuilder queryBuilder = new StringBuilder().append(PropertyManager.INSTANCE.getString(Constants.PROPERTY_KEY_DISCO_URL))
-                                                        .append(Constants.MAJOR_VERSIONS_PATH);
+                                                        .append(PropertyManager.INSTANCE.getMajorVersionsPath());
         if (null != parameter || !parameter.isEmpty()) {
             queryBuilder.append("/").append(parameter);
         }
@@ -682,7 +683,7 @@ public class DiscoClient {
     public final Queue<MajorVersion> getAllMajorVersions(final boolean include_ea) { return getAllMajorVersions(include_ea, true); }
     public final Queue<MajorVersion> getAllMajorVersions(final boolean include_ea, final boolean include_build) {
         StringBuilder queryBuilder = new StringBuilder().append(PropertyManager.INSTANCE.getString(Constants.PROPERTY_KEY_DISCO_URL))
-                                                        .append(Constants.MAJOR_VERSIONS_PATH)
+                                                        .append(PropertyManager.INSTANCE.getMajorVersionsPath())
                                                         .append("?ea=")
                                                         .append(include_ea)
                                                         .append(include_build ? "" : "&include_build=false");
@@ -705,7 +706,7 @@ public class DiscoClient {
     }
     public final List<MajorVersion> getAllMajorVersions(final Optional<Boolean> maintained, final Optional<Boolean> include_ea, final Optional<Boolean> include_ga, final Optional<Boolean> include_build) {
         StringBuilder queryBuilder = new StringBuilder().append(PropertyManager.INSTANCE.getString(Constants.PROPERTY_KEY_DISCO_URL))
-                                                        .append(Constants.MAJOR_VERSIONS_PATH);
+                                                        .append(PropertyManager.INSTANCE.getMajorVersionsPath());
         int initialLength = queryBuilder.length();
         if (null != maintained && maintained.isPresent()) {
             queryBuilder.append(queryBuilder.length() == initialLength ? "?" : "&");
@@ -746,7 +747,7 @@ public class DiscoClient {
     public final CompletableFuture<List<MajorVersion>> getAllMajorVersionsAsync(final boolean include_ea) { return getAllMajorVersionsAsync(include_ea, true); }
     public final CompletableFuture<List<MajorVersion>> getAllMajorVersionsAsync(final boolean include_ea, final boolean include_build) {
         StringBuilder queryBuilder = new StringBuilder().append(PropertyManager.INSTANCE.getString(Constants.PROPERTY_KEY_DISCO_URL))
-                                                        .append(Constants.MAJOR_VERSIONS_PATH)
+                                                        .append(PropertyManager.INSTANCE.getMajorVersionsPath())
                                                         .append("?ea=").append(include_ea)
                                                         .append(include_build ? "" : "&include_build=false");
         String query = queryBuilder.toString();
@@ -767,7 +768,7 @@ public class DiscoClient {
     }
     public final CompletableFuture<List<MajorVersion>> getAllMajorVersionsAsync(final Optional<Boolean> maintained, final Optional<Boolean> include_ea, final Optional<Boolean> include_ga, final Optional<Boolean> include_build) {
         StringBuilder queryBuilder = new StringBuilder().append(PropertyManager.INSTANCE.getString(Constants.PROPERTY_KEY_DISCO_URL))
-                                                        .append(Constants.MAJOR_VERSIONS_PATH);
+                                                        .append(PropertyManager.INSTANCE.getMajorVersionsPath());
         int initialLength = queryBuilder.length();
         if (null != maintained && maintained.isPresent()) {
             queryBuilder.append(queryBuilder.length() == initialLength ? "?" : "&");
@@ -807,7 +808,7 @@ public class DiscoClient {
     public final MajorVersion getMajorVersion(final int featureVersion, final boolean include_ea) { return getMajorVersion(featureVersion, include_ea, true); }
     public final MajorVersion getMajorVersion(final int featureVersion, final boolean include_ea, final boolean include_build) {
         StringBuilder queryBuilder = new StringBuilder().append(PropertyManager.INSTANCE.getString(Constants.PROPERTY_KEY_DISCO_URL))
-                                                        .append(Constants.MAJOR_VERSIONS_PATH)
+                                                        .append(PropertyManager.INSTANCE.getMajorVersionsPath())
                                                         .append("?include_ea=").append(include_ea)
                                                         .append(include_build ? "": "&include_build=false");
 
@@ -834,7 +835,7 @@ public class DiscoClient {
     public final CompletableFuture<MajorVersion> getMajorVersionAsync(final int featureVersion, final boolean include_ea) { return getMajorVersionAsync(featureVersion, include_ea, true); }
     public final CompletableFuture<MajorVersion> getMajorVersionAsync(final int featureVersion, final boolean include_ea, final boolean include_build) {
         StringBuilder queryBuilder = new StringBuilder().append(PropertyManager.INSTANCE.getString(Constants.PROPERTY_KEY_DISCO_URL))
-                                                        .append(Constants.MAJOR_VERSIONS_PATH)
+                                                        .append(PropertyManager.INSTANCE.getMajorVersionsPath())
                                                         .append("?include_ea=").append(include_ea)
                                                         .append(include_build ? "" : "&include_build=false");
 
@@ -893,7 +894,7 @@ public class DiscoClient {
     public final List<MajorVersion> getMaintainedMajorVersions(final boolean include_ea) { return getMaintainedMajorVersions(include_ea, true); }
     public final List<MajorVersion> getMaintainedMajorVersions(final boolean include_ea, final boolean include_build) {
         StringBuilder queryBuilder = new StringBuilder().append(PropertyManager.INSTANCE.getString(Constants.PROPERTY_KEY_DISCO_URL))
-                                                        .append(Constants.MAJOR_VERSIONS_PATH)
+                                                        .append(PropertyManager.INSTANCE.getMajorVersionsPath())
                                                         .append("?maintained=true&ga=true")
                                                         .append(include_ea ? "&ea=true" : "")
                                                         .append(include_build ? "" : "&include_build=false");
@@ -922,7 +923,7 @@ public class DiscoClient {
     }
     public final CompletableFuture<List<MajorVersion>> getMaintainedMajorVersionsAsync(final boolean include_ea, final boolean include_build) {
         StringBuilder queryBuilder = new StringBuilder().append(PropertyManager.INSTANCE.getString(Constants.PROPERTY_KEY_DISCO_URL))
-                                                        .append(Constants.MAJOR_VERSIONS_PATH)
+                                                        .append(PropertyManager.INSTANCE.getMajorVersionsPath())
                                                         .append("?maintained=true&ga=true")
                                                         .append(include_ea ? "&ea=true" : "")
                                                         .append(include_build ? "" : "&include_build=false");
@@ -951,7 +952,7 @@ public class DiscoClient {
     }
     public final List<MajorVersion> getUsefulMajorVersions(final boolean include_build) {
         StringBuilder queryBuilder = new StringBuilder().append(PropertyManager.INSTANCE.getString(Constants.PROPERTY_KEY_DISCO_URL))
-                                                        .append(Constants.MAJOR_VERSIONS_PATH)
+                                                        .append(PropertyManager.INSTANCE.getMajorVersionsPath())
                                                         .append("/useful")
                                                         .append(include_build ? "" : "&include_build=false");
 
@@ -978,7 +979,7 @@ public class DiscoClient {
     }
     public final CompletableFuture<List<MajorVersion>> getUsefulMajorVersionsAsync(final boolean include_build) {
         StringBuilder queryBuilder = new StringBuilder().append(PropertyManager.INSTANCE.getString(Constants.PROPERTY_KEY_DISCO_URL))
-                                                        .append(Constants.MAJOR_VERSIONS_PATH)
+                                                        .append(PropertyManager.INSTANCE.getMajorVersionsPath())
                                                         .append("/useful")
                                                         .append(include_build ? "" : "include_build=false");
 
@@ -1170,7 +1171,7 @@ public class DiscoClient {
 
     public final List<Distribution> getDistributions() {
         StringBuilder queryBuilder = new StringBuilder().append(PropertyManager.INSTANCE.getString(Constants.PROPERTY_KEY_DISCO_URL))
-                                                        .append(Constants.DISTRIBUTIONS_PATH);
+                                                        .append(PropertyManager.INSTANCE.getDistributionsPath());
 
         String             query              = queryBuilder.toString();
         String             bodyText           = Helper.get(query, userAgent).body();
@@ -1193,7 +1194,7 @@ public class DiscoClient {
     }
     public final CompletableFuture<List<Distribution>> getDistributionsAsync() {
         StringBuilder queryBuilder = new StringBuilder().append(PropertyManager.INSTANCE.getString(Constants.PROPERTY_KEY_DISCO_URL))
-                                                        .append(Constants.DISTRIBUTIONS_PATH);
+                                                        .append(PropertyManager.INSTANCE.getDistributionsPath());
         String query = queryBuilder.toString();
         return Helper.getAsync(query, userAgent).thenApply(response -> {
             List<Distribution> distributionsFound = new LinkedList<>();
@@ -1216,7 +1217,7 @@ public class DiscoClient {
     
     public final Set<Distribution> getDistributionsForSemVer(final SemVer semVer) {
         StringBuilder queryBuilder = new StringBuilder().append(PropertyManager.INSTANCE.getString(Constants.PROPERTY_KEY_DISCO_URL))
-                                                        .append(Constants.DISTRIBUTIONS_PATH)
+                                                        .append(PropertyManager.INSTANCE.getDistributionsPath())
                                                         .append("/versions/")
                                                         .append(Helper.encodeValue(semVer.toString(true)));
         String             query              = queryBuilder.toString();
@@ -1240,7 +1241,7 @@ public class DiscoClient {
     }
     public final CompletableFuture<Set<Distribution>> getDistributionsForSemVerAsync(final SemVer semVer) {
         StringBuilder queryBuilder = new StringBuilder().append(PropertyManager.INSTANCE.getString(Constants.PROPERTY_KEY_DISCO_URL))
-                                                        .append(Constants.DISTRIBUTIONS_PATH)
+                                                        .append(PropertyManager.INSTANCE.getDistributionsPath())
                                                         .append("/versions/")
                                                         .append(Helper.encodeValue(semVer.toString(true)));
         String query = queryBuilder.toString();
@@ -1277,7 +1278,7 @@ public class DiscoClient {
         }
 
         StringBuilder queryBuilder = new StringBuilder().append(PropertyManager.INSTANCE.getString(Constants.PROPERTY_KEY_DISCO_URL))
-                                                        .append(Constants.DISTRIBUTIONS_PATH)
+                                                        .append(PropertyManager.INSTANCE.getDistributionsPath())
                                                         .append("/versions/")
                                                         .append(Helper.encodeValue(versionNumber.toString(OutputFormat.REDUCED_COMPRESSED, true, true)))
                                                         .append(scopeBuilder);
@@ -1315,7 +1316,7 @@ public class DiscoClient {
         }
 
         StringBuilder queryBuilder = new StringBuilder().append(PropertyManager.INSTANCE.getString(Constants.PROPERTY_KEY_DISCO_URL))
-                                                        .append(Constants.DISTRIBUTIONS_PATH)
+                                                        .append(PropertyManager.INSTANCE.getDistributionsPath())
                                                         .append("/versions/")
                                                         .append(Helper.encodeValue(versionNumber.toString(OutputFormat.REDUCED_COMPRESSED, true, true)))
                                                         .append(scopeBuilder);
@@ -1342,7 +1343,7 @@ public class DiscoClient {
 
     public static Map<Distribution, List<VersionNumber>> getVersionsPerDistribution() {
         StringBuilder queryBuilder = new StringBuilder().append(PropertyManager.INSTANCE.getString(Constants.PROPERTY_KEY_DISCO_URL))
-                                                        .append(Constants.DISTRIBUTIONS_PATH);
+                                                        .append(PropertyManager.INSTANCE.getDistributionsPath());
         String                                 query              = queryBuilder.toString();
         String                                 bodyText           = Helper.get(query, "").body();
         Map<Distribution, List<VersionNumber>> distributionsFound = new LinkedHashMap<>();
@@ -1369,7 +1370,7 @@ public class DiscoClient {
     }
     public static CompletableFuture<Map<Distribution, List<VersionNumber>>> getVersionsPerDistributionAsync() {
         StringBuilder queryBuilder = new StringBuilder().append(PropertyManager.INSTANCE.getString(Constants.PROPERTY_KEY_DISCO_URL))
-                                                        .append(Constants.DISTRIBUTIONS_PATH);
+                                                        .append(PropertyManager.INSTANCE.getDistributionsPath());
 
         String query = queryBuilder.toString();
         return Helper.getAsync(query, "").thenApply(response -> {
@@ -1420,25 +1421,25 @@ public class DiscoClient {
 
     public final String getPkgDirectDownloadUri(final String pkgId) {
         final Pkg pkg = getPkg(pkgId);
-        return getPkgInfo(pkg.getEphemeralId(), pkg.getJavaVersion()).getDirectDownloadUri();
+        return getPkgInfoByEphemeralId(pkg.getEphemeralId(), pkg.getJavaVersion()).getDirectDownloadUri();
     }
     public final CompletableFuture<String> getPkgDirectDownloadUriAsync(final String pkgId) {
-        return getPkgAsync(pkgId).thenApply(pkg -> getPkgInfoAsync(pkg.getEphemeralId(), pkg.getJavaVersion()).thenApply(pkgInfo -> pkgInfo.getDirectDownloadUri())).join();
+        return getPkgAsync(pkgId).thenApply(pkg -> getPkgInfoByEphemeralIdAsync(pkg.getEphemeralId(), pkg.getJavaVersion()).thenApply(pkgInfo -> pkgInfo.getDirectDownloadUri())).join();
     }
 
 
     public final String getPkgDownloadSiteUri(final String pkgId) {
         final Pkg pkg = getPkg(pkgId);
-        return getPkgInfo(pkg.getEphemeralId(), pkg.getJavaVersion()).getDownloadSiteUri();
+        return getPkgInfoByEphemeralId(pkg.getEphemeralId(), pkg.getJavaVersion()).getDownloadSiteUri();
     }
     public final CompletableFuture<String> getPkgDownloadSiteUriAsync(final String pkgId) {
-        return getPkgAsync(pkgId).thenApply(pkg -> getPkgInfoAsync(pkg.getEphemeralId(), pkg.getJavaVersion()).thenApply(pkgInfo -> pkgInfo.getDownloadSiteUri())).join();
+        return getPkgAsync(pkgId).thenApply(pkg -> getPkgInfoByEphemeralIdAsync(pkg.getEphemeralId(), pkg.getJavaVersion()).thenApply(pkgInfo -> pkgInfo.getDownloadSiteUri())).join();
     }
 
 
-    public PkgInfo getPkgInfo(final String ephemeralId, final SemVer javaVersion) {
+    public PkgInfo getPkgInfoByEphemeralId(final String ephemeralId, final SemVer javaVersion) {
         StringBuilder queryBuilder = new StringBuilder().append(PropertyManager.INSTANCE.getString(Constants.PROPERTY_KEY_DISCO_URL))
-                                                        .append(Constants.EPHEMERAL_IDS_PATH)
+                                                        .append(PropertyManager.INSTANCE.getEphemeralIdsPath())
                                                         .append("/")
                                                         .append(ephemeralId);
 
@@ -1462,9 +1463,9 @@ public class DiscoClient {
         }
         return null;
     }
-    public CompletableFuture<PkgInfo> getPkgInfoAsync(final String ephemeralId, final SemVer javaVersion) {
+    public CompletableFuture<PkgInfo> getPkgInfoByEphemeralIdAsync(final String ephemeralId, final SemVer javaVersion) {
         StringBuilder queryBuilder = new StringBuilder().append(PropertyManager.INSTANCE.getString(Constants.PROPERTY_KEY_DISCO_URL))
-                                                        .append(Constants.EPHEMERAL_IDS_PATH)
+                                                        .append(PropertyManager.INSTANCE.getEphemeralIdsPath())
                                                         .append("/")
                                                         .append(ephemeralId);
         String query           = queryBuilder.toString();
@@ -1489,45 +1490,107 @@ public class DiscoClient {
         });
     }
 
+    public PkgInfo getPkgInfoByPkgId(final String pkgId, final SemVer javaVersion) {
+        StringBuilder queryBuilder = new StringBuilder().append(PropertyManager.INSTANCE.getString(Constants.PROPERTY_KEY_DISCO_URL))
+                                                        .append(PropertyManager.INSTANCE.getIdsPath())
+                                                        .append("/")
+                                                        .append(pkgId);
 
-    public final Future<?> downloadPkg(final String pkgId, final String targetFileName) {
+        String      query              = queryBuilder.toString();
+        String      packageInfoBody    = Helper.get(query, userAgent).body();
+        Gson        packageInfoGson    = new Gson();
+        JsonElement packageInfoElement = packageInfoGson.fromJson(packageInfoBody, JsonElement.class);
+        if (packageInfoElement instanceof JsonObject) {
+            JsonObject jsonObject = packageInfoElement.getAsJsonObject();
+            JsonArray  jsonArray  = jsonObject.getAsJsonArray("result");
+            if (jsonArray.size() > 0) {
+                final JsonObject packageInfoJson   = jsonArray.get(0).getAsJsonObject();
+                final String     filename          = packageInfoJson.has(PkgInfo.FIELD_FILENAME)            ? packageInfoJson.get(PkgInfo.FIELD_FILENAME).getAsString()            : "";
+                final String     directDownloadUri = packageInfoJson.has(PkgInfo.FIELD_DIRECT_DOWNLOAD_URI) ? packageInfoJson.get(PkgInfo.FIELD_DIRECT_DOWNLOAD_URI).getAsString() : "";
+                final String     downloadSiteUri   = packageInfoJson.has(PkgInfo.FIELD_DIRECT_DOWNLOAD_URI) ? packageInfoJson.get(PkgInfo.FIELD_DOWNLOAD_SITE_URI).getAsString()   : "";
+                if (null == filename) { return null; }
+                return new PkgInfo(filename, javaVersion, directDownloadUri, downloadSiteUri);
+            } else {
+                return null;
+            }
+        }
+        return null;
+    }
+    public CompletableFuture<PkgInfo> getPkgInfoByPkgIdAsync(final String pkgId, final SemVer javaVersion) {
+        StringBuilder queryBuilder = new StringBuilder().append(PropertyManager.INSTANCE.getString(Constants.PROPERTY_KEY_DISCO_URL))
+                                                        .append(PropertyManager.INSTANCE.getIdsPath())
+                                                        .append("/")
+                                                        .append(pkgId);
+        String query           = queryBuilder.toString();
+        return Helper.getAsync(query, userAgent).thenApply(response -> {
+            Gson        packageInfoGson    = new Gson();
+            JsonElement packageInfoElement = packageInfoGson.fromJson(response.body(), JsonElement.class);
+            if (packageInfoElement instanceof JsonObject) {
+                JsonObject jsonObject = packageInfoElement.getAsJsonObject();
+                JsonArray  jsonArray  = jsonObject.getAsJsonArray("result");
+                if (jsonArray.size() > 0) {
+                    final JsonObject packageInfoJson   = jsonArray.get(0).getAsJsonObject();
+                    final String     filename          = packageInfoJson.has(PkgInfo.FIELD_FILENAME)            ? packageInfoJson.get(PkgInfo.FIELD_FILENAME).getAsString()            : "";
+                    final String     directDownloadUri = packageInfoJson.has(PkgInfo.FIELD_DIRECT_DOWNLOAD_URI) ? packageInfoJson.get(PkgInfo.FIELD_DIRECT_DOWNLOAD_URI).getAsString() : "";
+                    final String     downloadSiteUri   = packageInfoJson.has(PkgInfo.FIELD_DIRECT_DOWNLOAD_URI) ? packageInfoJson.get(PkgInfo.FIELD_DOWNLOAD_SITE_URI).getAsString()   : "";
+                    if (null == filename) { return null; }
+                    return new PkgInfo(filename, javaVersion, directDownloadUri, downloadSiteUri);
+                } else {
+                    return null;
+                }
+            }
+            return null;
+        });
+    }
+
+
+    public final Future<?> downloadPkg(final String pkgId, final String targetFileName) throws InterruptedException {
         Pkg pkg = getPkg(pkgId);
         if (null == pkg) {
             return null;
         } else {
-            final SemVer javaVersion = pkg.getJavaVersion();
-            final String ephemeralId = pkg.getEphemeralId();
-            return downloadPkg(ephemeralId, javaVersion, targetFileName);
+            if (PropertyManager.INSTANCE.getApiVersion().equals(API_VERSION_V2)) {
+                final SemVer javaVersion = pkg.getJavaVersion();
+                final String ephemeralId = pkg.getEphemeralId();
+                return downloadPkg(ephemeralId, javaVersion, targetFileName);
+            } else {
+                final SemVer javaVersion = pkg.getJavaVersion();
+                return downloadPkgByPkgId(pkgId, javaVersion, targetFileName);
+            }
         }
     }
-    public final Future<?> downloadPkg(final String ephemeralId, final SemVer javaVersion, final String targetFileName) {
-        final String              url      = getPkgInfo(ephemeralId, javaVersion).getDirectDownloadUri();
+    public final Future<?> downloadPkg(final String ephemeralId, final SemVer javaVersion, final String targetFileName) throws InterruptedException {
+        final String              url      = getPkgInfoByEphemeralId(ephemeralId, javaVersion).getDirectDownloadUri();
         final FutureTask<Boolean> task     = createDownloadTask(targetFileName, url);
         final ExecutorService     executor = Executors.newSingleThreadExecutor();
         final Future<?>           future   = executor.submit(task);
         executor.shutdown();
-        try {
-            executor.awaitTermination(10, TimeUnit.MINUTES);
-        } catch (InterruptedException e) {
-        }
+        executor.awaitTermination(5, TimeUnit.MINUTES);
         return future;
     }
-    public final Future<?> downloadPkg(final PkgInfo pkgInfo, final String targetFileName) {
+    public final Future<?> downloadPkg(final PkgInfo pkgInfo, final String targetFileName) throws InterruptedException {
         final FutureTask<Boolean> task     = createDownloadTask(targetFileName, pkgInfo.getDirectDownloadUri());
         final ExecutorService     executor = Executors.newSingleThreadExecutor();
         final Future<?>           future   = executor.submit(task);
         executor.shutdown();
-        try {
-            executor.awaitTermination(10, TimeUnit.MINUTES);
-        } catch (InterruptedException e) {
-        }
+        executor.awaitTermination(5, TimeUnit.MINUTES);
+        return future;
+    }
+
+    private final Future<?> downloadPkgByPkgId(final String pkgId, final SemVer javaVersion, final String targetFileName) throws InterruptedException {
+        final String              url      = getPkgInfoByPkgId(pkgId, javaVersion).getDirectDownloadUri();
+        final FutureTask<Boolean> task     = createDownloadTask(targetFileName, url);
+        final ExecutorService     executor = Executors.newSingleThreadExecutor();
+        final Future<?>           future   = executor.submit(task);
+        executor.shutdown();
+        executor.awaitTermination(5, TimeUnit.MINUTES);
         return future;
     }
 
 
     public Pkg getPkg(final String pkgId) {
         StringBuilder queryBuilder = new StringBuilder().append(PropertyManager.INSTANCE.getString(Constants.PROPERTY_KEY_DISCO_URL))
-                                                        .append(Constants.PACKAGES_PATH)
+                                                        .append(PropertyManager.INSTANCE.getPackagesPath())
                                                         .append("/")
                                                         .append(pkgId);
 
@@ -1551,7 +1614,7 @@ public class DiscoClient {
     }
     public CompletableFuture<Pkg> getPkgAsync(final String pkgId) {
         StringBuilder queryBuilder = new StringBuilder().append(PropertyManager.INSTANCE.getString(Constants.PROPERTY_KEY_DISCO_URL))
-                                                        .append(Constants.PACKAGES_PATH)
+                                                        .append(PropertyManager.INSTANCE.getPackagesPath())
                                                         .append("/")
                                                         .append(pkgId);
         String query = queryBuilder.toString();
