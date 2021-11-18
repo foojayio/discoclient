@@ -6,7 +6,7 @@
 
     <groupId>io.foojay.api</groupId>
     <artifactId>discoclient</artifactId>
-    <version>2.0.7</version>
+    <version>2.0.8</version>
     <packaging>jar</packaging>
 
     <name>Discovery Client</name>
@@ -33,6 +33,66 @@
     </scm>
     <build>
         <plugins>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>buildnumber-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <phase>validate</phase>
+                        <goals>
+                            <goal>create</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <doCheck>false</doCheck>
+                    <doUpdate>false</doUpdate>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>pl.project13.maven</groupId>
+                <artifactId>git-commit-id-plugin</artifactId>
+                <version>2.2.4</version>
+                <executions>
+                    <execution>
+                        <id>get-the-git-infos</id>
+                        <goals>
+                            <goal>revision</goal>
+                        </goals>
+                        <phase>validate</phase>
+                    </execution>
+                </executions>
+                <configuration>
+                    <dateFormat>yyyy-MM-dd</dateFormat>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>3.2.0</version>
+                <configuration>
+                    <archive>
+                        <index>true</index>
+                        <manifest>
+                            <addClasspath>true</addClasspath>
+                            <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+                            <addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
+                        </manifest>
+                        <manifestEntries>
+                            <SCM-Revision>${buildNumber}</SCM-Revision>
+                            <Build-Jdk>${java.version} (${java.vendor} ${java.vm.version})</Build-Jdk>
+                            <Build-Date>${git.build.time}</Build-Date>
+                            <Build-Revision>${git.commit.id}</Build-Revision>
+                            <Build-OS>${os.name} ${os.arch} ${os.version}</Build-OS>
+                            <Bundle-Name>${project.name}</Bundle-Name>
+                            <Bundle-License>'https://www.apache.org/licenses/LICENSE-2.0;description=Apache License Version 2.0;link=https://spdx.org/licenses/Apache-2.0.html'</Bundle-License>
+                            <Bundle-Description>'The DiscoClient is a library to access the foojay discovery api service in a more convenient way.'</Bundle-Description>
+                            <Bundle-SymbolicName>'io.foojay.api.discoclient</Bundle-SymbolicName>
+                            <Export-Package>'io.foojay.api.discoclient, io.foojay.api.discoclient.event, io.foojay.api.discoclient.pkg, io.foojay.api.discoclient.util'</Export-Package>
+                        </manifestEntries>
+                    </archive>
+                </configuration>
+            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
@@ -116,22 +176,7 @@
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
-            <version>1.7.25</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.logging.log4j</groupId>
-            <artifactId>log4j-api</artifactId>
-            <version>2.13.3</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.logging.log4j</groupId>
-            <artifactId>log4j-core</artifactId>
-            <version>2.13.3</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.logging.log4j</groupId>
-            <artifactId>log4j-slf4j-impl</artifactId>
-            <version>2.13.3</version>
+            <version>1.7.32</version>
         </dependency>
     </dependencies>
 </project>

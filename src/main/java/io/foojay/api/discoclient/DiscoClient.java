@@ -1108,9 +1108,13 @@ public class DiscoClient {
         return updateAvailableFor(distribution, semver, getOperatingSystem(), architecture, javafxBundled, directlyDownloadable);
     }
     public final List<Pkg> updateAvailableFor(final Distribution distribution, final SemVer semver, final OperatingSystem operatingSystem, final Architecture architecture, final Boolean javafxBundled, final Boolean directlyDownloadable) {
+        return updateAvailableFor(distribution, semver, operatingSystem, architecture, javafxBundled, directlyDownloadable, null);
+    }
+    public final List<Pkg> updateAvailableFor(final Distribution distribution, final SemVer semver, final OperatingSystem operatingSystem, final Architecture architecture, final Boolean javafxBundled, final Boolean directlyDownloadable, final String feature) {
         List<Pkg> updatesFound = new ArrayList<>();
         try {
-            List<Pkg> pkgs = getPkgs(null == distribution ? null : List.of(distribution), semver.getVersionNumber(), Latest.AVAILABLE, operatingSystem, LibCType.NONE, architecture, Bitness.NONE, ArchiveType.NONE, PackageType.JDK, javafxBundled, directlyDownloadable, List.of(ReleaseStatus.EA, ReleaseStatus.GA), TermOfSupport.NONE, List.of(Scope.PUBLIC), Match.ANY);
+            List<String> features = null == feature ? List.of() : List.of(feature);
+            List<Pkg> pkgs = getPkgs(null == distribution ? null : List.of(distribution), semver.getVersionNumber(), Latest.AVAILABLE, operatingSystem, LibCType.NONE, architecture, Bitness.NONE, ArchiveType.NONE, PackageType.JDK, javafxBundled, directlyDownloadable, List.of(ReleaseStatus.EA, ReleaseStatus.GA), TermOfSupport.NONE, features, List.of(Scope.PUBLIC), Match.ANY);
             Collections.sort(pkgs, Comparator.comparing(Pkg::getJavaVersion).reversed());
             if (pkgs.isEmpty()) {
                 return updatesFound;
