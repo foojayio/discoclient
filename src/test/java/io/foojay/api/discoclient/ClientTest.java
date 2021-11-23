@@ -237,4 +237,14 @@ public class ClientTest {
 
         }
     }
+
+    @Test
+    public void releaseDetailsUrlTest() {
+        DiscoClient discoClient       = new DiscoClient();
+        String      javaVersion       = "13.0.5.1";
+        SemVer      semver            = SemVer.fromText(javaVersion).getSemVer1();
+        String      releaseDetailsUrl = discoClient.getReleaseDetailsUrl(semver);
+        System.out.println("ReleaseDetailsUrl: " + releaseDetailsUrl);
+        assert !releaseDetailsUrl.isEmpty();
+    }
 }

@@ -1688,6 +1688,32 @@ public class DiscoClient {
         return DISTRIBUTIONS.values().stream().filter(distribution -> distribution.getFromText(text) != null).findFirst().orElse(null);
     }
 
+    public String getReleaseDetailsUrl(final String javaVersion) {
+        if (null == javaVersion || javaVersion.isEmpty()) { return ""; }
+        return getReleaseDetailsUrl(SemVer.fromText(javaVersion).getSemVer1());
+    }
+    public String getReleaseDetailsUrl(final SemVer javaVersion) {
+        if (null == javaVersion) { return ""; }
+        StringBuilder queryBuilder = new StringBuilder().append(PropertyManager.INSTANCE.getString(Constants.PROPERTY_KEY_DISCO_URL))
+                                                        .append(Constants.SLASH).append("disco").append(Constants.SLASH).append("v").append(Constants.API_VERSION_V3).append(Constants.SLASH)
+                                                        .append(Constants.RELEASE_DETAILS).append(Constants.SLASH)
+                                                        .append(javaVersion.getVersionNumber().toString(OutputFormat.REDUCED_COMPRESSED, true, false));
+        final String      query    = queryBuilder.toString();
+        final String      jsonText = Helper.get(query, userAgent).body();
+        final Gson        gson     = new Gson();
+        final JsonElement packageInfoElement = gson.fromJson(jsonText, JsonElement.class);
+        if (packageInfoElement instanceof JsonObject) {
+            final JsonObject jsonObj   = packageInfoElement.getAsJsonObject();
+            final JsonArray  jsonArray = jsonObj.getAsJsonArray("result");
+            if (jsonArray.size() > 0) {
+                final JsonObject releaseDetailsJson = jsonArray.get(0).getAsJsonObject();
+                final String     releaseDetailsUrl  = releaseDetailsJson.has(Constants.FIELD_RELEASE_DETAILS_URL) ? releaseDetailsJson.get(Constants.FIELD_RELEASE_DETAILS_URL).getAsString() : "";
+                return null == releaseDetailsUrl ? "" : releaseDetailsUrl;
+            }
+        }
+        return "";
+    }
+
 
     public void cancelRequest() { Helper.cancelRequest(); }
 

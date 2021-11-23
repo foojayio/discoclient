@@ -237,7 +237,7 @@ public class Helper {
     public static final HttpResponse<String> get(final String uri) { return get(uri, ""); }
     public static final HttpResponse<String> get(final String uri, final String userAgent) {
         if (null == httpClient) { httpClient = createHttpClient(); }
-        final String userAgentText = (null == userAgent || userAgent.isEmpty()) ? "DiscoClient" : "DiscoClient (" + userAgent + ")";
+        final String userAgentText = (null == userAgent || userAgent.isEmpty()) ? "DiscoClient V2" : "DiscoClient V2 (" + userAgent + ")";
         HttpRequest request = HttpRequest.newBuilder()
                                          .GET()
                                          .uri(URI.create(uri))

@@ -30,6 +30,7 @@ public class Constants {
     public static final String  API_VERSION_V2                      = "2.0";
     public static final String  API_VERSION_V3                      = "3.0";
     public static final String  DISTRIBUTION_JSON_URL               = "https://github.com/foojayio/distributions/raw/main/distributions.json";
+    public static final String  RELEASE_DETAILS                     = "release_details";
 
     public static final String  DISTRIBUTION_JSON                   = "distributions.json";
 
@@ -53,6 +54,8 @@ public class Constants {
     public static final String  API_MATCH                           = "match";
     public static final String  API_FEATURE                         = "feature";
 
+    public static final String  FIELD_RELEASE_DETAILS_URL           = "release_details_url";
+
     public static final String  SQUARE_BRACKET_OPEN                 = "[";
     public static final String  SQUARE_BRACKET_CLOSE                = "]";
     public static final String  CURLY_BRACKET_OPEN                  = "{";
@@ -63,4 +66,5 @@ public class Constants {
     public static final String  COMMA                               = ",";
     public static final String  NEW_LINE                            = "\n";
     public static final String  COMMA_NEW_LINE                      = ",\n";
+    public static final String  SLASH                               = "/";
 }
