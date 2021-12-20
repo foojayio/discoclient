@@ -24,11 +24,9 @@ import java.util.Objects;
 import java.util.OptionalInt;
 
 import static io.foojay.api.discoclient.util.Constants.COLON;
-import static io.foojay.api.discoclient.util.Constants.COMMA_NEW_LINE;
+import static io.foojay.api.discoclient.util.Constants.COMMA;
 import static io.foojay.api.discoclient.util.Constants.CURLY_BRACKET_CLOSE;
 import static io.foojay.api.discoclient.util.Constants.CURLY_BRACKET_OPEN;
-import static io.foojay.api.discoclient.util.Constants.INDENTED_QUOTES;
-import static io.foojay.api.discoclient.util.Constants.NEW_LINE;
 import static io.foojay.api.discoclient.util.Constants.QUOTES;
 
 
@@ -46,13 +44,18 @@ public class Pkg {
     public   static final String          FIELD_LIB_C_TYPE             = "lib_c_type";
     public   static final String          FIELD_ARCHITECTURE           = "architecture";
     public   static final String          FIELD_BITNESS                = "bitness";
+    public   static final String          FIELD_FPU                    = "fpu";
     public   static final String          FIELD_PACKAGE_TYPE           = "package_type";
     public   static final String          FIELD_JAVAFX_BUNDLED         = "javafx_bundled";
     public   static final String          FIELD_DIRECTLY_DOWNLOADABLE  = "directly_downloadable";
     public   static final String          FIELD_FILENAME               = "filename";
     public   static final String          FIELD_EPHEMERAL_ID           = "ephemeral_id";
     public   static final String          FIELD_FREE_USE_IN_PROD       = "free_use_in_production";
-    public   static final String          FIELD_FPU                    = "fpu";
+    public   static final String          FIELD_TCK_TESTED             = "tck_tested";
+    public   static final String          FIELD_TCK_CERT_URI           = "tck_cert_uri";
+    public   static final String          FIELD_AQAVIT_CERTIFIED       = "aqavit_certified";
+    public   static final String          FIELD_AQAVIT_CERT_URI        = "aqavit_cert_uri";
+
     private               String          id;
     private               String          ephemeralId;
     private               Distribution    distribution;
@@ -60,6 +63,7 @@ public class Pkg {
     private               SemVer          javaVersion;
     private               VersionNumber   distributionVersion;
     private               Architecture    architecture;
+    private               FPU             fpu;
     private               OperatingSystem operatingSystem;
     private               LibCType        libcType;
     private               PackageType     packageType;
@@ -71,7 +75,10 @@ public class Pkg {
     private               Boolean         directlyDownloadable;
     private               String          fileName;
     private               Boolean         freeUseInProduction;
-    private               FPU             fpu;
+    private               Verification    tckTested;
+    private               String          tckCertUri;
+    private               Verification    aqavitCertified;
+    private               String          aqavitCertUri;
 
 
     public Pkg(final String packageJson) {
@@ -88,6 +95,7 @@ public class Pkg {
         this.distributionVersion  = json.has(FIELD_DISTRIBUTION)           ? VersionNumber.fromText(json.get(FIELD_DISTRIBUTION_VERSION).getAsString())      : new VersionNumber();
         this.latestBuildAvailable = json.has(FIELD_LATEST_BUILD_AVAILABLE) ? json.get(FIELD_LATEST_BUILD_AVAILABLE).getAsBoolean()                           : Boolean.FALSE;
         this.architecture         = json.has(FIELD_ARCHITECTURE)           ? Architecture.fromText(json.get(FIELD_ARCHITECTURE).getAsString())               : Architecture.NOT_FOUND;
+        this.fpu                  = json.has(FIELD_FPU)                    ? FPU.fromText(json.get(FIELD_FPU).getAsString())                                 : FPU.NOT_FOUND;
         this.operatingSystem      = json.has(FIELD_OPERATING_SYSTEM)       ? OperatingSystem.fromText(json.get(FIELD_OPERATING_SYSTEM).getAsString())        : OperatingSystem.NOT_FOUND;
         this.libcType             = json.has(FIELD_LIB_C_TYPE)             ? LibCType.fromText(json.get(FIELD_LIB_C_TYPE).getAsString())                     : LibCType.NOT_FOUND;
         this.packageType          = json.has(FIELD_PACKAGE_TYPE)           ? PackageType.fromText(json.get(FIELD_PACKAGE_TYPE).getAsString())                : PackageType.NOT_FOUND;
@@ -99,7 +107,10 @@ public class Pkg {
         this.fileName             = json.has(FIELD_FILENAME)               ? json.get(FIELD_FILENAME).getAsString()                                          : "";
         this.ephemeralId          = json.has(FIELD_EPHEMERAL_ID)           ? json.get(FIELD_EPHEMERAL_ID).getAsString()                                      : "";
         this.freeUseInProduction  = json.has(FIELD_FREE_USE_IN_PROD)       ? json.get(FIELD_FREE_USE_IN_PROD).getAsBoolean()                                 : Boolean.TRUE;
-        this.fpu                  = json.has(FIELD_FPU)                    ? FPU.fromText(json.get(FIELD_FPU).getAsString())                                 : FPU.NOT_FOUND;
+        this.tckTested            = json.has(FIELD_TCK_TESTED)             ? Verification.fromText(json.get(FIELD_TCK_TESTED).getAsString())                 : Verification.UNKNOWN;
+        this.tckCertUri           = json.has(FIELD_TCK_CERT_URI)           ? json.get(FIELD_TCK_CERT_URI).getAsString()                                      : "";
+        this.aqavitCertified      = json.has(FIELD_AQAVIT_CERTIFIED)       ? Verification.fromText(json.get(FIELD_AQAVIT_CERTIFIED).getAsString())           : Verification.UNKNOWN;
+        this.aqavitCertUri        = json.has(FIELD_AQAVIT_CERT_URI)        ? json.get(FIELD_AQAVIT_CERT_URI).getAsString()                                   : "";
     }
 
 
@@ -129,6 +140,8 @@ public class Pkg {
 
     public Bitness getBitness() { return architecture == Architecture.NOT_FOUND ? Bitness.NOT_FOUND : architecture.getBitness(); }
 
+    public FPU getFpu() { return fpu; }
+
     public OperatingSystem getOperatingSystem() { return operatingSystem; }
 
     public LibCType getLibCType() { return libcType; }
@@ -151,7 +164,13 @@ public class Pkg {
 
     public Boolean getFreeUseInProduction() { return freeUseInProduction; }
 
-    public FPU getFpu() { return fpu; }
+    public Verification getTckTested() { return tckTested; }
+
+    public String getTckCertUri() { return tckCertUri; }
+
+    public Verification getAqavitCertified() { return aqavitCertified; }
+
+    public String getAqavitCertUri() { return aqavitCertUri; }
 
     @Override public boolean equals(final Object o) {
         if (this == o) return true;
@@ -167,24 +186,28 @@ public class Pkg {
     }
 
     @Override public String toString() {
-        return new StringBuilder().append(CURLY_BRACKET_OPEN).append(NEW_LINE)
-                                  .append(INDENTED_QUOTES).append(FIELD_ID).append(QUOTES).append(COLON).append(QUOTES).append(getId()).append(QUOTES).append(COMMA_NEW_LINE)
-                                  .append(INDENTED_QUOTES).append(FIELD_DISTRIBUTION).append(QUOTES).append(COLON).append(QUOTES).append(distribution.getName()).append(QUOTES).append(COMMA_NEW_LINE)
-                                  .append(INDENTED_QUOTES).append(FIELD_JAVA_VERSION).append(QUOTES).append(COLON).append(QUOTES).append(javaVersion.toString()).append(QUOTES).append(COMMA_NEW_LINE)
-                                  .append(INDENTED_QUOTES).append(FIELD_DISTRIBUTION_VERSION).append(QUOTES).append(COLON).append(QUOTES).append(distributionVersion).append(QUOTES).append(COMMA_NEW_LINE)
-                                  .append(INDENTED_QUOTES).append(FIELD_LATEST_BUILD_AVAILABLE).append(QUOTES).append(COLON).append(latestBuildAvailable).append(COMMA_NEW_LINE)
-                                  .append(INDENTED_QUOTES).append(FIELD_ARCHITECTURE).append(QUOTES).append(COLON).append(QUOTES).append(architecture.name()).append(QUOTES).append(COMMA_NEW_LINE)
-                                  .append(INDENTED_QUOTES).append(FIELD_BITNESS).append(QUOTES).append(COLON).append(architecture.getBitness().getAsInt()).append(COMMA_NEW_LINE)
-                                  .append(INDENTED_QUOTES).append(FIELD_OPERATING_SYSTEM).append(QUOTES).append(COLON).append(QUOTES).append(operatingSystem.name()).append(QUOTES).append(COMMA_NEW_LINE)
-                                  .append(INDENTED_QUOTES).append(FIELD_PACKAGE_TYPE).append(QUOTES).append(COLON).append(QUOTES).append(packageType.name()).append(QUOTES).append(COMMA_NEW_LINE)
-                                  .append(INDENTED_QUOTES).append(FIELD_RELEASE_STATUS).append(QUOTES).append(COLON).append(QUOTES).append(releaseStatus.name()).append(QUOTES).append(COMMA_NEW_LINE)
-                                  .append(INDENTED_QUOTES).append(FIELD_ARCHIVE_TYPE).append(QUOTES).append(COLON).append(QUOTES).append(archiveType.getUiString()).append(QUOTES).append(COMMA_NEW_LINE)
-                                  .append(INDENTED_QUOTES).append(FIELD_TERM_OF_SUPPORT).append(QUOTES).append(COLON).append(QUOTES).append(termOfSupport.name()).append(QUOTES).append(COMMA_NEW_LINE)
-                                  .append(INDENTED_QUOTES).append(FIELD_JAVAFX_BUNDLED).append(QUOTES).append(COLON).append(javafxBundled).append(COMMA_NEW_LINE)
-                                  .append(INDENTED_QUOTES).append(FIELD_FILENAME).append(QUOTES).append(COLON).append(QUOTES).append(fileName).append(QUOTES).append(COMMA_NEW_LINE)
-                                  .append(INDENTED_QUOTES).append(FIELD_EPHEMERAL_ID).append(QUOTES).append(COLON).append(QUOTES).append(ephemeralId).append(QUOTES).append(COMMA_NEW_LINE)
-                                  .append(INDENTED_QUOTES).append(FIELD_FREE_USE_IN_PROD).append(QUOTES).append(COLON).append(freeUseInProduction).append(COMMA_NEW_LINE)
-                                  .append(INDENTED_QUOTES).append(FIELD_FPU).append(QUOTES).append(COLON).append(QUOTES).append(fpu.name()).append(QUOTES).append(NEW_LINE)
+        return new StringBuilder().append(CURLY_BRACKET_OPEN)
+                                  .append(QUOTES).append(FIELD_ID).append(QUOTES).append(COLON).append(QUOTES).append(getId()).append(QUOTES).append(COMMA)
+                                  .append(QUOTES).append(FIELD_DISTRIBUTION).append(QUOTES).append(COLON).append(QUOTES).append(distribution.getName()).append(QUOTES).append(COMMA)
+                                  .append(QUOTES).append(FIELD_JAVA_VERSION).append(QUOTES).append(COLON).append(QUOTES).append(javaVersion.toString()).append(QUOTES).append(COMMA)
+                                  .append(QUOTES).append(FIELD_DISTRIBUTION_VERSION).append(QUOTES).append(COLON).append(QUOTES).append(distributionVersion).append(QUOTES).append(COMMA)
+                                  .append(QUOTES).append(FIELD_LATEST_BUILD_AVAILABLE).append(QUOTES).append(COLON).append(latestBuildAvailable).append(COMMA)
+                                  .append(QUOTES).append(FIELD_ARCHITECTURE).append(QUOTES).append(COLON).append(QUOTES).append(architecture.name()).append(QUOTES).append(COMMA)
+                                  .append(QUOTES).append(FIELD_BITNESS).append(QUOTES).append(COLON).append(architecture.getBitness().getAsInt()).append(COMMA)
+                                  .append(QUOTES).append(FIELD_FPU).append(QUOTES).append(COLON).append(QUOTES).append(fpu.name()).append(QUOTES).append(COMMA)
+                                  .append(QUOTES).append(FIELD_OPERATING_SYSTEM).append(QUOTES).append(COLON).append(QUOTES).append(operatingSystem.name()).append(QUOTES).append(COMMA)
+                                  .append(QUOTES).append(FIELD_PACKAGE_TYPE).append(QUOTES).append(COLON).append(QUOTES).append(packageType.name()).append(QUOTES).append(COMMA)
+                                  .append(QUOTES).append(FIELD_RELEASE_STATUS).append(QUOTES).append(COLON).append(QUOTES).append(releaseStatus.name()).append(QUOTES).append(COMMA)
+                                  .append(QUOTES).append(FIELD_ARCHIVE_TYPE).append(QUOTES).append(COLON).append(QUOTES).append(archiveType.getUiString()).append(QUOTES).append(COMMA)
+                                  .append(QUOTES).append(FIELD_TERM_OF_SUPPORT).append(QUOTES).append(COLON).append(QUOTES).append(termOfSupport.name()).append(QUOTES).append(COMMA)
+                                  .append(QUOTES).append(FIELD_JAVAFX_BUNDLED).append(QUOTES).append(COLON).append(javafxBundled).append(COMMA)
+                                  .append(QUOTES).append(FIELD_FILENAME).append(QUOTES).append(COLON).append(QUOTES).append(fileName).append(QUOTES).append(COMMA)
+                                  .append(QUOTES).append(FIELD_EPHEMERAL_ID).append(QUOTES).append(COLON).append(QUOTES).append(ephemeralId).append(QUOTES).append(COMMA)
+                                  .append(QUOTES).append(FIELD_FREE_USE_IN_PROD).append(QUOTES).append(COLON).append(freeUseInProduction).append(COMMA)
+                                  .append(QUOTES).append(FIELD_TCK_TESTED).append(QUOTES).append(COLON).append(QUOTES).append(tckTested.getApiString()).append(QUOTES).append(COMMA)
+                                  .append(QUOTES).append(FIELD_TCK_CERT_URI).append(QUOTES).append(COLON).append(QUOTES).append(tckCertUri).append(QUOTES).append(COMMA)
+                                  .append(QUOTES).append(FIELD_AQAVIT_CERTIFIED).append(QUOTES).append(COLON).append(QUOTES).append(aqavitCertified.getApiString()).append(QUOTES).append(COMMA)
+                                  .append(QUOTES).append(FIELD_AQAVIT_CERT_URI).append(QUOTES).append(COLON).append(QUOTES).append(aqavitCertUri).append(QUOTES)
                                   .append(CURLY_BRACKET_CLOSE)
                                   .toString();
     }

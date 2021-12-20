@@ -30,11 +30,13 @@ public class MajorVersion {
     public  static final String        FIELD_MAJOR_VERSION   = "major_version";
     public  static final String        FIELD_TERM_OF_SUPPORT = "term_of_support";
     public  static final String        FIELD_MAINTAINED      = "maintained";
+    public  static final String        FIELD_SCOPE           = "scope";
     public  static final String        FIELD_VERSIONS        = "versions";
-    private              List<SemVer>  versions = new ArrayList<>();
+    private              List<SemVer>  versions              = new ArrayList<>();
     private        final int           majorVersion;
     private        final TermOfSupport termOfSupport;
-    private              boolean       maintained;
+    private boolean    maintained;
+    private      Scope scope;
 
 
     public MajorVersion(final int majorVersion) {
@@ -53,7 +55,8 @@ public class MajorVersion {
 
         this.majorVersion  = json.has(FIELD_MAJOR_VERSION)   ? json.get(FIELD_MAJOR_VERSION).getAsInt()                              : 1;
         this.termOfSupport = json.has(FIELD_TERM_OF_SUPPORT) ? TermOfSupport.fromText(json.get(FIELD_TERM_OF_SUPPORT).getAsString()) : TermOfSupport.NOT_FOUND;
-        this.maintained    = json.has(FIELD_MAINTAINED)      ? Boolean.valueOf(json.get(FIELD_MAINTAINED).toString().toLowerCase())  : false;
+        this.maintained    = json.has(FIELD_MAINTAINED)      ? json.get(FIELD_MAINTAINED).getAsBoolean()                             : false;
+        this.scope         = json.has(FIELD_SCOPE)           ? Scope.fromText(json.get(FIELD_SCOPE).getAsString())                   : Scope.NOT_FOUND;
         if (json.has(FIELD_VERSIONS)) {
             JsonArray versionsArray = json.getAsJsonArray(FIELD_VERSIONS);
             for (JsonElement jsonElement : versionsArray) {
@@ -68,6 +71,8 @@ public class MajorVersion {
     public TermOfSupport getTermOfSupport() { return termOfSupport; }
 
     public boolean isMaintained() { return maintained; }
+
+    public Scope getScope() { return scope; }
 
     public Boolean isEarlyAccessOnly() {
         return getVersions().stream().filter(semver -> ReleaseStatus.EA == semver.getReleaseStatus()).count() == getVersions().size();

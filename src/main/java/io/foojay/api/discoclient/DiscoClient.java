@@ -30,6 +30,7 @@ import io.foojay.api.discoclient.pkg.ArchiveType;
 import io.foojay.api.discoclient.pkg.Bitness;
 import io.foojay.api.discoclient.pkg.Distribution;
 import io.foojay.api.discoclient.pkg.Feature;
+import io.foojay.api.discoclient.pkg.HashAlgorithm;
 import io.foojay.api.discoclient.pkg.Latest;
 import io.foojay.api.discoclient.pkg.LibCType;
 import io.foojay.api.discoclient.pkg.MajorVersion;
@@ -1476,12 +1477,16 @@ public class DiscoClient {
             JsonObject jsonObject = packageInfoElement.getAsJsonObject();
             JsonArray  jsonArray  = jsonObject.getAsJsonArray("result");
             if (jsonArray.size() > 0) {
-                final JsonObject packageInfoJson   = jsonArray.get(0).getAsJsonObject();
-                final String     filename          = packageInfoJson.has(PkgInfo.FIELD_FILENAME)            ? packageInfoJson.get(PkgInfo.FIELD_FILENAME).getAsString()            : "";
-                final String     directDownloadUri = packageInfoJson.has(PkgInfo.FIELD_DIRECT_DOWNLOAD_URI) ? packageInfoJson.get(PkgInfo.FIELD_DIRECT_DOWNLOAD_URI).getAsString() : "";
-                final String     downloadSiteUri   = packageInfoJson.has(PkgInfo.FIELD_DIRECT_DOWNLOAD_URI) ? packageInfoJson.get(PkgInfo.FIELD_DOWNLOAD_SITE_URI).getAsString()   : "";
+                final JsonObject    packageInfoJson   = jsonArray.get(0).getAsJsonObject();
+                final String        filename          = packageInfoJson.has(PkgInfo.FIELD_FILENAME)            ? packageInfoJson.get(PkgInfo.FIELD_FILENAME).getAsString()                              : "";
+                final String        directDownloadUri = packageInfoJson.has(PkgInfo.FIELD_DIRECT_DOWNLOAD_URI) ? packageInfoJson.get(PkgInfo.FIELD_DIRECT_DOWNLOAD_URI).getAsString()                   : "";
+                final String        downloadSiteUri   = packageInfoJson.has(PkgInfo.FIELD_DIRECT_DOWNLOAD_URI) ? packageInfoJson.get(PkgInfo.FIELD_DOWNLOAD_SITE_URI).getAsString()                     : "";
+                final String        signatureUri      = packageInfoJson.has(PkgInfo.FIELD_SIGNATURE_URI)       ? packageInfoJson.get(PkgInfo.FIELD_SIGNATURE_URI).getAsString()                         : "";
+                final String        checksumUri       = packageInfoJson.has(PkgInfo.FIELD_CHECKSUM_URI)        ? packageInfoJson.get(PkgInfo.FIELD_CHECKSUM_URI).getAsString()                          : "";
+                final String        checksum          = packageInfoJson.has(PkgInfo.FIELD_CHECKSUM)            ? packageInfoJson.get(PkgInfo.FIELD_CHECKSUM).getAsString()                              : "";
+                final HashAlgorithm checksumType      = packageInfoJson.has(PkgInfo.FIELD_CHECKSUM_TYPE)       ? HashAlgorithm.fromText(packageInfoJson.get(PkgInfo.FIELD_CHECKSUM_TYPE).getAsString()) : HashAlgorithm.NONE;
                 if (null == filename) { return null; }
-                return new PkgInfo(filename, javaVersion, directDownloadUri, downloadSiteUri);
+                return new PkgInfo(filename, javaVersion, directDownloadUri, downloadSiteUri, signatureUri, checksumUri, checksum, checksumType);
             } else {
                 return null;
             }
@@ -1502,12 +1507,16 @@ public class DiscoClient {
                 JsonObject jsonObject = packageInfoElement.getAsJsonObject();
                 JsonArray  jsonArray  = jsonObject.getAsJsonArray("result");
                 if (jsonArray.size() > 0) {
-                    final JsonObject packageInfoJson   = jsonArray.get(0).getAsJsonObject();
-                    final String     filename          = packageInfoJson.has(PkgInfo.FIELD_FILENAME)            ? packageInfoJson.get(PkgInfo.FIELD_FILENAME).getAsString()            : "";
-                    final String     directDownloadUri = packageInfoJson.has(PkgInfo.FIELD_DIRECT_DOWNLOAD_URI) ? packageInfoJson.get(PkgInfo.FIELD_DIRECT_DOWNLOAD_URI).getAsString() : "";
-                    final String     downloadSiteUri   = packageInfoJson.has(PkgInfo.FIELD_DIRECT_DOWNLOAD_URI) ? packageInfoJson.get(PkgInfo.FIELD_DOWNLOAD_SITE_URI).getAsString()   : "";
+                    final JsonObject    packageInfoJson   = jsonArray.get(0).getAsJsonObject();
+                    final String        filename          = packageInfoJson.has(PkgInfo.FIELD_FILENAME)            ? packageInfoJson.get(PkgInfo.FIELD_FILENAME).getAsString()                              : "";
+                    final String        directDownloadUri = packageInfoJson.has(PkgInfo.FIELD_DIRECT_DOWNLOAD_URI) ? packageInfoJson.get(PkgInfo.FIELD_DIRECT_DOWNLOAD_URI).getAsString()                   : "";
+                    final String        downloadSiteUri   = packageInfoJson.has(PkgInfo.FIELD_DIRECT_DOWNLOAD_URI) ? packageInfoJson.get(PkgInfo.FIELD_DOWNLOAD_SITE_URI).getAsString()                     : "";
+                    final String        signatureUri      = packageInfoJson.has(PkgInfo.FIELD_SIGNATURE_URI)       ? packageInfoJson.get(PkgInfo.FIELD_SIGNATURE_URI).getAsString()                         : "";
+                    final String        checksumUri       = packageInfoJson.has(PkgInfo.FIELD_CHECKSUM_URI)        ? packageInfoJson.get(PkgInfo.FIELD_CHECKSUM_URI).getAsString()                          : "";
+                    final String        checksum          = packageInfoJson.has(PkgInfo.FIELD_CHECKSUM)            ? packageInfoJson.get(PkgInfo.FIELD_CHECKSUM).getAsString()                              : "";
+                    final HashAlgorithm checksumType      = packageInfoJson.has(PkgInfo.FIELD_CHECKSUM_TYPE)       ? HashAlgorithm.fromText(packageInfoJson.get(PkgInfo.FIELD_CHECKSUM_TYPE).getAsString()) : HashAlgorithm.NONE;
                     if (null == filename) { return null; }
-                    return new PkgInfo(filename, javaVersion, directDownloadUri, downloadSiteUri);
+                    return new PkgInfo(filename, javaVersion, directDownloadUri, downloadSiteUri, signatureUri, checksumUri, checksum, checksumType);
                 } else {
                     return null;
                 }
@@ -1531,12 +1540,16 @@ public class DiscoClient {
             JsonObject jsonObject = packageInfoElement.getAsJsonObject();
             JsonArray  jsonArray  = jsonObject.getAsJsonArray("result");
             if (jsonArray.size() > 0) {
-                final JsonObject packageInfoJson   = jsonArray.get(0).getAsJsonObject();
-                final String     filename          = packageInfoJson.has(PkgInfo.FIELD_FILENAME)            ? packageInfoJson.get(PkgInfo.FIELD_FILENAME).getAsString()            : "";
-                final String     directDownloadUri = packageInfoJson.has(PkgInfo.FIELD_DIRECT_DOWNLOAD_URI) ? packageInfoJson.get(PkgInfo.FIELD_DIRECT_DOWNLOAD_URI).getAsString() : "";
-                final String     downloadSiteUri   = packageInfoJson.has(PkgInfo.FIELD_DIRECT_DOWNLOAD_URI) ? packageInfoJson.get(PkgInfo.FIELD_DOWNLOAD_SITE_URI).getAsString()   : "";
+                final JsonObject    packageInfoJson   = jsonArray.get(0).getAsJsonObject();
+                final String        filename          = packageInfoJson.has(PkgInfo.FIELD_FILENAME)            ? packageInfoJson.get(PkgInfo.FIELD_FILENAME).getAsString()                              : "";
+                final String        directDownloadUri = packageInfoJson.has(PkgInfo.FIELD_DIRECT_DOWNLOAD_URI) ? packageInfoJson.get(PkgInfo.FIELD_DIRECT_DOWNLOAD_URI).getAsString()                   : "";
+                final String        downloadSiteUri   = packageInfoJson.has(PkgInfo.FIELD_DIRECT_DOWNLOAD_URI) ? packageInfoJson.get(PkgInfo.FIELD_DOWNLOAD_SITE_URI).getAsString()                     : "";
+                final String        signatureUri      = packageInfoJson.has(PkgInfo.FIELD_SIGNATURE_URI)       ? packageInfoJson.get(PkgInfo.FIELD_SIGNATURE_URI).getAsString()                         : "";
+                final String        checksumUri       = packageInfoJson.has(PkgInfo.FIELD_CHECKSUM_URI)        ? packageInfoJson.get(PkgInfo.FIELD_CHECKSUM_URI).getAsString()                          : "";
+                final String        checksum          = packageInfoJson.has(PkgInfo.FIELD_CHECKSUM)            ? packageInfoJson.get(PkgInfo.FIELD_CHECKSUM).getAsString()                              : "";
+                final HashAlgorithm checksumType      = packageInfoJson.has(PkgInfo.FIELD_CHECKSUM_TYPE)       ? HashAlgorithm.fromText(packageInfoJson.get(PkgInfo.FIELD_CHECKSUM_TYPE).getAsString()) : HashAlgorithm.NONE;
                 if (null == filename) { return null; }
-                return new PkgInfo(filename, javaVersion, directDownloadUri, downloadSiteUri);
+                return new PkgInfo(filename, javaVersion, directDownloadUri, downloadSiteUri, signatureUri, checksumUri, checksum, checksumType);
             } else {
                 return null;
             }
@@ -1557,12 +1570,16 @@ public class DiscoClient {
                 JsonObject jsonObject = packageInfoElement.getAsJsonObject();
                 JsonArray  jsonArray  = jsonObject.getAsJsonArray("result");
                 if (jsonArray.size() > 0) {
-                    final JsonObject packageInfoJson   = jsonArray.get(0).getAsJsonObject();
-                    final String     filename          = packageInfoJson.has(PkgInfo.FIELD_FILENAME)            ? packageInfoJson.get(PkgInfo.FIELD_FILENAME).getAsString()            : "";
-                    final String     directDownloadUri = packageInfoJson.has(PkgInfo.FIELD_DIRECT_DOWNLOAD_URI) ? packageInfoJson.get(PkgInfo.FIELD_DIRECT_DOWNLOAD_URI).getAsString() : "";
-                    final String     downloadSiteUri   = packageInfoJson.has(PkgInfo.FIELD_DIRECT_DOWNLOAD_URI) ? packageInfoJson.get(PkgInfo.FIELD_DOWNLOAD_SITE_URI).getAsString()   : "";
+                    final JsonObject    packageInfoJson   = jsonArray.get(0).getAsJsonObject();
+                    final String        filename          = packageInfoJson.has(PkgInfo.FIELD_FILENAME)            ? packageInfoJson.get(PkgInfo.FIELD_FILENAME).getAsString()                              : "";
+                    final String        directDownloadUri = packageInfoJson.has(PkgInfo.FIELD_DIRECT_DOWNLOAD_URI) ? packageInfoJson.get(PkgInfo.FIELD_DIRECT_DOWNLOAD_URI).getAsString()                   : "";
+                    final String        downloadSiteUri   = packageInfoJson.has(PkgInfo.FIELD_DIRECT_DOWNLOAD_URI) ? packageInfoJson.get(PkgInfo.FIELD_DOWNLOAD_SITE_URI).getAsString()                     : "";
+                    final String        signatureUri      = packageInfoJson.has(PkgInfo.FIELD_SIGNATURE_URI)       ? packageInfoJson.get(PkgInfo.FIELD_SIGNATURE_URI).getAsString()                         : "";
+                    final String        checksumUri       = packageInfoJson.has(PkgInfo.FIELD_CHECKSUM_URI)        ? packageInfoJson.get(PkgInfo.FIELD_CHECKSUM_URI).getAsString()                          : "";
+                    final String        checksum          = packageInfoJson.has(PkgInfo.FIELD_CHECKSUM)            ? packageInfoJson.get(PkgInfo.FIELD_CHECKSUM).getAsString()                              : "";
+                    final HashAlgorithm checksumType      = packageInfoJson.has(PkgInfo.FIELD_CHECKSUM_TYPE)       ? HashAlgorithm.fromText(packageInfoJson.get(PkgInfo.FIELD_CHECKSUM_TYPE).getAsString()) : HashAlgorithm.NONE;
                     if (null == filename) { return null; }
-                    return new PkgInfo(filename, javaVersion, directDownloadUri, downloadSiteUri);
+                    return new PkgInfo(filename, javaVersion, directDownloadUri, downloadSiteUri, signatureUri, checksumUri, checksum, checksumType);
                 } else {
                     return null;
                 }

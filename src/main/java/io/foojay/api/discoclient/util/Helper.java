@@ -216,6 +216,218 @@ public class Helper {
         return distributions;
     }
 
+    public static Distribution getDistributionFromText(final String text) {
+        if (null == text) { return null; }
+        switch (text) {
+            case "zulu":
+            case "ZULU":
+            case "Zulu":
+            case "zulucore":
+            case "ZULUCORE":
+            case "ZuluCore":
+            case "zulu_core":
+            case "ZULU_CORE":
+            case "Zulu_Core":
+            case "zulu core":
+            case "ZULU CORE":
+            case "Zulu Core":
+                return new Distribution("ZULU", "Zulu", "zulu");
+            case "zing":
+            case "ZING":
+            case "Zing":
+            case "prime":
+            case "PRIME":
+            case "Prime":
+            case "zuluprime":
+            case "ZULUPRIME":
+            case "ZuluPrime":
+            case "zulu_prime":
+            case "ZULU_PRIME":
+            case "Zulu_Prime":
+            case "zulu prime":
+            case "ZULU PRIME":
+            case "Zulu Prime":
+                return new Distribution("ZULU_PRIME", "Zulu Prime", "zulu_prime");
+            case "aoj":
+            case "AOJ":
+                return new Distribution("AOJ", "AOJ", "aoj");
+            case "aoj_openj9":
+            case "AOJ_OpenJ9":
+            case "AOJ_OPENJ9":
+            case "AOJ OpenJ9":
+            case "AOJ OPENJ9":
+            case "aoj openj9":
+                return new Distribution("AOJ_OPENJ9", "AOJ OpenJ9", "aoj_openj9");
+            case "corretto":
+            case "CORRETTO":
+            case "Corretto":
+                return new Distribution("CORRETTO", "Corretto", "corretto");
+            case "dragonwell":
+            case "DRAGONWELL":
+            case "Dragonwell":
+                return new Distribution("DRAGONWELL", "Dragonwell", "dragonwell");
+            case "graalvm_ce8":
+            case "graalvmce8":
+            case "GraalVM CE 8":
+            case "GraalVMCE8":
+            case "GraalVM_CE8":
+                return new Distribution("GRAALVM_CE8", "GraalVM CE8", "graalvm_ce8");
+            case "graalvm_ce11":
+            case "graalvmce11":
+            case "GraalVM CE 11":
+            case "GraalVMCE11":
+            case "GraalVM_CE11":
+                return new Distribution("GRAALVM_CE11", "GraalVM CE11", "graalvm_ce11");
+            case "graalvm_ce16":
+            case "graalvmce16":
+            case "GraalVM CE 16":
+            case "GraalVMCE16":
+            case "GraalVM_CE16":
+                return new Distribution("GRAALVM_CE16", "GraalVM CE16", "graalvm_ce16");
+            case "graalvm_ce17":
+            case "graalvmce17":
+            case "GraalVM CE 17":
+            case "GraalVMCE17":
+            case "GraalVM_CE17":
+                return new Distribution("GRAALVM_CE17", "GraalVM CE17", "graalvm_ce17");
+            case "jetbrains":
+            case "JetBrains":
+            case "JETBRAINS":
+                return new Distribution("JETBRAINS", "Jetbrains", "jetbrains");
+            case "liberica":
+            case "LIBERICA":
+            case "Liberica":
+                return new Distribution("LIBERICA", "Liberica", "liberica");
+            case "liberica_native":
+            case "LIBERICA_NATIVE":
+            case "libericaNative":
+            case "LibericaNative":
+            case "liberica native":
+            case "LIBERICA NATIVE":
+            case "Liberica Native":
+                return new Distribution("LIBERICA_NATIVE", "Liberica Native", "liberica_native");
+            case "mandrel":
+            case "MANDREL":
+            case "Mandrel":
+                return new Distribution("MANDREL", "Mandrel", "mandrel");
+            case "microsoft":
+            case "Microsoft":
+            case "MICROSOFT":
+            case "Microsoft OpenJDK":
+            case "Microsoft Build of OpenJDK":
+                return new Distribution("MICROSOFT", "Microsoft", "microsoft");
+            case "ojdk_build":
+            case "OJDK_BUILD":
+            case "OJDK Build":
+            case "ojdk build":
+            case "ojdkbuild":
+            case "OJDKBuild":
+                return new Distribution("OJDK_BUILD", "OJDK Build", "ojdk_build");
+            case "openlogic":
+            case "OPENLOGIC":
+            case "OpenLogic":
+            case "open_logic":
+            case "OPEN_LOGIC":
+            case "Open Logic":
+            case "OPEN LOGIC":
+            case "open logic":
+                return new Distribution("OPEN_LOGIC", "Open Logic", "openlogic");
+            case "oracle":
+            case "Oracle":
+            case "ORACLE":
+                return new Distribution("ORACLE", "Oracle", "oracle");
+            case "oracle_open_jdk":
+            case "ORACLE_OPEN_JDK":
+            case "oracle_openjdk":
+            case "ORACLE_OPENJDK":
+            case "Oracle_OpenJDK":
+            case "Oracle OpenJDK":
+            case "oracle openjdk":
+            case "ORACLE OPENJDK":
+            case "open_jdk":
+            case "openjdk":
+            case "OpenJDK":
+            case "Open JDK":
+            case "OPEN_JDK":
+            case "open-jdk":
+            case "OPEN-JDK":
+            case "Oracle-OpenJDK":
+            case "oracle-openjdk":
+            case "ORACLE-OPENJDK":
+            case "oracle-open-jdk":
+            case "ORACLE-OPEN-JDK":
+                return new Distribution("ORACLE_OPEN_JDK", "Oracle OpenJDK", "oracle_open_jdk");
+            case "RedHat":
+            case "redhat":
+            case "REDHAT":
+            case "Red Hat":
+            case "red hat":
+            case "RED HAT":
+            case "Red_Hat":
+            case "red_hat":
+            case "red-hat":
+            case "Red-Hat":
+            case "RED-HAT":
+                return new Distribution("RED_HAT", "Red Hat", "redhat");
+            case "sap_machine":
+            case "sapmachine":
+            case "SAPMACHINE":
+            case "SAP_MACHINE":
+            case "SAPMachine":
+            case "SAP Machine":
+            case "sap-machine":
+            case "SAP-Machine":
+            case "SAP-MACHINE":
+                return new Distribution("SAP_MACHINE", "SAP Machine", "sap_machine");
+            case "semeru":
+            case "Semeru":
+            case "SEMERU":
+                return new Distribution("SEMERU", "Semeru", "semeru");
+            case "semeru_certified":
+            case "SEMERU_CERTIFIED":
+            case "Semeru_Certified":
+            case "Semeru_certified":
+            case "semeru certified":
+            case "SEMERU CERTIFIED":
+            case "Semeru Certified":
+            case "Semeru certified":
+                return new Distribution("SEMERU_CERTIFIED", "Semeru certified", "semeru_certified");
+            case "temurin":
+            case "Temurin":
+            case "TEMURIN":
+                return new Distribution("TEMURIN", "Temurin", "temurin");
+            case "trava":
+            case "TRAVA":
+            case "Trava":
+            case "trava_openjdk":
+            case "TRAVA_OPENJDK":
+            case "trava openjdk":
+            case "TRAVA OPENJDK":
+                return new Distribution("TRAVA", "Trava", "trava");
+            case "kona":
+            case "KONA":
+            case "Kona":
+                return new Distribution("KONA", "Kona", "kona");
+            case "bisheng":
+            case "BISHENG":
+            case "BiSheng":
+            case "bi_sheng":
+            case "BI_SHENG":
+            case "bi-sheng":
+            case "BI-SHENG":
+            case "bi sheng":
+            case "Bi Sheng":
+            case "BI SHENG":
+                return new Distribution("BISHENG", "Bi Sheng", "bisheng");
+            case "debian":
+            case "DEBIAN":
+            case "Debian":
+                return new Distribution("DEBIAN", "Debian", "debian");
+            default:
+                return null;
+        }
+    }
+
     public static String encodeValue(final String value) {
         try {
             return URLEncoder.encode(value, StandardCharsets.UTF_8.toString());
