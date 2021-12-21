@@ -69,9 +69,15 @@ public enum OperatingSystem implements ApiFeature {
             case "Linux_Musl":
             case "LINUX_MUSL":
             case "linux_musl":
+            case "alpine":
+            case "ALPINE":
+            case "Alpine":
             case "alpine-linux":
             case "ALPINE-LINUX":
+            case "Alpine-Linux":
             case "alpine_linux":
+            case "ALPINE_LINUX":
+            case "Alpine_Linux":
             case "Alpine Linux":
             case "alpine linux":
             case "ALPINE LINUX":
