@@ -33,6 +33,14 @@
 			"maintained": true
 		},
 		{
+			"name":"DEBIAN",
+			"ui_string":"Debian",
+			"api_string":"debian",
+			"synonyms": ["debian","DEBIAN","Debian"],
+			"scopes": ["public","build_of_open_jdk","not_directly_downloadable"],
+			"maintained": true
+		},
+		{
 			"name":"DRAGONWELL",
 			"ui_string":"Dragonwell",
 			"api_string":"dragonwell",
