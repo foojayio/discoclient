@@ -20,6 +20,10 @@ import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import eu.hansolo.jdktools.ReleaseStatus;
+import eu.hansolo.jdktools.TermOfSupport;
+import eu.hansolo.jdktools.versioning.Semver;
+import eu.hansolo.jdktools.versioning.VersionNumber;
 import io.foojay.api.discoclient.util.Helper;
 
 import java.util.ArrayList;
@@ -32,11 +36,11 @@ public class MajorVersion {
     public  static final String        FIELD_MAINTAINED      = "maintained";
     public  static final String        FIELD_SCOPE           = "scope";
     public  static final String        FIELD_VERSIONS        = "versions";
-    private              List<SemVer>  versions              = new ArrayList<>();
+    private              List<Semver>  versions              = new ArrayList<>();
     private        final int           majorVersion;
     private        final TermOfSupport termOfSupport;
-    private boolean    maintained;
-    private      Scope scope;
+    private              boolean       maintained;
+    private              Scope         scope;
 
 
     public MajorVersion(final int majorVersion) {
@@ -60,7 +64,7 @@ public class MajorVersion {
         if (json.has(FIELD_VERSIONS)) {
             JsonArray versionsArray = json.getAsJsonArray(FIELD_VERSIONS);
             for (JsonElement jsonElement : versionsArray) {
-                this.versions.add(SemVer.fromText(jsonElement.getAsString()).getSemVer1());
+                this.versions.add(Semver.fromText(jsonElement.getAsString()).getSemver1());
             }
         }
     }
@@ -78,7 +82,7 @@ public class MajorVersion {
         return getVersions().stream().filter(semver -> ReleaseStatus.EA == semver.getReleaseStatus()).count() == getVersions().size();
     }
 
-    public List<SemVer> getVersions() { return versions; }
+    public List<Semver> getVersions() { return versions; }
 
     // VersionNumber
     public VersionNumber getVersionNumber() { return new VersionNumber(majorVersion); }

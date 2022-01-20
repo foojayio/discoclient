@@ -6,6 +6,7 @@ module io.foojay.api.discoclient {
 
     // 3rd party
     requires com.google.gson;
+    requires eu.hansolo.jdktools;
 
     exports io.foojay.api.discoclient;
     exports io.foojay.api.discoclient.event;

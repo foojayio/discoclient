@@ -19,10 +19,10 @@ package io.foojay.api.discoclient.util;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import eu.hansolo.jdktools.HashAlgorithm;
+import eu.hansolo.jdktools.TermOfSupport;
 import io.foojay.api.discoclient.DiscoClient;
 import io.foojay.api.discoclient.pkg.Distribution;
-import io.foojay.api.discoclient.pkg.HashAlgorithm;
-import io.foojay.api.discoclient.pkg.TermOfSupport;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -35,7 +35,6 @@ import java.net.http.HttpClient;
 import java.net.http.HttpClient.Redirect;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.net.http.HttpResponse.BodyHandler;
 import java.net.http.HttpResponse.BodyHandlers;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -45,7 +44,6 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.regex.Pattern;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 

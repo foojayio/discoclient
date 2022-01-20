@@ -35,6 +35,7 @@ repositories {
 
 dependencies {
     implementation("com.google.code.gson:gson:2.8.8")
+    implementation("eu.hansolo:jdktools:11.0.0")
     implementation("org.slf4j:slf4j-api:1.7.32")
 
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.6.0")

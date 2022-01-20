@@ -16,11 +16,23 @@
 
 package io.foojay.api.discoclient.pkg;
 
+import eu.hansolo.jdktools.Api;
+import eu.hansolo.jdktools.util.OutputFormat;
+
 import java.util.Arrays;
 import java.util.List;
 
+import static eu.hansolo.jdktools.Constants.COLON;
+import static eu.hansolo.jdktools.Constants.COMMA;
+import static eu.hansolo.jdktools.Constants.COMMA_NEW_LINE;
+import static eu.hansolo.jdktools.Constants.CURLY_BRACKET_CLOSE;
+import static eu.hansolo.jdktools.Constants.CURLY_BRACKET_OPEN;
+import static eu.hansolo.jdktools.Constants.INDENTED_QUOTES;
+import static eu.hansolo.jdktools.Constants.NEW_LINE;
+import static eu.hansolo.jdktools.Constants.QUOTES;
 
-public enum Scope implements ApiFeature {
+
+public enum Scope implements Api {
     PUBLIC("Public", "public"),
     DIRECTLY_DOWNLOADABLE("Directly downloadable", "directly_downloadable"),
     NOT_DIRECTLY_DOWNLOADABLE("Not directly downloadable", "not_directly_downloadable"),
@@ -50,6 +62,33 @@ public enum Scope implements ApiFeature {
     @Override public Scope getNotFound() { return Scope.NOT_FOUND; }
 
     @Override public Scope[] getAll() { return values(); }
+
+    public String toString(final OutputFormat outputFormat) {
+        StringBuilder msgBuilder = new StringBuilder();
+        switch(outputFormat) {
+            case FULL:
+            case REDUCED:
+            case REDUCED_ENRICHED: {
+                msgBuilder.append(CURLY_BRACKET_OPEN).append(NEW_LINE)
+                          .append(INDENTED_QUOTES).append("name").append(QUOTES).append(COLON).append(QUOTES).append(name()).append(QUOTES).append(COMMA_NEW_LINE)
+                          .append(INDENTED_QUOTES).append("ui_string").append(QUOTES).append(COLON).append(QUOTES).append(uiString).append(QUOTES).append(COMMA_NEW_LINE)
+                          .append(INDENTED_QUOTES).append("api_string").append(QUOTES).append(COLON).append(QUOTES).append(apiString).append(QUOTES).append(NEW_LINE)
+                          .append(CURLY_BRACKET_CLOSE);
+            }
+            case FULL_COMPRESSED:
+            case REDUCED_COMPRESSED:
+            case REDUCED_ENRICHED_COMPRESSED: {
+                msgBuilder.append(CURLY_BRACKET_OPEN)
+                          .append(QUOTES).append("name").append(QUOTES).append(COLON).append(QUOTES).append(name()).append(QUOTES).append(COMMA)
+                          .append(QUOTES).append("ui_string").append(QUOTES).append(COLON).append(QUOTES).append(uiString).append(QUOTES).append(COMMA)
+                          .append(QUOTES).append("api_string").append(QUOTES).append(COLON).append(QUOTES).append(apiString).append(QUOTES)
+                          .append(CURLY_BRACKET_CLOSE);
+            }
+        }
+        return msgBuilder.toString();
+    }
+
+    @Override public String toString() { return toString(OutputFormat.FULL_COMPRESSED); }
 
     public static Scope fromText(final String text) {
         switch (text) {
@@ -88,6 +127,4 @@ public enum Scope implements ApiFeature {
     }
 
     public static List<Scope> getAsList() { return Arrays.asList(values()); }
-
-    @Override public String toString() { return uiString; }
 }

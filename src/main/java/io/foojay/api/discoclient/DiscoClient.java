@@ -20,32 +20,32 @@ import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import eu.hansolo.jdktools.Architecture;
+import eu.hansolo.jdktools.ArchiveType;
+import eu.hansolo.jdktools.Bitness;
+import eu.hansolo.jdktools.HashAlgorithm;
+import eu.hansolo.jdktools.Latest;
+import eu.hansolo.jdktools.LibCType;
+import eu.hansolo.jdktools.Match;
+import eu.hansolo.jdktools.OperatingSystem;
+import eu.hansolo.jdktools.PackageType;
+import eu.hansolo.jdktools.ReleaseStatus;
+import eu.hansolo.jdktools.TermOfSupport;
+import eu.hansolo.jdktools.util.OutputFormat;
+import eu.hansolo.jdktools.versioning.Semver;
+import eu.hansolo.jdktools.versioning.VersionNumber;
 import io.foojay.api.discoclient.event.DCEvt;
 import io.foojay.api.discoclient.event.DownloadEvt;
 import io.foojay.api.discoclient.event.Evt;
 import io.foojay.api.discoclient.event.EvtObserver;
 import io.foojay.api.discoclient.event.EvtType;
-import io.foojay.api.discoclient.pkg.Architecture;
-import io.foojay.api.discoclient.pkg.ArchiveType;
-import io.foojay.api.discoclient.pkg.Bitness;
 import io.foojay.api.discoclient.pkg.Distribution;
 import io.foojay.api.discoclient.pkg.Feature;
-import io.foojay.api.discoclient.pkg.HashAlgorithm;
-import io.foojay.api.discoclient.pkg.Latest;
-import io.foojay.api.discoclient.pkg.LibCType;
 import io.foojay.api.discoclient.pkg.MajorVersion;
-import io.foojay.api.discoclient.pkg.Match;
-import io.foojay.api.discoclient.pkg.OperatingSystem;
-import io.foojay.api.discoclient.pkg.PackageType;
 import io.foojay.api.discoclient.pkg.Pkg;
-import io.foojay.api.discoclient.pkg.ReleaseStatus;
 import io.foojay.api.discoclient.pkg.Scope;
-import io.foojay.api.discoclient.pkg.SemVer;
-import io.foojay.api.discoclient.pkg.TermOfSupport;
-import io.foojay.api.discoclient.pkg.VersionNumber;
 import io.foojay.api.discoclient.util.Constants;
 import io.foojay.api.discoclient.util.Helper;
-import io.foojay.api.discoclient.util.OutputFormat;
 import io.foojay.api.discoclient.util.PkgInfo;
 import io.foojay.api.discoclient.util.ReadableConsumerByteChannel;
 
@@ -1056,14 +1056,14 @@ public class DiscoClient {
 
 
     public final Set<Distribution> getDistributionsThatSupportVersion(final String version) {
-        SemVer semver = SemVer.fromText(version).getSemVer1();
+        Semver semver = Semver.fromText(version).getSemver1();
         if (null == semver) {
             return new HashSet<>();
         }
         return getDistributionsThatSupportVersion(semver);
     }
-    public final Set<Distribution> getDistributionsThatSupportVersion(final SemVer semVer) { return getDistributionsForSemVer(semVer); }
-    public final CompletableFuture<Set<Distribution>> getDistributionsThatSupportSemVerAsync(final SemVer semVer) { return getDistributionsForSemVerAsync(semVer); }
+    public final Set<Distribution> getDistributionsThatSupportVersion(final Semver semVer) { return getDistributionsForSemver(semVer); }
+    public final CompletableFuture<Set<Distribution>> getDistributionsThatSupportSemverAsync(final Semver semVer) { return getDistributionsForSemverAsync(semVer); }
 
 
     public final CompletableFuture<List<Distribution>> getDistributionsThatSupportVersionAsync(final String version) {
@@ -1077,7 +1077,7 @@ public class DiscoClient {
     }
 
 
-    public final List<Distribution> getDistributionsThatSupport(final SemVer semVer, final OperatingSystem operatingSystem, final Architecture architecture,
+    public final List<Distribution> getDistributionsThatSupport(final Semver semVer, final OperatingSystem operatingSystem, final Architecture architecture,
                                                                 final LibCType libcType, final ArchiveType archiveType, final PackageType packageType,
                                                                 final Boolean javafxBundled, final Boolean directlyDownloadable) {
         return getPkgs(null, semVer.getVersionNumber(), Latest.NONE, operatingSystem, libcType, architecture,
@@ -1087,7 +1087,7 @@ public class DiscoClient {
                                                                             .distinct()
                                                                             .collect(Collectors.toList());
     }
-    public final CompletableFuture<List<Distribution>> getDistributionsThatSupportAsync(final SemVer semVer, final OperatingSystem operatingSystem, final Architecture architecture,
+    public final CompletableFuture<List<Distribution>> getDistributionsThatSupportAsync(final Semver semVer, final OperatingSystem operatingSystem, final Architecture architecture,
                                                                                         final LibCType libcType, final ArchiveType archiveType, final PackageType packageType,
                                                                                         final Boolean javafxBundled, final Boolean directlyDownloadable) {
         return getPkgsAsync(null, semVer.getVersionNumber(), Latest.NONE, operatingSystem, libcType, architecture,
@@ -1099,19 +1099,19 @@ public class DiscoClient {
     }
 
 
-    public final List<Pkg> updateAvailableFor(final Distribution distribution, final SemVer semver, final Boolean javafxBundled) {
+    public final List<Pkg> updateAvailableFor(final Distribution distribution, final Semver semver, final Boolean javafxBundled) {
         return updateAvailableFor(distribution, semver, getOperatingSystem(), getArchitecture(), javafxBundled, Boolean.TRUE);
     }
-    public final List<Pkg> updateAvailableFor(final Distribution distribution, final SemVer semver, final Architecture architecture, final Boolean javafxBundled) {
+    public final List<Pkg> updateAvailableFor(final Distribution distribution, final Semver semver, final Architecture architecture, final Boolean javafxBundled) {
         return updateAvailableFor(distribution, semver, getOperatingSystem(), architecture, javafxBundled, Boolean.TRUE);
     }
-    public final List<Pkg> updateAvailableFor(final Distribution distribution, final SemVer semver, final Architecture architecture, final Boolean javafxBundled, final Boolean directlyDownloadable) {
+    public final List<Pkg> updateAvailableFor(final Distribution distribution, final Semver semver, final Architecture architecture, final Boolean javafxBundled, final Boolean directlyDownloadable) {
         return updateAvailableFor(distribution, semver, getOperatingSystem(), architecture, javafxBundled, directlyDownloadable);
     }
-    public final List<Pkg> updateAvailableFor(final Distribution distribution, final SemVer semver, final OperatingSystem operatingSystem, final Architecture architecture, final Boolean javafxBundled, final Boolean directlyDownloadable) {
+    public final List<Pkg> updateAvailableFor(final Distribution distribution, final Semver semver, final OperatingSystem operatingSystem, final Architecture architecture, final Boolean javafxBundled, final Boolean directlyDownloadable) {
         return updateAvailableFor(distribution, semver, operatingSystem, architecture, javafxBundled, directlyDownloadable, null);
     }
-    public final List<Pkg> updateAvailableFor(final Distribution distribution, final SemVer semver, final OperatingSystem operatingSystem, final Architecture architecture, final Boolean javafxBundled, final Boolean directlyDownloadable, final String feature) {
+    public final List<Pkg> updateAvailableFor(final Distribution distribution, final Semver semver, final OperatingSystem operatingSystem, final Architecture architecture, final Boolean javafxBundled, final Boolean directlyDownloadable, final String feature) {
         List<Pkg> updatesFound = new ArrayList<>();
         try {
             List<String> features = null == feature ? List.of() : List.of(feature);
@@ -1121,7 +1121,7 @@ public class DiscoClient {
                 return updatesFound;
             } else {
                 Pkg    firstEntry  = pkgs.get(0);
-                SemVer semVerFound = firstEntry.getJavaVersion();
+                Semver semVerFound = firstEntry.getJavaVersion();
                 if (ReleaseStatus.EA == semVerFound.getReleaseStatus()) {
                     if (semVerFound.compareTo(semver) > 0) {
                         updatesFound = pkgs.stream().filter(pkg -> pkg.getJavaVersion().compareTo(semVerFound) == 0).collect(Collectors.toList());
@@ -1139,16 +1139,16 @@ public class DiscoClient {
         return updatesFound;
     }
 
-    public final CompletableFuture<List<Pkg>> updateAvailableForAsync(final Distribution distribution, final SemVer semver, final Boolean javafxBundled) {
+    public final CompletableFuture<List<Pkg>> updateAvailableForAsync(final Distribution distribution, final Semver semver, final Boolean javafxBundled) {
         return updateAvailableForAsync(distribution, semver, getOperatingSystem(), getArchitecture(), javafxBundled, Boolean.TRUE);
     }
-    public final CompletableFuture<List<Pkg>> updateAvailableForAsync(final Distribution distribution, final SemVer semver, final Architecture architecture, final Boolean javafxBundled) {
+    public final CompletableFuture<List<Pkg>> updateAvailableForAsync(final Distribution distribution, final Semver semver, final Architecture architecture, final Boolean javafxBundled) {
         return updateAvailableForAsync(distribution, semver, getOperatingSystem(), architecture, javafxBundled, Boolean.TRUE);
     }
-    public final CompletableFuture<List<Pkg>> updateAvailableForAsync(final Distribution distribution, final SemVer semver, final Architecture architecture, final Boolean javafxBundled, final Boolean directlyDownloadable) {
+    public final CompletableFuture<List<Pkg>> updateAvailableForAsync(final Distribution distribution, final Semver semver, final Architecture architecture, final Boolean javafxBundled, final Boolean directlyDownloadable) {
         return updateAvailableForAsync(distribution, semver, getOperatingSystem(), architecture, javafxBundled, directlyDownloadable);
     }
-    public final CompletableFuture<List<Pkg>> updateAvailableForAsync(final Distribution distribution, final SemVer semver, final OperatingSystem operatingSystem, final Architecture architecture, final Boolean javafxBundled, final Boolean directlyDownloadable) {
+    public final CompletableFuture<List<Pkg>> updateAvailableForAsync(final Distribution distribution, final Semver semver, final OperatingSystem operatingSystem, final Architecture architecture, final Boolean javafxBundled, final Boolean directlyDownloadable) {
         return getPkgsAsync(null == distribution ? null : List.of(distribution), semver.getVersionNumber(), Latest.AVAILABLE, operatingSystem, LibCType.NONE, architecture, Bitness.NONE, ArchiveType.NONE, PackageType.JDK, javafxBundled,
                             directlyDownloadable, List.of(ReleaseStatus.EA, ReleaseStatus.GA), TermOfSupport.NONE, List.of(Scope.PUBLIC), Match.ANY).thenApplyAsync(pkgs -> {
             Collections.sort(pkgs, Comparator.comparing(Pkg::getJavaVersion).reversed());
@@ -1158,7 +1158,7 @@ public class DiscoClient {
                 return updatesFound;
             } else {
                 Pkg    firstEntry  = pkgs.get(0);
-                SemVer semVerFound = firstEntry.getJavaVersion();
+                Semver semVerFound = firstEntry.getJavaVersion();
                 if (ReleaseStatus.EA == semVerFound.getReleaseStatus()) {
                     if (semVerFound.compareTo(semver) > 0) {
                         updatesFound = pkgs.stream().filter(pkg -> pkg.getJavaVersion().compareTo(semVerFound) == 0).collect(Collectors.toList());
@@ -1220,7 +1220,7 @@ public class DiscoClient {
         });
     }
     
-    public final Set<Distribution> getDistributionsForSemVer(final SemVer semVer) {
+    public final Set<Distribution> getDistributionsForSemver(final Semver semVer) {
         StringBuilder queryBuilder = new StringBuilder().append(PropertyManager.INSTANCE.getString(Constants.PROPERTY_KEY_DISCO_URL))
                                                         .append(PropertyManager.INSTANCE.getDistributionsPath())
                                                         .append("/versions/")
@@ -1244,7 +1244,7 @@ public class DiscoClient {
         }
         return distributionsFound;
     }
-    public final CompletableFuture<Set<Distribution>> getDistributionsForSemVerAsync(final SemVer semVer) {
+    public final CompletableFuture<Set<Distribution>> getDistributionsForSemverAsync(final Semver semVer) {
         StringBuilder queryBuilder = new StringBuilder().append(PropertyManager.INSTANCE.getString(Constants.PROPERTY_KEY_DISCO_URL))
                                                         .append(PropertyManager.INSTANCE.getDistributionsPath())
                                                         .append("/versions/")
@@ -1462,7 +1462,7 @@ public class DiscoClient {
     }
 
 
-    public PkgInfo getPkgInfoByEphemeralId(final String ephemeralId, final SemVer javaVersion) {
+    public PkgInfo getPkgInfoByEphemeralId(final String ephemeralId, final Semver javaVersion) {
         if (null == ephemeralId || ephemeralId.isEmpty() || null == javaVersion) { throw new IllegalArgumentException("ephemeralId or javaVersion cannot be null"); }
         StringBuilder queryBuilder = new StringBuilder().append(PropertyManager.INSTANCE.getString(Constants.PROPERTY_KEY_DISCO_URL))
                                                         .append(PropertyManager.INSTANCE.getEphemeralIdsPath())
@@ -1493,7 +1493,7 @@ public class DiscoClient {
         }
         return null;
     }
-    public CompletableFuture<PkgInfo> getPkgInfoByEphemeralIdAsync(final String ephemeralId, final SemVer javaVersion) {
+    public CompletableFuture<PkgInfo> getPkgInfoByEphemeralIdAsync(final String ephemeralId, final Semver javaVersion) {
         if (null == ephemeralId || ephemeralId.isEmpty() || null == javaVersion) { throw new IllegalArgumentException("ephemeralId or javaVersion cannot be null"); }
         StringBuilder queryBuilder = new StringBuilder().append(PropertyManager.INSTANCE.getString(Constants.PROPERTY_KEY_DISCO_URL))
                                                         .append(PropertyManager.INSTANCE.getEphemeralIdsPath())
@@ -1525,7 +1525,7 @@ public class DiscoClient {
         });
     }
 
-    public PkgInfo getPkgInfoByPkgId(final String pkgId, final SemVer javaVersion) {
+    public PkgInfo getPkgInfoByPkgId(final String pkgId, final Semver javaVersion) {
         if (null == pkgId || pkgId.isEmpty() || null == javaVersion) { throw new IllegalArgumentException("pkgId or javaVersion cannot be null"); }
         StringBuilder queryBuilder = new StringBuilder().append(PropertyManager.INSTANCE.getString(Constants.PROPERTY_KEY_DISCO_URL))
                                                         .append(PropertyManager.INSTANCE.getIdsPath())
@@ -1556,7 +1556,7 @@ public class DiscoClient {
         }
         return null;
     }
-    public CompletableFuture<PkgInfo> getPkgInfoByPkgIdAsync(final String pkgId, final SemVer javaVersion) {
+    public CompletableFuture<PkgInfo> getPkgInfoByPkgIdAsync(final String pkgId, final Semver javaVersion) {
         if (null == pkgId || pkgId.isEmpty() || null == javaVersion) { throw new IllegalArgumentException("pkgId or javaVersion cannot be null"); }
         StringBuilder queryBuilder = new StringBuilder().append(PropertyManager.INSTANCE.getString(Constants.PROPERTY_KEY_DISCO_URL))
                                                         .append(PropertyManager.INSTANCE.getIdsPath())
@@ -1597,17 +1597,17 @@ public class DiscoClient {
             return null;
         } else {
             if (PropertyManager.INSTANCE.getApiVersion().equals(API_VERSION_V2)) {
-                final SemVer javaVersion = pkg.getJavaVersion();
+                final Semver javaVersion = pkg.getJavaVersion();
                 final String ephemeralId = pkg.getEphemeralId();
                 return downloadPkg(ephemeralId, javaVersion, targetFileName);
             } else {
-                final SemVer javaVersion = pkg.getJavaVersion();
+                final Semver javaVersion = pkg.getJavaVersion();
                 return downloadPkgByPkgId(pkgId, javaVersion, targetFileName);
             }
         }
     }
 
-    public final Future<?> downloadPkg(final String ephemeralId, final SemVer javaVersion, final String targetFileName) throws InterruptedException {
+    public final Future<?> downloadPkg(final String ephemeralId, final Semver javaVersion, final String targetFileName) throws InterruptedException {
         if (null == ephemeralId || ephemeralId.isEmpty()) { throw new IllegalArgumentException("ephemeralId cannot be null or empty"); }
         if (null == javaVersion) { throw new IllegalArgumentException("javaVersion cannot be null"); }
         if (null == targetFileName || targetFileName.isEmpty()) { throw new IllegalArgumentException("targetFileName cannot be null or empty"); }
@@ -1630,7 +1630,7 @@ public class DiscoClient {
         return future;
     }
 
-    private final Future<?> downloadPkgByPkgId(final String pkgId, final SemVer javaVersion, final String targetFileName) throws InterruptedException {
+    private final Future<?> downloadPkgByPkgId(final String pkgId, final Semver javaVersion, final String targetFileName) throws InterruptedException {
         final String              url      = getPkgInfoByPkgId(pkgId, javaVersion).getDirectDownloadUri();
         final FutureTask<Boolean> task     = createDownloadTask(targetFileName, url);
         final ExecutorService     executor = Executors.newSingleThreadExecutor();
@@ -1707,9 +1707,9 @@ public class DiscoClient {
 
     public String getReleaseDetailsUrl(final String javaVersion) {
         if (null == javaVersion || javaVersion.isEmpty()) { return ""; }
-        return getReleaseDetailsUrl(SemVer.fromText(javaVersion).getSemVer1());
+        return getReleaseDetailsUrl(Semver.fromText(javaVersion).getSemver1());
     }
-    public String getReleaseDetailsUrl(final SemVer javaVersion) {
+    public String getReleaseDetailsUrl(final Semver javaVersion) {
         if (null == javaVersion) { return ""; }
         StringBuilder queryBuilder = new StringBuilder().append(PropertyManager.INSTANCE.getString(Constants.PROPERTY_KEY_DISCO_URL))
                                                         .append(Constants.SLASH).append("disco").append(Constants.SLASH).append("v").append(Constants.API_VERSION_V3).append(Constants.SLASH)

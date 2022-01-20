@@ -17,8 +17,8 @@
 package io.foojay.api.discoclient.util;
 
 
-import io.foojay.api.discoclient.pkg.HashAlgorithm;
-import io.foojay.api.discoclient.pkg.SemVer;
+import eu.hansolo.jdktools.HashAlgorithm;
+import eu.hansolo.jdktools.versioning.Semver;
 
 
 public class PkgInfo {
@@ -33,7 +33,7 @@ public class PkgInfo {
 
 
     private final String        fileName;
-    private final SemVer        javaVersion;
+    private final Semver        javaVersion;
     private final String        directDownloadUri;
     private final String        downloadSiteUri;
     private final String        signatureUri;
@@ -42,7 +42,7 @@ public class PkgInfo {
     private final HashAlgorithm checksumType;
 
 
-    public PkgInfo(final String fileName, final SemVer javaVersion, final String directDownloadUri, final String downloadSiteUri, final String signatureUri, final String checksumUri, final String checksum, final HashAlgorithm checksumType) {
+    public PkgInfo(final String fileName, final Semver javaVersion, final String directDownloadUri, final String downloadSiteUri, final String signatureUri, final String checksumUri, final String checksum, final HashAlgorithm checksumType) {
         this.fileName          = fileName;
         this.javaVersion       = javaVersion;
         this.directDownloadUri = directDownloadUri;
@@ -56,7 +56,7 @@ public class PkgInfo {
 
     public final String getFileName() { return fileName; }
 
-    public final SemVer getJavaVersion() { return javaVersion; }
+    public final Semver getJavaVersion() { return javaVersion; }
 
     public final String getDirectDownloadUri() { return directDownloadUri; }
 

@@ -20,37 +20,33 @@ import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import io.foojay.api.discoclient.pkg.Architecture;
-import io.foojay.api.discoclient.pkg.ArchiveType;
-import io.foojay.api.discoclient.pkg.Bitness;
+import eu.hansolo.jdktools.Architecture;
+import eu.hansolo.jdktools.ArchiveType;
+import eu.hansolo.jdktools.Bitness;
+import eu.hansolo.jdktools.Latest;
+import eu.hansolo.jdktools.LibCType;
+import eu.hansolo.jdktools.Match;
+import eu.hansolo.jdktools.OperatingSystem;
+import eu.hansolo.jdktools.PackageType;
+import eu.hansolo.jdktools.ReleaseStatus;
+import eu.hansolo.jdktools.TermOfSupport;
+import eu.hansolo.jdktools.versioning.Semver;
+import eu.hansolo.jdktools.versioning.VersionNumber;
 import io.foojay.api.discoclient.pkg.Distribution;
-import io.foojay.api.discoclient.pkg.Latest;
-import io.foojay.api.discoclient.pkg.LibCType;
 import io.foojay.api.discoclient.pkg.MajorVersion;
-import io.foojay.api.discoclient.pkg.Match;
-import io.foojay.api.discoclient.pkg.OperatingSystem;
-import io.foojay.api.discoclient.pkg.PackageType;
 import io.foojay.api.discoclient.pkg.Pkg;
-import io.foojay.api.discoclient.pkg.ReleaseStatus;
 import io.foojay.api.discoclient.pkg.Scope;
-import io.foojay.api.discoclient.pkg.SemVer;
-import io.foojay.api.discoclient.pkg.TermOfSupport;
-import io.foojay.api.discoclient.pkg.VersionNumber;
 import io.foojay.api.discoclient.util.Helper;
 import org.junit.jupiter.api.Test;
 
-import java.net.http.HttpResponse;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
-import java.util.stream.Collectors;
 
 import static io.foojay.api.discoclient.util.Constants.PROPERTY_KEY_DISTRIBUTION_JSON_URL;
-import static io.foojay.api.discoclient.util.Constants.QUOTES;
 
 
 public class ClientTest {
@@ -229,10 +225,10 @@ public class ClientTest {
 
     @Test
     public void getDistributionForSemver() {
-        SemVer      semVer      = SemVer.fromText("13.0.5.1").getSemVer1();
+        Semver      semVer      = Semver.fromText("13.0.5.1").getSemver1();
         DiscoClient discoClient = new DiscoClient();
         try {
-            assert discoClient.getDistributionsForSemVerAsync(semVer).get().size() == 1;
+            assert discoClient.getDistributionsForSemverAsync(semVer).get().size() == 1;
         } catch (ExecutionException | InterruptedException e) {
 
         }
@@ -242,7 +238,7 @@ public class ClientTest {
     public void releaseDetailsUrlTest() {
         DiscoClient discoClient       = new DiscoClient();
         String      javaVersion       = "13.0.5.1";
-        SemVer      semver            = SemVer.fromText(javaVersion).getSemVer1();
+        Semver      semver            = Semver.fromText(javaVersion).getSemver1();
         String      releaseDetailsUrl = discoClient.getReleaseDetailsUrl(semver);
         System.out.println("ReleaseDetailsUrl: " + releaseDetailsUrl);
         assert !releaseDetailsUrl.isEmpty();

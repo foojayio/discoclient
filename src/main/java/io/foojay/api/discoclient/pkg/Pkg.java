@@ -18,6 +18,18 @@ package io.foojay.api.discoclient.pkg;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
+import eu.hansolo.jdktools.Architecture;
+import eu.hansolo.jdktools.ArchiveType;
+import eu.hansolo.jdktools.Bitness;
+import eu.hansolo.jdktools.FPU;
+import eu.hansolo.jdktools.LibCType;
+import eu.hansolo.jdktools.OperatingSystem;
+import eu.hansolo.jdktools.PackageType;
+import eu.hansolo.jdktools.ReleaseStatus;
+import eu.hansolo.jdktools.TermOfSupport;
+import eu.hansolo.jdktools.Verification;
+import eu.hansolo.jdktools.versioning.Semver;
+import eu.hansolo.jdktools.versioning.VersionNumber;
 import io.foojay.api.discoclient.DiscoClient;
 
 import java.util.Objects;
@@ -60,7 +72,7 @@ public class Pkg {
     private               String          ephemeralId;
     private               Distribution    distribution;
     private               MajorVersion    majorVersion;
-    private               SemVer          javaVersion;
+    private               Semver          javaVersion;
     private               VersionNumber   distributionVersion;
     private               Architecture    architecture;
     private               FPU             fpu;
@@ -91,7 +103,7 @@ public class Pkg {
         this.id                   = json.has(FIELD_ID)                     ? json.get(FIELD_ID).getAsString() : "";
         this.distribution         = json.has(FIELD_DISTRIBUTION)           ? DiscoClient.getDistributionFromText(json.get(FIELD_DISTRIBUTION).getAsString()) : null;
         this.majorVersion         = json.has(FIELD_MAJOR_VERSION)          ? new MajorVersion(json.get(FIELD_MAJOR_VERSION).getAsInt())                      : new MajorVersion(1);
-        this.javaVersion          = json.has(FIELD_JAVA_VERSION)           ? SemVer.fromText(json.get(FIELD_JAVA_VERSION).getAsString()).getSemVer1()        : new SemVer(new VersionNumber());
+        this.javaVersion          = json.has(FIELD_JAVA_VERSION)           ? Semver.fromText(json.get(FIELD_JAVA_VERSION).getAsString()).getSemver1()        : new Semver(new VersionNumber());
         this.distributionVersion  = json.has(FIELD_DISTRIBUTION)           ? VersionNumber.fromText(json.get(FIELD_DISTRIBUTION_VERSION).getAsString())      : new VersionNumber();
         this.latestBuildAvailable = json.has(FIELD_LATEST_BUILD_AVAILABLE) ? json.get(FIELD_LATEST_BUILD_AVAILABLE).getAsBoolean()                           : Boolean.FALSE;
         this.architecture         = json.has(FIELD_ARCHITECTURE)           ? Architecture.fromText(json.get(FIELD_ARCHITECTURE).getAsString())               : Architecture.NOT_FOUND;
@@ -122,7 +134,7 @@ public class Pkg {
 
     public MajorVersion getMajorVersion() { return majorVersion; }
 
-    public SemVer getJavaVersion() { return javaVersion; }
+    public Semver getJavaVersion() { return javaVersion; }
 
     public VersionNumber getDistributionVersion() { return distributionVersion; }
 
