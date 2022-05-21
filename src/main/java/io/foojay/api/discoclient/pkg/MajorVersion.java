@@ -24,7 +24,7 @@ import eu.hansolo.jdktools.ReleaseStatus;
 import eu.hansolo.jdktools.TermOfSupport;
 import eu.hansolo.jdktools.versioning.Semver;
 import eu.hansolo.jdktools.versioning.VersionNumber;
-import io.foojay.api.discoclient.util.Helper;
+import eu.hansolo.jdktools.util.Helper;
 
 import java.util.ArrayList;
 import java.util.List;

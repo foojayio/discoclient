@@ -4,18 +4,16 @@ plugins {
     id 'java-library'
     id 'maven-publish'
     id 'signing'
-    id 'org.javamodularity.moduleplugin' version '1.8.8'
-    id 'org.beryx.jlink'                 version '2.24.2'
-    id 'net.nemerosa.versioning'         version '2.14.0'
-    id 'biz.aQute.bnd.builder'           version '5.3.0'
+    id 'org.javamodularity.moduleplugin' version '1.8.10'
+    id 'org.beryx.jlink'                 version '2.24.4'
+    id 'net.nemerosa.versioning'         version '2.15.1'
 }
 
-apply plugin: 'biz.aQute.bnd.builder'
 apply plugin: 'maven-publish'
 apply plugin: 'signing'
 
-description = 'The DiscoClient is a library to access the foojay discovery api service in a more convenient way.'
-mainClassName = "$moduleName/io.foojay.api.discoclient.DiscoClient"
+description   = 'The DiscoClient is a library to access the foojay discovery api service in a more convenient way.'
+mainClassName = '$moduleName/io.foojay.api.discoclient.DiscoClient'
 
 Date buildTimeAndDate = new Date()
 ext {
@@ -34,12 +32,12 @@ repositories {
 }
 
 dependencies {
-    implementation("com.google.code.gson:gson:2.8.8")
-    implementation("eu.hansolo:jdktools:11.0.0")
+    implementation("com.google.code.gson:gson:2.9.0")
+    implementation("eu.hansolo:jdktools:11.0.8")
     implementation("org.slf4j:slf4j-api:1.7.32")
 
-    testImplementation("org.junit.jupiter:junit-jupiter-api:5.6.0")
-    testImplementation("org.junit.jupiter:junit-jupiter-engine:5.6.0")
+    testImplementation("org.junit.jupiter:junit-jupiter-api:5.8.2")
+    testImplementation("org.junit.jupiter:junit-jupiter-engine:5.8.2")
 }
 
 jar {
@@ -60,6 +58,14 @@ jar {
                 'Bundle-SymbolicName'   : 'io.foojay.api.discoclient',
                 'Export-Package'        : 'io.foojay.api.discoclient, io.foojay.api.discoclient.event, io.foojay.api.discoclient.pkg, io.foojay.api.discoclient.util'
         )
+    }
+}
+
+if (JavaVersion.current().isJava8Compatible()) {
+    allprojects {
+        tasks.withType(Javadoc) {
+            options.addStringOption('Xdoclint:none', '-quiet')
+        }
     }
 }
 

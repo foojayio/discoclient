@@ -20,6 +20,12 @@ package io.foojay.api.discoclient.util;
 import eu.hansolo.jdktools.HashAlgorithm;
 import eu.hansolo.jdktools.versioning.Semver;
 
+import static eu.hansolo.jdktools.Constants.COLON;
+import static eu.hansolo.jdktools.Constants.COMMA;
+import static eu.hansolo.jdktools.Constants.CURLY_BRACKET_CLOSE;
+import static eu.hansolo.jdktools.Constants.CURLY_BRACKET_OPEN;
+import static eu.hansolo.jdktools.Constants.QUOTES;
+
 
 public class PkgInfo {
     public static final String FIELD_FILENAME            = "filename";
@@ -71,16 +77,16 @@ public class PkgInfo {
     public final HashAlgorithm getChecksumType() { return checksumType; }
 
     @Override public String toString() {
-        return new StringBuilder().append("{")
-                                  .append("\"").append(PkgInfo.FIELD_FILENAME).append("\"").append(":").append("\"").append(fileName).append("\"").append(",")
-                                  .append("\"").append(PkgInfo.FIELD_JAVA_VERSION).append("\"").append(":").append("\"").append(javaVersion.toString()).append("\"").append(",")
-                                  .append("\"").append(PkgInfo.FIELD_DIRECT_DOWNLOAD_URI).append("\"").append(":").append("\"").append(directDownloadUri).append("\"").append(",")
-                                  .append("\"").append(PkgInfo.FIELD_DOWNLOAD_SITE_URI).append("\"").append(":").append("\"").append(downloadSiteUri).append("\"").append(",")
-                                  .append("\"").append(PkgInfo.FIELD_SIGNATURE_URI).append("\"").append(":").append("\"").append(signatureUri).append("\"").append(",")
-                                  .append("\"").append(PkgInfo.FIELD_CHECKSUM_URI).append("\"").append(":").append("\"").append(checksumUri).append("\"").append(",")
-                                  .append("\"").append(PkgInfo.FIELD_CHECKSUM).append("\"").append(":").append("\"").append(checksum).append("\"").append(",")
-                                  .append("\"").append(PkgInfo.FIELD_CHECKSUM_TYPE).append("\"").append(":").append("\"").append(checksumType.getApiString()).append("\"")
-                                  .append("}")
+        return new StringBuilder().append(CURLY_BRACKET_OPEN)
+                                  .append(QUOTES).append(PkgInfo.FIELD_FILENAME).append(QUOTES).append(COLON).append(QUOTES).append(fileName).append(QUOTES).append(COMMA)
+                                  .append(QUOTES).append(PkgInfo.FIELD_JAVA_VERSION).append(QUOTES).append(COLON).append(QUOTES).append(javaVersion.toString()).append(QUOTES).append(COMMA)
+                                  .append(QUOTES).append(PkgInfo.FIELD_DIRECT_DOWNLOAD_URI).append(QUOTES).append(COLON).append(QUOTES).append(directDownloadUri).append(QUOTES).append(COMMA)
+                                  .append(QUOTES).append(PkgInfo.FIELD_DOWNLOAD_SITE_URI).append(QUOTES).append(COLON).append(QUOTES).append(downloadSiteUri).append(QUOTES).append(COMMA)
+                                  .append(QUOTES).append(PkgInfo.FIELD_SIGNATURE_URI).append(QUOTES).append(COLON).append(QUOTES).append(signatureUri).append(QUOTES).append(COMMA)
+                                  .append(QUOTES).append(PkgInfo.FIELD_CHECKSUM_URI).append(QUOTES).append(COLON).append(QUOTES).append(checksumUri).append(QUOTES).append(COMMA)
+                                  .append(QUOTES).append(PkgInfo.FIELD_CHECKSUM).append(QUOTES).append(COLON).append(QUOTES).append(checksum).append(QUOTES).append(COMMA)
+                                  .append(QUOTES).append(PkgInfo.FIELD_CHECKSUM_TYPE).append(QUOTES).append(COLON).append(QUOTES).append(checksumType.getApiString()).append(QUOTES)
+                                  .append(CURLY_BRACKET_CLOSE)
                                   .toString();
     }
 }

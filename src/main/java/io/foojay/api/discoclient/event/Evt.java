@@ -19,6 +19,12 @@ package io.foojay.api.discoclient.event;
 import java.util.EventObject;
 import java.util.Objects;
 
+import static eu.hansolo.jdktools.Constants.COLON;
+import static eu.hansolo.jdktools.Constants.COMMA;
+import static eu.hansolo.jdktools.Constants.CURLY_BRACKET_CLOSE;
+import static eu.hansolo.jdktools.Constants.CURLY_BRACKET_OPEN;
+import static eu.hansolo.jdktools.Constants.QUOTES;
+
 
 public class Evt extends EventObject implements Comparable<Evt> {
     public    static final EvtType<Evt>           ANY = EvtType.ROOT;
@@ -66,12 +72,12 @@ public class Evt extends EventObject implements Comparable<Evt> {
     }
 
     @Override public String toString() {
-        return new StringBuilder().append("{")
-                                  .append("\"class\":\"").append(getClass().getName()).append("\",")
-                                  .append("\"type\":\"").append(getEvtType().getClass().getName()).append("\",")
-                                  .append("\"priority\":\"").append(getPriority().name()).append("\",")
-                                  .append("\"source\":\"").append(null == getSource() ? "null" : getSource().getClass().getName()).append("\"")
-                                  .append("}")
+        return new StringBuilder().append(CURLY_BRACKET_OPEN)
+                                  .append(QUOTES).append("class").append(QUOTES).append(COLON).append(QUOTES).append(getClass().getName()).append(QUOTES).append(COMMA)
+                                  .append(QUOTES).append("type").append(QUOTES).append(COLON).append(QUOTES).append(getEvtType().getClass().getName()).append(QUOTES).append(COMMA)
+                                  .append(QUOTES).append("priority").append(QUOTES).append(COLON).append(QUOTES).append(getPriority().name()).append(QUOTES).append(COMMA)
+                                  .append(QUOTES).append("source").append(QUOTES).append(COLON).append(QUOTES).append(null == getSource() ? "null" : getSource().getClass().getName()).append(QUOTES)
+                                  .append(CURLY_BRACKET_CLOSE)
                                   .toString();
     }
 }

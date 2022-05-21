@@ -25,6 +25,15 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static eu.hansolo.jdktools.Constants.COLON;
+import static eu.hansolo.jdktools.Constants.COMMA;
+import static eu.hansolo.jdktools.Constants.CURLY_BRACKET_CLOSE;
+import static eu.hansolo.jdktools.Constants.CURLY_BRACKET_OPEN;
+import static eu.hansolo.jdktools.Constants.QUOTES;
+import static eu.hansolo.jdktools.Constants.QUOTES_COMMA_QUOTES;
+import static eu.hansolo.jdktools.Constants.SQUARE_BRACKET_CLOSE_QUOTES;
+import static eu.hansolo.jdktools.Constants.SQUARE_BRACKET_OPEN_QUOTES;
+
 
 public class Distribution {
     public  static final String       FIELD_NAME       = "name";
@@ -99,14 +108,14 @@ public class Distribution {
     }
 
     @Override public String toString() {
-        return new StringBuilder().append("{")
-                                  .append("\"").append(FIELD_NAME).append("\":\"").append(name).append("\"").append(",")
-                                  .append("\"").append(FIELD_UI_STRING).append("\":\"").append(uiString).append("\"").append(",")
-                                  .append("\"").append(FIELD_API_STRING).append("\":\"").append(apiString).append("\"").append(",")
-                                  .append("\"").append(FIELD_MAINTAINED).append("\":").append(maintained).append(",")
-                                  .append("\"").append(FIELD_SYNONYMS).append("\":").append(synonyms.stream().collect(Collectors.joining("\",\"", "[\"", "\"]"))).append(",")
-                                  .append("\"").append(FIELD_SCOPES).append("\":").append(scopes.stream().map(scope -> scope.getApiString()).collect(Collectors.joining("\",\"", "[\"", "\"]")))
-                                  .append("}")
+        return new StringBuilder().append(CURLY_BRACKET_OPEN)
+                                  .append(QUOTES).append(FIELD_NAME).append(QUOTES).append(COLON).append(QUOTES).append(name).append(QUOTES).append(COMMA)
+                                  .append(QUOTES).append(FIELD_UI_STRING).append(QUOTES).append(COLON).append(QUOTES).append(uiString).append(QUOTES).append(COMMA)
+                                  .append(QUOTES).append(FIELD_API_STRING).append(QUOTES).append(COLON).append(QUOTES).append(apiString).append(QUOTES).append(COMMA)
+                                  .append(QUOTES).append(FIELD_MAINTAINED).append(QUOTES).append(COLON).append(QUOTES).append(maintained).append(COMMA)
+                                  .append(QUOTES).append(FIELD_SYNONYMS).append(QUOTES).append(COLON).append(QUOTES).append(synonyms.stream().collect(Collectors.joining(QUOTES_COMMA_QUOTES, SQUARE_BRACKET_OPEN_QUOTES, SQUARE_BRACKET_CLOSE_QUOTES))).append(COMMA)
+                                  .append(QUOTES).append(FIELD_SCOPES).append(QUOTES).append(COLON).append(QUOTES).append(scopes.stream().map(scope -> scope.getApiString()).collect(Collectors.joining(QUOTES_COMMA_QUOTES, SQUARE_BRACKET_OPEN_QUOTES, SQUARE_BRACKET_CLOSE_QUOTES)))
+                                  .append(CURLY_BRACKET_CLOSE)
                                   .toString();
     }
 }

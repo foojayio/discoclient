@@ -18,6 +18,12 @@ package io.foojay.api.discoclient.event;
 
 import java.util.Objects;
 
+import static eu.hansolo.jdktools.Constants.COLON;
+import static eu.hansolo.jdktools.Constants.COMMA;
+import static eu.hansolo.jdktools.Constants.CURLY_BRACKET_CLOSE;
+import static eu.hansolo.jdktools.Constants.CURLY_BRACKET_OPEN;
+import static eu.hansolo.jdktools.Constants.QUOTES;
+
 
 public final class EvtType<T extends Evt> {
     public  static final EvtType<Evt>       ROOT = new EvtType<>("EVENT", null);
@@ -60,11 +66,11 @@ public final class EvtType<T extends Evt> {
     }
 
     @Override public String toString() {
-        return (null != name) ? new StringBuilder().append("{")
-                                                   .append("\"class\":\"").append(getClass().getName()).append("\",")
-                                                   .append("\"name\":\"").append(getName()).append("\",")
-                                                   .append("\"supertype\":\"").append(getSuperType().name).append("\",")
-                                                   .append("}")
+        return (null != name) ? new StringBuilder().append(CURLY_BRACKET_OPEN)
+                                                   .append(QUOTES).append("class").append(QUOTES).append(COLON).append(QUOTES).append(getClass().getName()).append(QUOTES).append(COMMA)
+                                                   .append(QUOTES).append("name").append(QUOTES).append(COLON).append(QUOTES).append(getName()).append(QUOTES).append(COMMA)
+                                                   .append(QUOTES).append("supertype").append(QUOTES).append(COLON).append(QUOTES).append(getSuperType().name).append(QUOTES)
+                                                   .append(CURLY_BRACKET_CLOSE)
                                                    .toString() :
                super.toString();
     }

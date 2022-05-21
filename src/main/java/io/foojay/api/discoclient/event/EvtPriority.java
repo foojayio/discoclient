@@ -16,6 +16,13 @@
 
 package io.foojay.api.discoclient.event;
 
+import static eu.hansolo.jdktools.Constants.COLON;
+import static eu.hansolo.jdktools.Constants.COMMA;
+import static eu.hansolo.jdktools.Constants.CURLY_BRACKET_CLOSE;
+import static eu.hansolo.jdktools.Constants.CURLY_BRACKET_OPEN;
+import static eu.hansolo.jdktools.Constants.QUOTES;
+
+
 public enum EvtPriority {
     LOW(0), NORMAL(1), HIGH(2);
 
@@ -32,10 +39,10 @@ public enum EvtPriority {
     public int getValue() { return value; }
 
     @Override public String toString() {
-        return new StringBuilder().append("{")
-                                  .append("\"class\":\"").append(getClass().getName()).append("\",")
-                                  .append("\"value\":").append(getValue())
-                                  .append("}")
+        return new StringBuilder().append(CURLY_BRACKET_OPEN)
+                                  .append(QUOTES).append("class").append(QUOTES).append(COLON).append(QUOTES).append(getClass().getName()).append(QUOTES).append(COMMA)
+                                  .append(QUOTES).append("value").append(QUOTES).append(COLON).append(getValue())
+                                  .append(CURLY_BRACKET_CLOSE)
                                   .toString();
     }
 }

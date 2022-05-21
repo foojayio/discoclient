@@ -35,11 +35,11 @@ import io.foojay.api.discoclient.DiscoClient;
 import java.util.Objects;
 import java.util.OptionalInt;
 
-import static io.foojay.api.discoclient.util.Constants.COLON;
-import static io.foojay.api.discoclient.util.Constants.COMMA;
-import static io.foojay.api.discoclient.util.Constants.CURLY_BRACKET_CLOSE;
-import static io.foojay.api.discoclient.util.Constants.CURLY_BRACKET_OPEN;
-import static io.foojay.api.discoclient.util.Constants.QUOTES;
+import static eu.hansolo.jdktools.Constants.COLON;
+import static eu.hansolo.jdktools.Constants.COMMA;
+import static eu.hansolo.jdktools.Constants.CURLY_BRACKET_CLOSE;
+import static eu.hansolo.jdktools.Constants.CURLY_BRACKET_OPEN;
+import static eu.hansolo.jdktools.Constants.QUOTES;
 
 
 public class Pkg {
@@ -67,6 +67,7 @@ public class Pkg {
     public   static final String          FIELD_TCK_CERT_URI           = "tck_cert_uri";
     public   static final String          FIELD_AQAVIT_CERTIFIED       = "aqavit_certified";
     public   static final String          FIELD_AQAVIT_CERT_URI        = "aqavit_cert_uri";
+    public   static final String          FIELD_SIZE                   = "size";
 
     private               String          id;
     private               String          ephemeralId;
@@ -91,6 +92,7 @@ public class Pkg {
     private               String          tckCertUri;
     private               Verification    aqavitCertified;
     private               String          aqavitCertUri;
+    private               long            size;
 
 
     public Pkg(final String packageJson) {
@@ -123,6 +125,7 @@ public class Pkg {
         this.tckCertUri           = json.has(FIELD_TCK_CERT_URI)           ? json.get(FIELD_TCK_CERT_URI).getAsString()                                      : "";
         this.aqavitCertified      = json.has(FIELD_AQAVIT_CERTIFIED)       ? Verification.fromText(json.get(FIELD_AQAVIT_CERTIFIED).getAsString())           : Verification.UNKNOWN;
         this.aqavitCertUri        = json.has(FIELD_AQAVIT_CERT_URI)        ? json.get(FIELD_AQAVIT_CERT_URI).getAsString()                                   : "";
+        this.size                 = json.has(FIELD_SIZE)                   ? json.get(FIELD_SIZE).getAsLong()                                                : -1;
     }
 
 
@@ -184,6 +187,8 @@ public class Pkg {
 
     public String getAqavitCertUri() { return aqavitCertUri; }
 
+    public long getSize() { return size; }
+
     @Override public boolean equals(final Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
@@ -219,7 +224,8 @@ public class Pkg {
                                   .append(QUOTES).append(FIELD_TCK_TESTED).append(QUOTES).append(COLON).append(QUOTES).append(tckTested.getApiString()).append(QUOTES).append(COMMA)
                                   .append(QUOTES).append(FIELD_TCK_CERT_URI).append(QUOTES).append(COLON).append(QUOTES).append(tckCertUri).append(QUOTES).append(COMMA)
                                   .append(QUOTES).append(FIELD_AQAVIT_CERTIFIED).append(QUOTES).append(COLON).append(QUOTES).append(aqavitCertified.getApiString()).append(QUOTES).append(COMMA)
-                                  .append(QUOTES).append(FIELD_AQAVIT_CERT_URI).append(QUOTES).append(COLON).append(QUOTES).append(aqavitCertUri).append(QUOTES)
+                                  .append(QUOTES).append(FIELD_AQAVIT_CERT_URI).append(QUOTES).append(COLON).append(QUOTES).append(aqavitCertUri).append(QUOTES).append(COMMA)
+                                  .append(QUOTES).append(FIELD_SIZE).append(QUOTES).append(COLON).append(size).append(QUOTES)
                                   .append(CURLY_BRACKET_CLOSE)
                                   .toString();
     }

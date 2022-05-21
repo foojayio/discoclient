@@ -68,22 +68,20 @@ public enum Scope implements Api {
         switch(outputFormat) {
             case FULL:
             case REDUCED:
-            case REDUCED_ENRICHED: {
+            case REDUCED_ENRICHED:
                 msgBuilder.append(CURLY_BRACKET_OPEN).append(NEW_LINE)
                           .append(INDENTED_QUOTES).append("name").append(QUOTES).append(COLON).append(QUOTES).append(name()).append(QUOTES).append(COMMA_NEW_LINE)
                           .append(INDENTED_QUOTES).append("ui_string").append(QUOTES).append(COLON).append(QUOTES).append(uiString).append(QUOTES).append(COMMA_NEW_LINE)
                           .append(INDENTED_QUOTES).append("api_string").append(QUOTES).append(COLON).append(QUOTES).append(apiString).append(QUOTES).append(NEW_LINE)
                           .append(CURLY_BRACKET_CLOSE);
-            }
-            case FULL_COMPRESSED:
-            case REDUCED_COMPRESSED:
-            case REDUCED_ENRICHED_COMPRESSED: {
+                break;
+            default:
                 msgBuilder.append(CURLY_BRACKET_OPEN)
                           .append(QUOTES).append("name").append(QUOTES).append(COLON).append(QUOTES).append(name()).append(QUOTES).append(COMMA)
                           .append(QUOTES).append("ui_string").append(QUOTES).append(COLON).append(QUOTES).append(uiString).append(QUOTES).append(COMMA)
                           .append(QUOTES).append("api_string").append(QUOTES).append(COLON).append(QUOTES).append(apiString).append(QUOTES)
                           .append(CURLY_BRACKET_CLOSE);
-            }
+                break;
         }
         return msgBuilder.toString();
     }
@@ -91,6 +89,7 @@ public enum Scope implements Api {
     @Override public String toString() { return toString(OutputFormat.FULL_COMPRESSED); }
 
     public static Scope fromText(final String text) {
+        if (null == text) { return NOT_FOUND; }
         switch (text) {
             case "public":
             case "PUBLIC":

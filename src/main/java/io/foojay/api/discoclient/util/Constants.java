@@ -56,15 +56,5 @@ public class Constants {
 
     public static final String  FIELD_RELEASE_DETAILS_URL           = "release_details_url";
 
-    public static final String  SQUARE_BRACKET_OPEN                 = "[";
-    public static final String  SQUARE_BRACKET_CLOSE                = "]";
-    public static final String  CURLY_BRACKET_OPEN                  = "{";
-    public static final String  CURLY_BRACKET_CLOSE                 = "}";
-    public static final String  INDENTED_QUOTES                     = "  \"";
-    public static final String  QUOTES                              = "\"";
-    public static final String  COLON                               = ":";
-    public static final String  COMMA                               = ",";
-    public static final String  NEW_LINE                            = "\n";
-    public static final String  COMMA_NEW_LINE                      = ",\n";
     public static final String  SLASH                               = "/";
 }
