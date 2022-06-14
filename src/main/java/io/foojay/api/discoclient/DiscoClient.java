@@ -55,6 +55,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.net.URLConnection;
+import java.net.http.HttpResponse;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.util.ArrayList;
@@ -1000,6 +1001,45 @@ public class DiscoClient {
             }
             return majorVersionsFound;
         });
+    }
+
+    /**
+     * Return reverse ordered list of major versions for the given distribution.
+     * @param distribution Distribution to get available major versions from
+     * @param include_ea Includes early access builds if true
+     * @return reverse ordered list of major versions for the given distribution
+     */
+    public final List<MajorVersion> getMajorVersionOf(final Distribution distribution, final boolean include_ea) {
+        StringBuilder queryBuilder = new StringBuilder().append(PropertyManager.INSTANCE.getString(Constants.PROPERTY_KEY_DISCO_URL))
+                                                        .append(PropertyManager.INSTANCE.getDistributionsPath())
+                                                        .append("/")
+                                                        .append(distribution.getApiString())
+                                                        .append("?include_synonyms=false")
+                                                        .append("&include_ea=").append(include_ea ? "true" : "false");
+
+        String query = queryBuilder.toString();
+        HttpResponse<String> response = Helper.get(query);
+        Set<MajorVersion> majorVersionsFound = new HashSet<>();
+
+        Gson        gson    = new Gson();
+        JsonElement element = gson.fromJson(response.body(), JsonElement.class);
+        if (element instanceof JsonObject) {
+            JsonObject jsonObject = element.getAsJsonObject();
+            JsonArray  jsonArray  = jsonObject.getAsJsonArray("result");
+            for (int i = 0; i < jsonArray.size(); i++) {
+                JsonObject distroJsonObj = jsonArray.get(i).getAsJsonObject();
+                JsonArray versionsJsonArray = distroJsonObj.getAsJsonArray("versions");
+                for (JsonElement jsonElement : versionsJsonArray) {
+                    VersionNumber versionNumber = VersionNumber.fromText(jsonElement.getAsString());
+                    majorVersionsFound.add(new MajorVersion(versionNumber.getFeature().getAsInt()));
+                }
+            }
+        }
+
+        List<MajorVersion> mv = new ArrayList<>(majorVersionsFound);
+        Collections.sort(mv, Comparator.comparing(MajorVersion::getAsInt).reversed());
+
+        return mv;
     }
 
 
