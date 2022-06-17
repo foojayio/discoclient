@@ -83,7 +83,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
-import static io.foojay.api.discoclient.util.Constants.API_VERSION_V2;
+import static io.foojay.api.discoclient.util.Constants.API_VERSION_V3;
+import static io.foojay.api.discoclient.util.Constants.PROPERTY_KEY_DISCO_VERSION;
 import static io.foojay.api.discoclient.util.Constants.PROPERTY_KEY_DISTRIBUTION_JSON_URL;
 
 
@@ -92,7 +93,7 @@ public class DiscoClient {
     private static final Map<String, Distribution>              DISTRIBUTIONS        = new ConcurrentHashMap<>();
     private static final String[]                               DETECT_ALPINE_CMDS   = { "/bin/sh", "-c", "cat /etc/os-release | grep 'NAME=' | grep -ic 'Alpine'" };
     private static final String[]                               UX_DETECT_ARCH_CMDS  = { "/bin/sh", "-c", "uname -m" };
-    private static final String[]                               WIN_DETECT_ARCH_CMDS = { "/bin/sh", "-c", "uname -m" };
+    private static final String[]                               WIN_DETECT_ARCH_CMDS = { "cmd", "-c", "echo %PROCESSOR_ARCHITECTURE%" };
     private final        Map<String, List<EvtObserver>>         observers            = new ConcurrentHashMap<>();
     private static       AtomicBoolean                          initialized          = new AtomicBoolean(false);
     private              String                                 userAgent            = "";
@@ -103,6 +104,7 @@ public class DiscoClient {
     }
     public DiscoClient(final String userAgent) {
         this.userAgent = userAgent;
+        PropertyManager.INSTANCE.set(PROPERTY_KEY_DISCO_VERSION, API_VERSION_V3);
         preloadDistributions();
     }
 
@@ -313,9 +315,12 @@ public class DiscoClient {
         String query = queryBuilder.toString();
         if (query.isEmpty()) { return new ArrayList(); }
 
-        List<Pkg>   pkgs     = new LinkedList<>();
-        String      bodyText = Helper.get(query, userAgent).body();
+        List<Pkg>            pkgs     = new LinkedList<>();
 
+        HttpResponse<String> response = Helper.get(query, userAgent);
+        if (null == response.body()) { return pkgs; }
+
+        String      bodyText = response.body();
         Set<Pkg>    pkgsFound = new HashSet<>();
         Gson        gson      = new Gson();
         JsonElement element   = gson.fromJson(bodyText, JsonElement.class);
@@ -1467,7 +1472,7 @@ public class DiscoClient {
     public final String getPkgDirectDownloadUri(final String pkgId) {
         if (null == pkgId || pkgId.isEmpty()) { throw new IllegalArgumentException("Package ID not valid"); }
         final Pkg pkg = getPkg(pkgId);
-        if (PropertyManager.INSTANCE.getApiVersion().equals(API_VERSION_V2)) {
+        if (PropertyManager.INSTANCE.getApiVersion().equals(API_VERSION_V3)) {
             return getPkgInfoByEphemeralId(pkg.getEphemeralId(), pkg.getJavaVersion()).getDirectDownloadUri();
         } else {
             return getPkgInfoByPkgId(pkgId, pkg.getJavaVersion()).getDirectDownloadUri();
@@ -1475,7 +1480,7 @@ public class DiscoClient {
     }
     public final CompletableFuture<String> getPkgDirectDownloadUriAsync(final String pkgId) {
         if (null == pkgId || pkgId.isEmpty()) { throw new IllegalArgumentException("Package ID not valid"); }
-        if (PropertyManager.INSTANCE.getApiVersion().equals(API_VERSION_V2)) {
+        if (PropertyManager.INSTANCE.getApiVersion().equals(API_VERSION_V3)) {
             return getPkgAsync(pkgId).thenApply(pkg -> getPkgInfoByEphemeralIdAsync(pkg.getEphemeralId(), pkg.getJavaVersion()).thenApply(pkgInfo -> pkgInfo.getDirectDownloadUri())).join();
         } else {
             return getPkgAsync(pkgId).thenApply(pkg -> getPkgInfoByPkgIdAsync(pkgId, pkg.getJavaVersion()).thenApply(pkgInfo -> pkgInfo.getDirectDownloadUri())).join();
@@ -1486,7 +1491,7 @@ public class DiscoClient {
     public final String getPkgDownloadSiteUri(final String pkgId) {
         if (null == pkgId || pkgId.isEmpty()) { throw new IllegalArgumentException("Package ID not valid"); }
         final Pkg pkg = getPkg(pkgId);
-        if (PropertyManager.INSTANCE.getApiVersion().equals(API_VERSION_V2)) {
+        if (PropertyManager.INSTANCE.getApiVersion().equals(API_VERSION_V3)) {
             return getPkgInfoByEphemeralId(pkg.getEphemeralId(), pkg.getJavaVersion()).getDownloadSiteUri();
         } else {
             return getPkgInfoByPkgId(pkgId, pkg.getJavaVersion()).getDownloadSiteUri();
@@ -1494,7 +1499,7 @@ public class DiscoClient {
     }
     public final CompletableFuture<String> getPkgDownloadSiteUriAsync(final String pkgId) {
         if (null == pkgId || pkgId.isEmpty()) { throw new IllegalArgumentException("Package ID not valid"); }
-        if (PropertyManager.INSTANCE.getApiVersion().equals(API_VERSION_V2)) {
+        if (PropertyManager.INSTANCE.getApiVersion().equals(API_VERSION_V3)) {
             return getPkgAsync(pkgId).thenApply(pkg -> getPkgInfoByEphemeralIdAsync(pkg.getEphemeralId(), pkg.getJavaVersion()).thenApply(pkgInfo -> pkgInfo.getDownloadSiteUri())).join();
         } else {
             return getPkgAsync(pkgId).thenApply(pkg -> getPkgInfoByPkgIdAsync(pkgId, pkg.getJavaVersion()).thenApply(pkgInfo -> pkgInfo.getDownloadSiteUri())).join();
@@ -1636,7 +1641,7 @@ public class DiscoClient {
         if (null == pkg) {
             return null;
         } else {
-            if (PropertyManager.INSTANCE.getApiVersion().equals(API_VERSION_V2)) {
+            if (PropertyManager.INSTANCE.getApiVersion().equals(API_VERSION_V3)) {
                 final Semver javaVersion = pkg.getJavaVersion();
                 final String ephemeralId = pkg.getEphemeralId();
                 return downloadPkg(ephemeralId, javaVersion, targetFileName);
@@ -1752,7 +1757,7 @@ public class DiscoClient {
     public String getReleaseDetailsUrl(final Semver javaVersion) {
         if (null == javaVersion) { return ""; }
         StringBuilder queryBuilder = new StringBuilder().append(PropertyManager.INSTANCE.getString(Constants.PROPERTY_KEY_DISCO_URL))
-                                                        .append(Constants.SLASH).append("disco").append(Constants.SLASH).append("v").append(Constants.API_VERSION_V3).append(Constants.SLASH)
+                                                        .append(Constants.SLASH).append("disco").append(Constants.SLASH).append("v").append(API_VERSION_V3).append(Constants.SLASH)
                                                         .append(Constants.RELEASE_DETAILS).append(Constants.SLASH)
                                                         .append(javaVersion.getVersionNumber().toString(OutputFormat.REDUCED_COMPRESSED, true, false));
         final String      query    = queryBuilder.toString();
