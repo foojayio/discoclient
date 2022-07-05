@@ -225,7 +225,7 @@ public class Pkg {
                                   .append(QUOTES).append(FIELD_TCK_CERT_URI).append(QUOTES).append(COLON).append(QUOTES).append(tckCertUri).append(QUOTES).append(COMMA)
                                   .append(QUOTES).append(FIELD_AQAVIT_CERTIFIED).append(QUOTES).append(COLON).append(QUOTES).append(aqavitCertified.getApiString()).append(QUOTES).append(COMMA)
                                   .append(QUOTES).append(FIELD_AQAVIT_CERT_URI).append(QUOTES).append(COLON).append(QUOTES).append(aqavitCertUri).append(QUOTES).append(COMMA)
-                                  .append(QUOTES).append(FIELD_SIZE).append(QUOTES).append(COLON).append(size).append(QUOTES)
+                                  .append(QUOTES).append(FIELD_SIZE).append(QUOTES).append(COLON).append(size)
                                   .append(CURLY_BRACKET_CLOSE)
                                   .toString();
     }
