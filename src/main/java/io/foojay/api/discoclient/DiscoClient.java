@@ -1473,9 +1473,9 @@ public class DiscoClient {
         if (null == pkgId || pkgId.isEmpty()) { throw new IllegalArgumentException("Package ID not valid"); }
         final Pkg pkg = getPkg(pkgId);
         if (PropertyManager.INSTANCE.getApiVersion().equals(API_VERSION_V3)) {
-            return getPkgInfoByEphemeralId(pkg.getEphemeralId(), pkg.getJavaVersion()).getDirectDownloadUri();
-        } else {
             return getPkgInfoByPkgId(pkgId, pkg.getJavaVersion()).getDirectDownloadUri();
+        } else {
+            return getPkgInfoByEphemeralId(pkg.getEphemeralId(), pkg.getJavaVersion()).getDirectDownloadUri();
         }
     }
     public final CompletableFuture<String> getPkgDirectDownloadUriAsync(final String pkgId) {
