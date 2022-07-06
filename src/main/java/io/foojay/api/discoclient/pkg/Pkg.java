@@ -119,7 +119,7 @@ public class Pkg {
         this.javafxBundled        = json.has(FIELD_JAVAFX_BUNDLED)         ? json.get(FIELD_JAVAFX_BUNDLED).getAsBoolean()                                   : Boolean.FALSE;
         this.directlyDownloadable = json.has(FIELD_DIRECTLY_DOWNLOADABLE)  ? json.get(FIELD_DIRECTLY_DOWNLOADABLE).getAsBoolean()                            : Boolean.FALSE;
         this.fileName             = json.has(FIELD_FILENAME)               ? json.get(FIELD_FILENAME).getAsString()                                          : "";
-        this.ephemeralId          = json.has(FIELD_EPHEMERAL_ID)           ? json.get(FIELD_EPHEMERAL_ID).getAsString()                                      : "";
+        this.ephemeralId          = json.has(FIELD_EPHEMERAL_ID)           ? json.get(FIELD_EPHEMERAL_ID).getAsString()                                      : this.id;
         this.freeUseInProduction  = json.has(FIELD_FREE_USE_IN_PROD)       ? json.get(FIELD_FREE_USE_IN_PROD).getAsBoolean()                                 : Boolean.TRUE;
         this.tckTested            = json.has(FIELD_TCK_TESTED)             ? Verification.fromText(json.get(FIELD_TCK_TESTED).getAsString())                 : Verification.UNKNOWN;
         this.tckCertUri           = json.has(FIELD_TCK_CERT_URI)           ? json.get(FIELD_TCK_CERT_URI).getAsString()                                      : "";
