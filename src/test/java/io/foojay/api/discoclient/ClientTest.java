@@ -242,4 +242,10 @@ public class ClientTest {
         String      releaseDetailsUrl = discoClient.getReleaseDetailsUrl(semver);
         assertEquals("https://foojay.io/java-13/?tab=allissues&version=13.0.5", releaseDetailsUrl);
     }
+
+    @Test
+    public void getPkgDirectDownloadUriTest() {
+        String directDownloadUri = discoClient.getPkgDirectDownloadUri("3c0cbf96ac87a7bbcf6bba8e8a9450b6");
+        assertEquals("https://cdn.azul.com/zulu/bin/zulu19.0.65-ea-jdk19.0.0-ea.28-macosx_aarch64.zip", directDownloadUri);
+    }
 }
