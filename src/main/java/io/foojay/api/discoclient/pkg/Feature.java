@@ -35,6 +35,10 @@ import static eu.hansolo.jdktools.Constants.QUOTES;
 public enum Feature implements Api {
     LOOM("Loom", "loom"),
     PANAMA("Panama", "panama"),
+    LANAI("Lanai", "lanai"),
+    VALHALLA("Valhalla", "valhalla"),
+    KONA_FIBER("KonaFiber", "kona_fiber"),
+    CRAC("CRaC", "crac"),
     NONE("-", ""),
     NOT_FOUND("", "");
 
@@ -94,6 +98,27 @@ public enum Feature implements Api {
             case "PANAMA":
             case "Panama":
                 return PANAMA;
+            case "lanai":
+            case "LANAI":
+            case "Lanai":
+                return LANAI;
+            case "valhalla":
+            case "VALHALLA":
+            case "Valhalla":
+                return VALHALLA;
+            case "kona_fiber":
+            case "KONA_FIBER":
+            case "Kona Fiber":
+            case "KONA FIBER":
+            case "Kona_Fiber":
+            case "KonaFiber":
+            case "konafiber":
+            case "KONAFIBER":
+                return KONA_FIBER;
+            case "crac":
+            case "CRAC":
+            case "CRaC":
+                return CRAC;
             default:
                 return NOT_FOUND;
         }

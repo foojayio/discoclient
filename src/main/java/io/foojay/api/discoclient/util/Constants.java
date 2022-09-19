@@ -31,7 +31,6 @@ public class Constants {
     public static final String  PROPERTY_KEY_DISTRIBUTION_JSON_URL  = "distro_url";
 
     public static final String  DISCO_API_BASE_URL                  = "https://api.foojay.io";
-    //public static final String  API_VERSION_V2                      = "2.0";
     public static final String  API_VERSION_V3                      = "3.0";
     public static final String  DISTRIBUTION_JSON_URL               = "https://github.com/foojayio/distributions/raw/main/distributions.json";
     public static final String  RELEASE_DETAILS                     = "release_details";
