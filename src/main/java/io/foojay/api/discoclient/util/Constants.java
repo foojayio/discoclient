@@ -16,18 +16,21 @@
 
 package io.foojay.api.discoclient.util;
 
+import java.io.File;
 import java.util.regex.Pattern;
 
 
 public class Constants {
     public static final String  NAME                                = "discoclient";
 
+    public static final String  HOME_FOLDER                         = new StringBuilder(System.getProperty("user.home")).append(File.separator).toString();
+    public static final String  PROPERTIES_FILE_NAME                = Constants.NAME + ".properties";
+
     public static final String  PROPERTY_KEY_DISCO_URL              = "url";
     public static final String  PROPERTY_KEY_DISCO_VERSION          = "api_version";
     public static final String  PROPERTY_KEY_DISTRIBUTION_JSON_URL  = "distro_url";
 
     public static final String  DISCO_API_BASE_URL                  = "https://api.foojay.io";
-    public static final String  API_VERSION_V2                      = "2.0";
     public static final String  API_VERSION_V3                      = "3.0";
     public static final String  DISTRIBUTION_JSON_URL               = "https://github.com/foojayio/distributions/raw/main/distributions.json";
     public static final String  RELEASE_DETAILS                     = "release_details";

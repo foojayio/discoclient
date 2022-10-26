@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 by Gerrit Grunwald
+ * Copyright (c) 2022 by Gerrit Grunwald
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,6 +39,7 @@ import io.foojay.api.discoclient.pkg.Scope;
 import io.foojay.api.discoclient.util.Helper;
 import org.junit.jupiter.api.Test;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -46,24 +47,27 @@ import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 
+import static org.junit.jupiter.api.Assertions.*;
 import static io.foojay.api.discoclient.util.Constants.PROPERTY_KEY_DISTRIBUTION_JSON_URL;
 
 
 public class ClientTest {
+    private static final int         NO_OF_DISTRIBUTIONS       = 29;
+    private static final int         VERSIONS_PER_DISTRIBUTION = 29;
+    private        final DiscoClient discoClient               = new DiscoClient();
 
     @Test
     public void loadDistributionsTest() {
-        DiscoClient discoClient = new DiscoClient();
         while(!discoClient.isInitialzed()) {
             try { Thread.sleep(10); } catch (InterruptedException e) {}
         }
         Map<String, Distribution> distributions = discoClient.getDistros();
-        assert distributions.size() == 26;
+        assertEquals(NO_OF_DISTRIBUTIONS, distributions.size());
 
         Optional<Distribution> optionalDistro  = distributions.values().stream().filter(d -> d.getFromText("zulu") != null).findFirst();
         assert optionalDistro.isPresent();
         if (optionalDistro.isPresent()) {
-            assert optionalDistro.get().getName().equals("ZULU");
+            assertEquals("ZULU", optionalDistro.get().getName());
         }
     }
 
@@ -83,38 +87,40 @@ public class ClientTest {
                     }
                 }
             }
-            assert distributions.size() == 26;
+            assertEquals(NO_OF_DISTRIBUTIONS, distributions.size());
         }).join();
     }
 
     @Test
     public void cancelRequestTest() {
-        DiscoClient discoClient = new DiscoClient();
-        List<Pkg> pkgs = discoClient.getPkgs(null, new VersionNumber(11), Latest.OVERALL, OperatingSystem.NONE, LibCType.NONE,
-                                             Architecture.NONE, Bitness.NONE, ArchiveType.NONE, PackageType.NONE, false, true, List.of(ReleaseStatus.NONE), TermOfSupport.NONE, List.of(Scope.PUBLIC), Match.ANY);
-        System.out.println(pkgs.size() + " pkgs found");
+        List<Pkg> pkgsSync  = discoClient.getPkgs(null, new VersionNumber(11), Latest.OVERALL, OperatingSystem.NONE, LibCType.NONE, Architecture.NONE, Bitness.NONE, ArchiveType.NONE, PackageType.NONE, false, true, List.of(ReleaseStatus.NONE), TermOfSupport.NONE, List.of(Scope.PUBLIC), Match.ANY);
 
+        List<Pkg> pkgsAsync = new ArrayList<>();
         discoClient.getPkgsAsync(null, new VersionNumber(11), Latest.OVERALL, OperatingSystem.NONE, LibCType.NONE,
-                                 Architecture.NONE, Bitness.NONE, ArchiveType.NONE, PackageType.NONE, false, true, List.of(ReleaseStatus.NONE), TermOfSupport.NONE, List.of(Scope.PUBLIC), Match.ANY).thenAccept(e -> System.out.println(e.size() + " pkgs found async"));
+                                 Architecture.NONE, Bitness.NONE, ArchiveType.NONE, PackageType.NONE, false, true, List.of(ReleaseStatus.NONE), TermOfSupport.NONE, List.of(Scope.PUBLIC), Match.ANY).thenAccept(e -> pkgsAsync.addAll(e));
 
         try {
-            Thread.sleep(500);
+            Thread.sleep(100);
         } catch (InterruptedException e) {
             System.out.println(e.getMessage());
         }
-
         discoClient.cancelRequest();
+        assertTrue(pkgsSync.size() != pkgsAsync.size());
     }
 
     @Test
     public void getPkgsAndTest() {
-        DiscoClient discoClient = new DiscoClient();
         List<Pkg> packagesFound = discoClient.getPkgs(List.of(DiscoClient.getDistributionFromText("zulu")), new VersionNumber(11, 0, 9, 1), Latest.NONE, OperatingSystem.WINDOWS, LibCType.NONE,
                                                       Architecture.X64, Bitness.BIT_64, ArchiveType.ZIP, PackageType.JDK, false, true, List.of(ReleaseStatus.GA), TermOfSupport.LTS, List.of(Scope.PUBLIC), Match.ANY);
-        assert packagesFound.size() == 1;
+        assertEquals(1, packagesFound.size());
     }
 
-    /*
+    @Test
+    public void updateAvailableForTest() {
+        List<Pkg> availableUpdates = discoClient.updateAvailableFor(DiscoClient.getDistributionFromText("zulu"), Semver.fromText("19-ea+25").getSemver1(), OperatingSystem.MACOS, Architecture.fromText("aarch64"), false, null, "");
+        assertTrue(!availableUpdates.isEmpty());
+    }
+
     @Test
     public void findUpdateTest() {
         DiscoClient     discoClient          = new DiscoClient();
@@ -122,31 +128,24 @@ public class ClientTest {
         OperatingSystem operatingSystem      = OperatingSystem.MACOS;
         Architecture    architecture         = Architecture.X64;
         Boolean         javafxBundled        = Boolean.FALSE;
-        SemVer          semVer               = SemVer.fromText("17-ea+35").getSemVer1();
+        Semver          semVer               = Semver.fromText("17-ea+35").getSemver1();
         Boolean         directlyDownloadable = Boolean.TRUE;
 
-        //System.out.println("updateAvailableFor() ----------------------");
+        // updateAvailableFor()
+        assertTrue(discoClient.updateAvailableFor(distribution, semVer, architecture, javafxBundled, directlyDownloadable).size() > 0);
 
-        //discoClient.updateAvailableFor(distribution, semVer, architecture, javafxBundled, directlyDownloadable).forEach(pkg -> System.out.println(pkg));
-
-        System.out.println("updateAvailableForAsync() ----------------------");
-
-        discoClient.updateAvailableForAsync(distribution, semVer, architecture, javafxBundled,directlyDownloadable).thenAccept(r -> {
-            r.forEach(pkg -> System.out.println(pkg));
-        });
+        // updateAvailableForAsync()
+        discoClient.updateAvailableForAsync(distribution, semVer, architecture, javafxBundled,directlyDownloadable).thenAccept(r -> assertTrue(r.size() > 0));
 
 
-        System.out.println("getPkgs() ----------------------");
-        discoClient.getPkgs(null == distribution ? null : List.of(distribution), semVer.getVersionNumber(), Latest.AVAILABLE, discoClient.getOperatingSystem(), LibCType.NONE, architecture, Bitness.NONE, ArchiveType.NONE, PackageType.JDK, javafxBundled,
-                           directlyDownloadable, List.of(ReleaseStatus.EA, ReleaseStatus.GA), TermOfSupport.NONE, List.of(Scope.PUBLIC), Match.ANY).forEach(pkg -> System.out.println(pkg));
+        // getPkgs()
+        assertTrue(discoClient.getPkgs(null == distribution ? null : List.of(distribution), semVer.getVersionNumber(), Latest.AVAILABLE, discoClient.getOperatingSystem(), LibCType.NONE, architecture, Bitness.NONE, ArchiveType.NONE, PackageType.JDK, javafxBundled,
+                           directlyDownloadable, List.of(ReleaseStatus.EA, ReleaseStatus.GA), TermOfSupport.NONE, List.of(Scope.PUBLIC), Match.ANY).size() > 0);
 
-        System.out.println("getPkgsAsync() ----------------------");
+        // getPkgsAsync()
         discoClient.getPkgsAsync(null == distribution ? null : List.of(distribution), semVer.getVersionNumber(), Latest.AVAILABLE, discoClient.getOperatingSystem(), LibCType.NONE, architecture, Bitness.NONE, ArchiveType.NONE, PackageType.JDK, javafxBundled,
-                     directlyDownloadable, List.of(ReleaseStatus.EA, ReleaseStatus.GA), TermOfSupport.NONE, List.of(Scope.PUBLIC), Match.ANY).thenAccept(pkgs -> {
-                         pkgs.forEach(pkg -> System.out.println(pkg));
-        });
+                     directlyDownloadable, List.of(ReleaseStatus.EA, ReleaseStatus.GA), TermOfSupport.NONE, List.of(Scope.PUBLIC), Match.ANY).thenAccept(pkgs -> assertTrue(pkgs.size() > 0));
     }
-    */
 
     /*
     @Test
@@ -188,7 +187,7 @@ public class ClientTest {
             assert (1 == jsonArray.size());
             JsonObject packageJsonObj = jsonArray.get(0).getAsJsonObject();
             Pkg        pkg           = new Pkg(packageJsonObj.toString());
-            assert (pkg.getJavaVersion().toString().equals("11.0.9.1"));
+            assert (pkg.getJavaVersion().toString().equals("11.0.9.1+1"));
         }
     }
 
@@ -213,14 +212,15 @@ public class ClientTest {
     public void getVersionsPerDistributionTest() {
         DiscoClient                            discoClient             = new DiscoClient();
         Map<Distribution, List<VersionNumber>> versionsPerDistribution = discoClient.getVersionsPerDistribution();
-        assert versionsPerDistribution.keySet().size() == 21;
+
+        assertEquals(VERSIONS_PER_DISTRIBUTION, versionsPerDistribution.keySet().size());
     }
 
     @Test
     public void testDistributionFromText() {
-        assert DiscoClient.getDistributionFromText("Liberica").getName().equals("LIBERICA");
-        assert DiscoClient.getDistributionFromText("liberica").getName().equals("LIBERICA");
-        assert DiscoClient.getDistributionFromText("LIBERICA").getName().equals("LIBERICA");
+        assertEquals("LIBERICA", DiscoClient.getDistributionFromText("Liberica").getName());
+        assertEquals("LIBERICA", DiscoClient.getDistributionFromText("liberica").getName());
+        assertEquals("LIBERICA", DiscoClient.getDistributionFromText("LIBERICA").getName());
     }
 
     @Test
@@ -228,7 +228,7 @@ public class ClientTest {
         Semver      semVer      = Semver.fromText("13.0.5.1").getSemver1();
         DiscoClient discoClient = new DiscoClient();
         try {
-            assert discoClient.getDistributionsForSemverAsync(semVer).get().size() == 1;
+            assertEquals(1, discoClient.getDistributionsForSemverAsync(semVer).get().size());
         } catch (ExecutionException | InterruptedException e) {
 
         }
@@ -240,7 +240,12 @@ public class ClientTest {
         String      javaVersion       = "13.0.5.1";
         Semver      semver            = Semver.fromText(javaVersion).getSemver1();
         String      releaseDetailsUrl = discoClient.getReleaseDetailsUrl(semver);
-        System.out.println("ReleaseDetailsUrl: " + releaseDetailsUrl);
-        assert !releaseDetailsUrl.isEmpty();
+        assertEquals("https://foojay.io/java-13/?tab=allissues&version=13.0.5", releaseDetailsUrl);
+    }
+
+    @Test
+    public void getPkgDirectDownloadUriTest() {
+        String directDownloadUri = discoClient.getPkgDirectDownloadUri("3c0cbf96ac87a7bbcf6bba8e8a9450b6");
+        assertEquals("https://cdn.azul.com/zulu/bin/zulu19.0.65-ea-jdk19.0.0-ea.28-macosx_aarch64.zip", directDownloadUri);
     }
 }

@@ -4,9 +4,9 @@ plugins {
     id 'java-library'
     id 'maven-publish'
     id 'signing'
-    id 'org.javamodularity.moduleplugin' version '1.8.10'
-    id 'org.beryx.jlink'                 version '2.24.4'
-    id 'net.nemerosa.versioning'         version '2.15.1'
+    id 'org.javamodularity.moduleplugin' version '1.8.12'
+    id 'org.beryx.jlink'                 version '2.25.0'
+    id 'net.nemerosa.versioning'         version '3.0.0'
 }
 
 apply plugin: 'maven-publish'
@@ -32,8 +32,8 @@ repositories {
 }
 
 dependencies {
-    implementation("com.google.code.gson:gson:2.9.1")
-    implementation("eu.hansolo:jdktools:11.0.13")
+    implementation("com.google.code.gson:gson:2.9.0")
+    implementation("eu.hansolo:jdktools:11.0.8")
     implementation("org.slf4j:slf4j-api:1.7.32")
 
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.8.2")
