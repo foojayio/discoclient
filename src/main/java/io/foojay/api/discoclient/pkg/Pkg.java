@@ -49,6 +49,7 @@ public class Pkg {
     public   static final String          FIELD_MAJOR_VERSION          = "major_version";
     public   static final String          FIELD_JAVA_VERSION           = "java_version";
     public   static final String          FIELD_DISTRIBUTION_VERSION   = "distribution_version";
+    public   static final String          FIELD_JDK_VERSION            = "jdk_version";
     public   static final String          FIELD_LATEST_BUILD_AVAILABLE = "latest_build_available";
     public   static final String          FIELD_RELEASE_STATUS         = "release_status";
     public   static final String          FIELD_TERM_OF_SUPPORT        = "term_of_support";
@@ -74,6 +75,7 @@ public class Pkg {
     private               Distribution    distribution;
     private               MajorVersion    majorVersion;
     private               Semver          javaVersion;
+    private               MajorVersion    jdkVersion;
     private               VersionNumber   distributionVersion;
     private               Architecture    architecture;
     private               FPU             fpu;
@@ -106,6 +108,7 @@ public class Pkg {
         this.distribution         = json.has(FIELD_DISTRIBUTION)           ? DiscoClient.getDistributionFromText(json.get(FIELD_DISTRIBUTION).getAsString()) : null;
         this.majorVersion         = json.has(FIELD_MAJOR_VERSION)          ? new MajorVersion(json.get(FIELD_MAJOR_VERSION).getAsInt())                      : new MajorVersion(1);
         this.javaVersion          = json.has(FIELD_JAVA_VERSION)           ? Semver.fromText(json.get(FIELD_JAVA_VERSION).getAsString()).getSemver1()        : new Semver(new VersionNumber());
+        this.jdkVersion           = json.has(FIELD_JDK_VERSION)            ? new MajorVersion(json.get(FIELD_JDK_VERSION).getAsInt())                        : this.majorVersion;
         this.distributionVersion  = json.has(FIELD_DISTRIBUTION)           ? VersionNumber.fromText(json.get(FIELD_DISTRIBUTION_VERSION).getAsString())      : new VersionNumber();
         this.latestBuildAvailable = json.has(FIELD_LATEST_BUILD_AVAILABLE) ? json.get(FIELD_LATEST_BUILD_AVAILABLE).getAsBoolean()                           : Boolean.FALSE;
         this.architecture         = json.has(FIELD_ARCHITECTURE)           ? Architecture.fromText(json.get(FIELD_ARCHITECTURE).getAsString())               : Architecture.NOT_FOUND;
@@ -138,6 +141,8 @@ public class Pkg {
     public MajorVersion getMajorVersion() { return majorVersion; }
 
     public Semver getJavaVersion() { return javaVersion; }
+
+    public MajorVersion getJdkVersion() { return jdkVersion; }
 
     public VersionNumber getDistributionVersion() { return distributionVersion; }
 
@@ -208,6 +213,7 @@ public class Pkg {
                                   .append(QUOTES).append(FIELD_DISTRIBUTION).append(QUOTES).append(COLON).append(QUOTES).append(distribution.getName()).append(QUOTES).append(COMMA)
                                   .append(QUOTES).append(FIELD_JAVA_VERSION).append(QUOTES).append(COLON).append(QUOTES).append(javaVersion.toString()).append(QUOTES).append(COMMA)
                                   .append(QUOTES).append(FIELD_DISTRIBUTION_VERSION).append(QUOTES).append(COLON).append(QUOTES).append(distributionVersion).append(QUOTES).append(COMMA)
+                                  .append(QUOTES).append(FIELD_JDK_VERSION).append(QUOTES).append(COLON).append(jdkVersion.getAsInt()).append(COMMA)
                                   .append(QUOTES).append(FIELD_LATEST_BUILD_AVAILABLE).append(QUOTES).append(COLON).append(latestBuildAvailable).append(COMMA)
                                   .append(QUOTES).append(FIELD_ARCHITECTURE).append(QUOTES).append(COLON).append(QUOTES).append(architecture.name()).append(QUOTES).append(COMMA)
                                   .append(QUOTES).append(FIELD_BITNESS).append(QUOTES).append(COLON).append(architecture.getBitness().getAsInt()).append(COMMA)
