@@ -36,45 +36,56 @@ import static eu.hansolo.jdktools.Constants.SQUARE_BRACKET_OPEN_QUOTES;
 
 
 public class Distribution {
-    public  static final String       FIELD_NAME       = "name";
-    public  static final String       FIELD_UI_STRING  = "ui_string";
-    public  static final String       FIELD_API_STRING = "api_string";
-    public  static final String       FIELD_SYNONYMS   = "synonyms";
-    public  static final String       FIELD_SCOPES     = "scopes";
-    public  static final String       FIELD_MAINTAINED = "maintained";
+    public  static final String       FIELD_NAME             = "name";
+    public  static final String       FIELD_UI_STRING        = "ui_string";
+    public  static final String       FIELD_API_STRING       = "api_string";
+    public  static final String       FIELD_SYNONYMS         = "synonyms";
+    public  static final String       FIELD_SCOPES           = "scopes";
+    public  static final String       FIELD_MAINTAINED       = "maintained";
+    public  static final String       FIELD_BUILD_OF_OPENJDK = "build_of_openjdk";
+    public  static final String       FIELD_BUILD_OF_GRAALVM = "build_of_graalvm";
     private        final String       name;
     private        final String       uiString;
     private        final String       apiString;
     private        final List<String> synonyms;
     private        final List<Scope>  scopes;
     private        final boolean      maintained;
+    private        final boolean      buildOfOpenJDK;
+    private        final boolean      buildOfGraalVM;
 
 
     public Distribution(final String name, final String uiString, final String apiString) {
-        this(name, uiString, apiString, List.of(), List.of(), true);
+        this(name, uiString, apiString, List.of(), List.of(), true, true, false);
     }
     public Distribution(final String name, final String uiString, final String apiString, final String... synonyms) {
-        this(name, uiString, apiString, Arrays.asList(synonyms), List.of(), true);
+        this(name, uiString, apiString, Arrays.asList(synonyms), List.of(), true, true, false);
     }
     public Distribution(final String name, final String uiString, final String apiString, final List<String> synonyms, final List<Scope> scopes, final boolean maintained) {
-        this.name       = name;
-        this.uiString   = uiString;
-        this.apiString  = apiString;
-        this.synonyms   = new ArrayList<>(synonyms);
-        this.scopes     = new ArrayList<>(scopes);
-        this.maintained = maintained;
+        this(name, uiString, apiString, synonyms, scopes, maintained, true, false);
+    }
+    public Distribution(final String name, final String uiString, final String apiString, final List<String> synonyms, final List<Scope> scopes, final boolean maintained, final boolean buildOfOpenJDK, final boolean buildOfGraalVM) {
+        this.name           = name;
+        this.uiString       = uiString;
+        this.apiString      = apiString;
+        this.synonyms       = new ArrayList<>(synonyms);
+        this.scopes         = new ArrayList<>(scopes);
+        this.maintained     = maintained;
+        this.buildOfOpenJDK = buildOfOpenJDK;
+        this.buildOfGraalVM = buildOfGraalVM;
     }
     public Distribution(final String jsonText) {
         if (null == jsonText || jsonText.isEmpty()) { throw new IllegalArgumentException("Json text cannot be null or empty"); }
         final Gson       gson = new Gson();
         final JsonObject json = gson.fromJson(jsonText, JsonObject.class);
 
-        this.name       = json.has(FIELD_NAME)       ? json.get(FIELD_NAME).getAsString()        : "";
-        this.uiString   = json.has(FIELD_UI_STRING)  ? json.get(FIELD_UI_STRING).getAsString()   : "";
-        this.apiString  = json.has(FIELD_API_STRING) ? json.get(FIELD_API_STRING).getAsString()  : "";
-        this.synonyms   = new ArrayList<>();
-        this.scopes     = new ArrayList<>();
-        this.maintained = json.has(FIELD_MAINTAINED) ? json.get(FIELD_MAINTAINED).getAsBoolean() : true;
+        this.name           = json.has(FIELD_NAME)       ? json.get(FIELD_NAME).getAsString()        : "";
+        this.uiString       = json.has(FIELD_UI_STRING)  ? json.get(FIELD_UI_STRING).getAsString()   : "";
+        this.apiString      = json.has(FIELD_API_STRING) ? json.get(FIELD_API_STRING).getAsString()  : "";
+        this.synonyms       = new ArrayList<>();
+        this.scopes         = new ArrayList<>();
+        this.maintained     = json.has(FIELD_MAINTAINED) ? json.get(FIELD_MAINTAINED).getAsBoolean() : true;
+        this.buildOfOpenJDK = json.has(FIELD_BUILD_OF_OPENJDK) ? json.get(FIELD_BUILD_OF_OPENJDK).getAsBoolean() : true;
+        this.buildOfGraalVM = json.has(FIELD_BUILD_OF_GRAALVM) ? json.get(FIELD_BUILD_OF_GRAALVM).getAsBoolean() : false;
 
 
         if (json.has(FIELD_SYNONYMS)) {
@@ -103,6 +114,10 @@ public class Distribution {
 
     public boolean isMaintained() { return maintained; }
 
+    public boolean isBuildOfOpenJDK() { return buildOfOpenJDK; }
+
+    public boolean isBuildOfGraalVM() { return buildOfGraalVM; }
+
     public Distribution getFromText(final String text) {
         return synonyms.contains(text) ? Distribution.this : null;
     }
@@ -113,6 +128,8 @@ public class Distribution {
                                   .append(QUOTES).append(FIELD_UI_STRING).append(QUOTES).append(COLON).append(QUOTES).append(uiString).append(QUOTES).append(COMMA)
                                   .append(QUOTES).append(FIELD_API_STRING).append(QUOTES).append(COLON).append(QUOTES).append(apiString).append(QUOTES).append(COMMA)
                                   .append(QUOTES).append(FIELD_MAINTAINED).append(QUOTES).append(COLON).append(QUOTES).append(maintained).append(COMMA)
+                                  .append(QUOTES).append(FIELD_BUILD_OF_OPENJDK).append(QUOTES).append(COLON).append(QUOTES).append(buildOfOpenJDK).append(COMMA)
+                                  .append(QUOTES).append(FIELD_BUILD_OF_GRAALVM).append(QUOTES).append(COLON).append(QUOTES).append(buildOfGraalVM).append(COMMA)
                                   .append(QUOTES).append(FIELD_SYNONYMS).append(QUOTES).append(COLON).append(QUOTES).append(synonyms.stream().collect(Collectors.joining(QUOTES_COMMA_QUOTES, SQUARE_BRACKET_OPEN_QUOTES, SQUARE_BRACKET_CLOSE_QUOTES))).append(COMMA)
                                   .append(QUOTES).append(FIELD_SCOPES).append(QUOTES).append(COLON).append(QUOTES).append(scopes.stream().map(scope -> scope.getApiString()).collect(Collectors.joining(QUOTES_COMMA_QUOTES, SQUARE_BRACKET_OPEN_QUOTES, SQUARE_BRACKET_CLOSE_QUOTES)))
                                   .append(CURLY_BRACKET_CLOSE)

@@ -17,6 +17,7 @@
 package io.foojay.api.discoclient.pkg;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import eu.hansolo.jdktools.Architecture;
 import eu.hansolo.jdktools.ArchiveType;
@@ -32,8 +33,10 @@ import eu.hansolo.jdktools.versioning.Semver;
 import eu.hansolo.jdktools.versioning.VersionNumber;
 import io.foojay.api.discoclient.DiscoClient;
 
+import java.util.HashSet;
 import java.util.Objects;
 import java.util.OptionalInt;
+import java.util.Set;
 
 import static eu.hansolo.jdktools.Constants.COLON;
 import static eu.hansolo.jdktools.Constants.COMMA;
@@ -69,6 +72,7 @@ public class Pkg {
     public   static final String          FIELD_AQAVIT_CERTIFIED       = "aqavit_certified";
     public   static final String          FIELD_AQAVIT_CERT_URI        = "aqavit_cert_uri";
     public   static final String          FIELD_SIZE                   = "size";
+    public   static final String          FIELD_FEATURE                = "feature";
 
     private               String          id;
     private               String          ephemeralId;
@@ -95,6 +99,7 @@ public class Pkg {
     private               Verification    aqavitCertified;
     private               String          aqavitCertUri;
     private               long            size;
+    private               Set<Feature>    features;
 
 
     public Pkg(final String packageJson) {
@@ -129,6 +134,27 @@ public class Pkg {
         this.aqavitCertified      = json.has(FIELD_AQAVIT_CERTIFIED)       ? Verification.fromText(json.get(FIELD_AQAVIT_CERTIFIED).getAsString())           : Verification.UNKNOWN;
         this.aqavitCertUri        = json.has(FIELD_AQAVIT_CERT_URI)        ? json.get(FIELD_AQAVIT_CERT_URI).getAsString()                                   : "";
         this.size                 = json.has(FIELD_SIZE)                   ? json.get(FIELD_SIZE).getAsLong()                                                : -1;
+        this.features             = new HashSet<>();
+        if (json.has(FIELD_FEATURE)) {
+            JsonArray    featureArray = json.getAsJsonArray(FIELD_FEATURE);
+            for (int i = 0 ; i < featureArray.size() ; i++) {
+                if (featureArray.get(i).isJsonObject()) {
+                    JsonObject featureObj = featureArray.get(i).getAsJsonObject();
+                    Feature feat = Feature.fromText(featureObj.get("name").getAsString());
+                    if (Feature.NOT_FOUND == feat || Feature.NONE == feat) {
+                        continue;
+                    }
+                    features.add(feat);
+                } else {
+                    String  featureString = featureArray.get(i).getAsString();
+                    Feature feat          = Feature.fromText(featureString);
+                    if (Feature.NOT_FOUND == feat || Feature.NONE == feat) {
+                        continue;
+                    }
+                    features.add(feat);
+                }
+            }
+        }
     }
 
 
@@ -193,6 +219,9 @@ public class Pkg {
     public String getAqavitCertUri() { return aqavitCertUri; }
 
     public long getSize() { return size; }
+
+    public Set<Feature> getFeatures() { return features; }
+
 
     @Override public boolean equals(final Object o) {
         if (this == o) return true;
