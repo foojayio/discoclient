@@ -60,4 +60,6 @@ public class Constants {
     public static final String  FIELD_RELEASE_DETAILS_URL           = "release_details_url";
 
     public static final String  SLASH                               = "/";
+
+    public static final long    SECONDS_PER_HOUR                    = 3_600;
 }

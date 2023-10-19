@@ -248,4 +248,12 @@ public class ClientTest {
         String directDownloadUri = discoClient.getPkgDirectDownloadUri("3c0cbf96ac87a7bbcf6bba8e8a9450b6");
         assertEquals("https://cdn.azul.com/zulu/bin/zulu19.0.65-ea-jdk19.0.0-ea.28-macosx_aarch64.zip", directDownloadUri);
     }
+
+    @Test
+    public void latestLtsAndStsTest() {
+        DiscoClient discoClient = new DiscoClient();
+        assert discoClient.getLatestLts().isPresent();
+        assert discoClient.getLatestSts().isPresent();
+        System.out.println(discoClient.getLatestSts().get());
+    }
 }

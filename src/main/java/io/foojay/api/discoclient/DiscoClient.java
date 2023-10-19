@@ -58,6 +58,7 @@ import java.net.URLConnection;
 import java.net.http.HttpResponse;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -95,8 +96,10 @@ public class DiscoClient {
     private static final String[]                               UX_DETECT_ARCH_CMDS  = { "/bin/sh", "-c", "uname -m" };
     private static final String[]                               WIN_DETECT_ARCH_CMDS = { "cmd", "-c", "echo %PROCESSOR_ARCHITECTURE%" };
     private final        Map<String, List<EvtObserver>>         observers            = new ConcurrentHashMap<>();
+    private final        List<MajorVersion>                     majorVersions        = new CopyOnWriteArrayList<>();
     private static       AtomicBoolean                          initialized          = new AtomicBoolean(false);
     private              String                                 userAgent            = "";
+    private              long                                   lastUpdate           = Instant.now().getEpochSecond();
 
 
     public DiscoClient() {
@@ -106,6 +109,7 @@ public class DiscoClient {
         this.userAgent = userAgent;
         PropertyManager.INSTANCE.set(PROPERTY_KEY_DISCO_VERSION, API_VERSION_V3);
         preloadDistributions();
+        this.majorVersions.addAll(getAllMajorVersions(Optional.of(Boolean.TRUE), Optional.of(Boolean.TRUE),Optional.of(Boolean.TRUE), Optional.of(Boolean.TRUE)));
     }
 
 
@@ -749,6 +753,33 @@ public class DiscoClient {
         return majorVersionsFound;
     }
 
+    public final Optional<Semver> getLatestLts() {
+        if (Instant.now().getEpochSecond() - lastUpdate > Constants.SECONDS_PER_HOUR) {
+            this.majorVersions.clear();
+            this.majorVersions.addAll(getAllMajorVersions(Optional.of(Boolean.TRUE), Optional.of(Boolean.TRUE),Optional.of(Boolean.TRUE), Optional.of(Boolean.TRUE)));
+        }
+        Optional<MajorVersion> latestLts = this.majorVersions.stream()
+                                                             .filter(majorVersion -> TermOfSupport.LTS == majorVersion.getTermOfSupport())
+                                                             .filter(majorVersion -> !majorVersion.getVersions().isEmpty())
+                                                             .sorted(Comparator.comparing(MajorVersion::getAsInt).reversed())
+                                                             .findFirst();
+
+        return latestLts.isPresent() ? Optional.of(latestLts.get().getVersions().get(0)) : Optional.empty();
+    }
+
+    public final Optional<Semver> getLatestSts() {
+        if (Instant.now().getEpochSecond() - lastUpdate > Constants.SECONDS_PER_HOUR) {
+            this.majorVersions.clear();
+            this.majorVersions.addAll(getAllMajorVersions(Optional.of(Boolean.TRUE), Optional.of(Boolean.TRUE),Optional.of(Boolean.TRUE), Optional.of(Boolean.TRUE)));
+        }
+        Optional<MajorVersion> latestSts = this.majorVersions.stream()
+                                                             .filter(majorVersion -> TermOfSupport.STS == majorVersion.getTermOfSupport() || TermOfSupport.MTS == majorVersion.getTermOfSupport())
+                                                             .filter(majorVersion -> !majorVersion.getVersions().isEmpty())
+                                                             .sorted(Comparator.comparing(MajorVersion::getAsInt).reversed())
+                                                             .findFirst();
+
+        return latestSts.isPresent() ? Optional.of(latestSts.get().getVersions().get(0)) : Optional.empty();
+    }
 
     public final CompletableFuture<List<MajorVersion>> getAllMajorVersionsAsync() { return getAllMajorVersionsAsync(false); }
     public final CompletableFuture<List<MajorVersion>> getAllMajorVersionsAsync(final boolean include_ea) { return getAllMajorVersionsAsync(include_ea, true); }
@@ -1161,7 +1192,7 @@ public class DiscoClient {
         try {
             List<String> features = null == feature ? List.of() : List.of(feature);
             Latest       latest   = null == distribution ? Latest.AVAILABLE : distribution.getApiString().startsWith("graalvm") ? Latest.OVERALL : Latest.AVAILABLE;
-            List<Pkg> pkgs = getPkgs(null == distribution ? null : List.of(distribution), semver.getVersionNumber(), latest, operatingSystem, LibCType.NONE, architecture, Bitness.NONE, ArchiveType.NONE, PackageType.JDK, javafxBundled, directlyDownloadable, List.of(ReleaseStatus.EA, ReleaseStatus.GA), TermOfSupport.NONE, features, List.of(Scope.PUBLIC), Match.ANY);
+            List<Pkg>    pkgs     = getPkgs(null == distribution ? null : List.of(distribution), semver.getVersionNumber(), latest, operatingSystem, LibCType.NONE, architecture, Bitness.NONE, ArchiveType.NONE, PackageType.JDK, javafxBundled, directlyDownloadable, List.of(ReleaseStatus.EA, ReleaseStatus.GA), TermOfSupport.NONE, features, List.of(Scope.PUBLIC), Match.ANY);
             Collections.sort(pkgs, Comparator.comparing(Pkg::getJavaVersion).reversed());
             if (pkgs.isEmpty()) {
                 return updatesFound;
