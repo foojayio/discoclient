@@ -6,7 +6,7 @@
 
     <groupId>io.foojay.api</groupId>
     <artifactId>discoclient</artifactId>
-    <version>21.0.0</version>
+    <version>21.0.1</version>
     <packaging>jar</packaging>
 
     <name>Discovery Client</name>

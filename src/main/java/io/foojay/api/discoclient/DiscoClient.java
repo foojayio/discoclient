@@ -1211,7 +1211,11 @@ public class DiscoClient {
                 return updatesFound;
             }
         } catch (RuntimeException e) {
-            System.out.println("Error getting updates for " + distribution.getName() + ": " + e);
+            if (null == distribution) {
+                System.out.println("Error getting updates for null. " + e);
+            } else {
+                System.out.println("Error getting updates for " + distribution.getName() + ": " + e);
+            }
         }
         return updatesFound;
     }
